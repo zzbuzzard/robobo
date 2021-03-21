@@ -2,30 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SpikeScript : MonoBehaviour
+// TODO: Should inherit from some kinda WeaponBlock class
+public class SpikeScript : Block
 {
     public GameObject sparks;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-
+    // TODO: Probably get rid of this nonsense and call TakeDamage() or whatever on collided block
     float force = 5000.0f;
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        // Don't do sparks if it's nobody or if it's me
         if (collision.rigidbody == null) return;
         if (collision.transform.parent == null || collision.transform.parent == transform.parent) return;
-
-        print("kachow");
 
         Vector2 avg_pos = Vector2.zero;
         Vector2 avg_normal = Vector2.zero;
