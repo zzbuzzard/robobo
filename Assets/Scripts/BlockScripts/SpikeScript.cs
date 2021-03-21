@@ -15,13 +15,10 @@ public class SpikeScript : Block
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Block b = collision.transform.GetComponent<Block>();
+        Block b = collision.collider.transform.GetComponent<Block>();
 
         // Don't do sparks if it's nobody or if it's part of the same parent
         if (b == null || b.GetParent() == parent) return;
-
-        // TODO: Something better than fixed damage every time
-        b.TakeDamage(damage);
 
         // Current method: Apply force at avg contact position, opposite to avg normal
         //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
@@ -38,5 +35,9 @@ public class SpikeScript : Block
         collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
 
         Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
+
+        // TODO: Something better than fixed damage every time
+        // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
+        b.TakeDamage(damage);
     }
 }

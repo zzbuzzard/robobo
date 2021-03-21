@@ -44,11 +44,22 @@ public abstract class Block : MonoBehaviour
 
     }
 
+    private bool dead = false;
+
     // TODO: Some kinda particle effect?
     private void Die()
     {
+        // make sure everything only dies once
+        if (dead) return;
+        dead = true;
+
         // detach and tell parent
         transform.SetParent(null);
         parent.BlocksChanged();
+
+        // Just for fun, so it can be kicked about
+        Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
+        rig.gravityScale = 0.0f;
+        rig.mass = density;
     }
 }

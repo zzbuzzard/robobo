@@ -41,6 +41,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hp: 10
+  density: 0.1
   sparks: {fileID: 4635022592639975620, guid: bc8593bb20c8d05418be2d49c2fe796a, type: 3}
 --- !u!1001 &3856037484163115791
 PrefabInstance:
@@ -51,7 +52,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3330776072051076601, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Name
-      value: spike_block
+      value: spike_block Variant
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Size.x

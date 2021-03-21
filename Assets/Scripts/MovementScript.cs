@@ -18,7 +18,7 @@ using UnityEngine;
 public class MovementScript : MonoBehaviour
 {
     public List<Vector2> wheelPositions;
-    private Vector2[] wheelForces;
+    //private Vector2[] wheelForces;
     private Vector2[] turnOneUnit;
 
     private List<GameObject> children;
@@ -28,24 +28,12 @@ public class MovementScript : MonoBehaviour
     //private float MASS;
     private float SMOA;
 
-    // 100, 5000
-    private float dampConst = 0.5f; // 2 is perfect critical damping, lower is faster turn but wobblier
-    private float moveForce = 500;
-    private float turnForce = 10000.0f;
-
-    // Front angle
-    private float front = 0.75f;
-
-    void Start()
-    {
-        mrig = GetComponent<Rigidbody2D>();
-
-        // Initialises turn forces etc
-        BlocksChanged();
-    }
+    public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
+    public float moveForce = 500;
+    public float turnForce = 10000.0f; // eek this is a bit high
 
     // e.g. lost a wheel/block
-    // TODO: remove from children/wheel list
+    // TODO: Lose wheels when containing block is lost, or something?
     public void BlocksChanged()
     {
         // Load children
@@ -56,13 +44,58 @@ public class MovementScript : MonoBehaviour
             children.Add(transform.GetChild(i).gameObject);
         }
 
-        wheelForces = new Vector2[wheelPositions.Count];
+        //wheelForces = new Vector2[wheelPositions.Count];
         turnOneUnit = new Vector2[wheelPositions.Count];
 
         LoadStats();
         LoadTurnOneUnit();
     }
 
+    public void ApplyTorque(float f)
+    {
+        for (int i = 0; i < wheelPositions.Count; i++)
+        {
+            ApplyForce(turnOneUnit[i] * f, wheelPositions[i]);
+            //wheelForces[i] += turnOneUnit[i] * f;
+        }
+    }
+
+    // returns the moment produced
+    // currently sets the force on every wheel to f
+    public float ApplyMovement(Vector2 f)
+    {
+        f *= moveForce;
+
+        float moment = 0;
+        for (int i = 0; i < wheelPositions.Count; i++)
+        {
+            //wheelForces[i] = f;
+            ApplyForce(f, wheelPositions[i]);
+            Vector2 comToPos = wheelPositions[i] - mrig.centerOfMass;
+            moment += Vector3.Cross(comToPos, f).z;
+        }
+        return moment;
+    }
+
+    public float CalculateTorque(float angle)
+    {
+        float c = dampConst * Mathf.Sqrt(SMOA * turnForce);
+        float dampingMoment = c * mrig.angularVelocity * Mathf.Deg2Rad;
+        float springMoment = angle * turnForce;
+
+        return Mathf.Clamp(springMoment - dampingMoment, -turnForce, turnForce);
+    }
+
+
+    // PRIVATE FUNCTIONS:
+
+    void Start()
+    {
+        mrig = GetComponent<Rigidbody2D>();
+        BlocksChanged();
+    }
+
+    // TODO: I scuffed arnavs calculation (in my defence, you don't seem to be able to do collider.area)
     private void LoadStats()
     {
         SMOA = 0;
@@ -98,7 +131,7 @@ public class MovementScript : MonoBehaviour
             moment += Vector3.Cross(comToPos, turnOneUnit[i]).z;
         }
 
-        // MOMENT CANCELLED OUT: THEY CAN'T TURN
+        // TODO: ... should probs do something about this?
         if (moment == 0)
         {
             Debug.LogWarning("CAN'T TURN");
@@ -111,38 +144,7 @@ public class MovementScript : MonoBehaviour
         }
     }
 
-    private void ApplyTorque(float f)
-    {
-        for (int i = 0; i < wheelPositions.Count; i++)
-        {
-            wheelForces[i] += turnOneUnit[i] * f;
-        }
-    }
-
-    // returns the moment produced
-    // sets the force on every wheel to f
-    private float ApplyMovement(Vector2 f)
-    {
-        float moment = 0;
-        for (int i = 0; i < wheelPositions.Count; i++)
-        {
-            wheelForces[i] = f;
-            Vector2 comToPos = wheelPositions[i] - mrig.centerOfMass;
-            moment += Vector3.Cross(comToPos, f).z;
-        }
-        return moment;
-    }
-
-    private float CalculateTorque(float angle)
-    {
-        float c = dampConst * Mathf.Sqrt(SMOA * turnForce);
-        float dampingMoment = c * mrig.angularVelocity * Mathf.Deg2Rad;
-        float springMoment = angle * turnForce;
-
-        return Mathf.Clamp(springMoment - dampingMoment, -turnForce, turnForce);
-    }
-
-    void ApplyForce(Vector2 localForce, Vector2 localPos)
+    private void ApplyForce(Vector2 localForce, Vector2 localPos)
     {
         Vector2 worldPos = transform.TransformPoint(localPos);
         Vector2 worldForce = transform.TransformDirection(localForce);
@@ -151,56 +153,13 @@ public class MovementScript : MonoBehaviour
 
     void FixedUpdate()
     {
-        Vector2 movement = Vector2.zero;
-        if (Input.GetKey(KeyCode.A))
-            movement.x -= 1;
-        if (Input.GetKey(KeyCode.D))
-            movement.x += 1;
-        if (Input.GetKey(KeyCode.W))
-            movement.y += 1;
-        if (Input.GetKey(KeyCode.S))
-            movement.y -= 1;
-
-        // world direction -> local direction
-        movement = transform.InverseTransformDirection(movement);
-        float cancelMoment = ApplyMovement(movement * moveForce);
-
-        Vector2 worldGoal = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 comWorld = mrig.worldCenterOfMass;
-
-        float ang = Vector2.SignedAngle(new Vector2(1, 0), worldGoal - comWorld) / 360.0f;
-        if (ang < 0) ang += 1;
-        float curAng = transform.rotation.eulerAngles.z / 360.0f - front;
-        if (curAng < 0) curAng += 1;
-
-        // get the two cases for rotation
-        float a, b;
-        if (curAng < ang)
-        {
-            a = ang - curAng;
-            b = ang - 1 - curAng;
-        }
-        else
-        {
-            a = ang + 1 - curAng;
-            b = ang - curAng;
-        }
-        float turn;
-        if (Mathf.Abs(a) < Mathf.Abs(b)) turn = a;
-        else turn = b;
-
-        turn = CalculateTorque(turn);
-
-        ApplyTorque(turn - cancelMoment);
-
-        for (int i = 0; i < wheelForces.Length; i++)
-        {
-            // TODO: Remove debug
-            Vector2 worldPos = transform.TransformPoint(wheelPositions[i]);
-            Vector2 worldForce = transform.TransformDirection(wheelForces[i]);
-            Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
-
-            ApplyForce(wheelForces[i], wheelPositions[i]);
-        }
+        // I miss this debugging thing ;(
+        // could add it back but wheelForces is gone
+        //for (int i = 0; i < wheelPositions.Count; i++)
+        //{
+        //    Vector2 worldPos = transform.TransformPoint(wheelPositions[i]);
+        //    Vector2 worldForce = transform.TransformDirection(wheelForces[i]);
+        //    Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
+        //}
     }
 }
