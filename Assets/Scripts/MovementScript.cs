@@ -40,6 +40,15 @@ public class MovementScript : MonoBehaviour
     {
         mrig = GetComponent<Rigidbody2D>();
 
+        // Initialises turn forces etc
+        BlocksChanged();
+    }
+
+    // e.g. lost a wheel/block
+    // TODO: remove from children/wheel list
+    public void BlocksChanged()
+    {
+        // Load children
         children = new List<GameObject>();
         int c = transform.childCount;
         for (int i = 0; i < c; i++)
@@ -47,14 +56,6 @@ public class MovementScript : MonoBehaviour
             children.Add(transform.GetChild(i).gameObject);
         }
 
-        // Initialises COM and turn forces
-        BlocksChanged();
-    }
-
-    // e.g. lost a wheel/block
-    // TODO: remove from children/wheel list
-    private void BlocksChanged()
-    {
         wheelForces = new Vector2[wheelPositions.Count];
         turnOneUnit = new Vector2[wheelPositions.Count];
 
