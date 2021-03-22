@@ -11,11 +11,12 @@ public class Robot
     {
         CONTROL,
         METAL,
-        SPIKE
+        SPIKE,
+        PISTON
     }
     
     // relative to Resources/Prefabs/BlockPrefabs
-    public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block" };
+    public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block", "piston_block" };
     public static GameObject[] blockTypePrefabs;
     public static void LoadBlockTypePrefabs()
     {
