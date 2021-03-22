@@ -25,8 +25,6 @@ public class EnemyScript : MonoBehaviour
         Vector2 playerPos = player.transform.TransformPoint(player.GetComponent<Rigidbody2D>().centerOfMass);
         Vector2 mPos = mrig.worldCenterOfMass;
 
-        print(playerPos);
-
         /////////////////////// Move:
         Vector2 movement = (playerPos - mPos).normalized;
         

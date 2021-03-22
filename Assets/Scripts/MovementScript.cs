@@ -32,23 +32,41 @@ public class MovementScript : MonoBehaviour
     public float moveForce = 500;
     public float turnForce = 10000.0f; // eek this is a bit high
 
-    // e.g. lost a wheel/block
-    // TODO: Lose wheels when containing block is lost, or something?
-    public void BlocksChanged()
+    BlockGraph blockGraph;
+    public void InitialiseGraph()
     {
-        // Load children
-        children = new List<GameObject>();
-        int c = transform.childCount;
-        for (int i = 0; i < c; i++)
+        List<Block> blocks = new List<Block>();
+        int index = 0;
+        int control = -1;
+
+        foreach (GameObject g in children)
         {
-            children.Add(transform.GetChild(i).gameObject);
+            Block b = g.GetComponent<Block>();
+            if (b != null)
+            {
+                if (b.IsControl()) control = index;
+                blocks.Add(b);
+                index++;
+            }
         }
 
-        //wheelForces = new Vector2[wheelPositions.Count];
-        turnOneUnit = new Vector2[wheelPositions.Count];
+        if (control == -1)
+        {
+            Debug.LogError("No control block in " + gameObject.name);
+            return;
+        }
 
-        LoadStats();
-        LoadTurnOneUnit();
+        blockGraph = new BlockGraph(blocks, control);
+    }
+
+    public void RemoveBlock(Block a)
+    {
+        List<Block> deaths = blockGraph.KillComponent(a);
+        foreach (Block b in deaths)
+        {
+            b.Die();
+        }
+        BlocksChanged();
     }
 
     public void ApplyTorque(float f)
@@ -93,6 +111,34 @@ public class MovementScript : MonoBehaviour
     {
         mrig = GetComponent<Rigidbody2D>();
         BlocksChanged();
+        InitialiseGraph();
+    }
+
+
+    // e.g. lost a wheel/block
+    // TODO: Lose wheels when containing block is lost, or something?    
+    private void BlocksChanged()
+    {
+        // Load children
+        children = new List<GameObject>();
+        int c = transform.childCount;
+        for (int i = 0; i < c; i++)
+        {
+            children.Add(transform.GetChild(i).gameObject);
+        }
+
+        // We have no children - just kill the gameobject.
+        if (children.Count == 0)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        //wheelForces = new Vector2[wheelPositions.Count];
+        turnOneUnit = new Vector2[wheelPositions.Count];
+
+        LoadStats();
+        LoadTurnOneUnit();
     }
 
     // TODO: I scuffed arnavs calculation (in my defence, you don't seem to be able to do collider.area)

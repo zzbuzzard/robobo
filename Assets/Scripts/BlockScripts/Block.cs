@@ -14,6 +14,14 @@ public abstract class Block : MonoBehaviour
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
     protected MovementScript parent; // the MovementScript of my parent
 
+    public int x, y;
+
+    // Overriden by ControlBlock
+    public virtual bool IsControl()
+    {
+        return false;
+    }
+
     // I have no idea why this is necessary. C# sucks
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public MovementScript GetParent()
@@ -47,19 +55,19 @@ public abstract class Block : MonoBehaviour
     private bool dead = false;
 
     // TODO: Some kinda particle effect?
-    private void Die()
+    public void Die()
     {
         // make sure everything only dies once
         if (dead) return;
         dead = true;
 
-        // detach and tell parent
-        transform.SetParent(null);
-        parent.BlocksChanged();
-
         // Just for fun, so it can be kicked about
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
         rig.mass = density;
+
+        // detach and tell parent
+        transform.SetParent(null);
+        parent.RemoveBlock(this);
     }
 }
