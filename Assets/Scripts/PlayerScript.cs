@@ -17,6 +17,13 @@ public class PlayerScript : MonoBehaviour
 
     void FixedUpdate()
     {
+
+        int c = transform.childCount;
+        if (c == 0)
+        {
+            Destroy(gameObject);
+            return;
+        }
         /////////////////////// Move:
         Vector2 movement = Vector2.zero;
         if (Input.GetKey(KeyCode.A))
