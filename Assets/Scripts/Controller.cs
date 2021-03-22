@@ -22,7 +22,9 @@ public class Controller
         dict[new XY(0, 0)]  = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.CONTROL, 0);
         dict[new XY(1, 0)]  = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.METAL, 0);
         dict[new XY(-1, 0)] = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.METAL, 0);
-        dict[new XY(0, 1)]  = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.SPIKE, 0);
+        dict[new XY(0, 1)]  = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.PISTON, 0);
+        dict[new XY(2, 0)] = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.SPIKE, 3);
+        dict[new XY(-2, 0)] = new System.Tuple<Robot.BlockType, int>(Robot.BlockType.SPIKE, 1);
 
         List<Vector2> wheelz = new List<Vector2>();
         wheelz.Add(new Vector2(-1.5f, 0.0f));
