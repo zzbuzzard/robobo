@@ -3,10 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 1) map (pos -> block)
-// 2) list of blocks (bad)
-// 3) 
-
 using XY = System.Tuple<int, int>;
 
 public class BlockGraph

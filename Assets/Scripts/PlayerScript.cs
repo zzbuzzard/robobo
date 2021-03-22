@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using XY = System.Tuple<int, int>;
+
 public class PlayerScript : MonoBehaviour
 {
     // Front angle
@@ -13,6 +15,22 @@ public class PlayerScript : MonoBehaviour
     void Start()
     {
         mrig = GetComponent<Rigidbody2D>();
+
+
+        // Example robot load:
+        //IDictionary<XY, Robot.BlockType> dict = new Dictionary<XY, Robot.BlockType>();
+
+        //dict[new XY(0, 0)] = Robot.BlockType.CONTROL;
+        //dict[new XY(1, 0)] = Robot.BlockType.METAL;
+        //dict[new XY(-1, 0)] = Robot.BlockType.METAL;
+        //dict[new XY(0, 1)] = Robot.BlockType.SPIKE;
+
+        //List<Vector2> wheelz = new List<Vector2>();
+        //wheelz.Add(new Vector2(-1.5f, 0.0f));
+        //wheelz.Add(new Vector2(11.5f, 0.0f));
+
+        //Robot test = new Robot(dict, new XY(0, 0), wheelz);
+        //mover.LoadRobot(test);
     }
 
     void FixedUpdate()

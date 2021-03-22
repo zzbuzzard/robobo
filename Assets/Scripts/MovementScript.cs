@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using XY = System.Tuple<int, int>;
+
 // Movement:
 // First, produce a set of forces which move in direction V
 //  -> Set all wheels force to V
@@ -32,6 +34,24 @@ public class MovementScript : MonoBehaviour
     public float moveForce = 500;
     public float turnForce = 10000.0f; // eek this is a bit high
 
+
+    public void LoadRobot(Robot robot)
+    {
+        transform.DetachChildren();
+        foreach (XY pos in robot.blocks.Keys)
+        {
+            Robot.BlockType type = robot.blocks[pos];
+            GameObject prefab = Robot.blockTypePrefabs[(int)type];
+
+            Instantiate(prefab, new Vector2(pos.Item1 * 1.5f, pos.Item2 * 1.5f), Quaternion.identity, transform);
+        }
+
+        wheelPositions = robot.wheels;
+
+        BlocksChanged();
+        InitialiseGraph();
+    }
+
     BlockGraph blockGraph;
     public void InitialiseGraph()
     {
@@ -52,7 +72,7 @@ public class MovementScript : MonoBehaviour
 
         if (control == -1)
         {
-            Debug.LogError("No control block in " + gameObject.name);
+            Debug.LogWarning("No control block in " + gameObject.name);
             return;
         }
 
@@ -111,8 +131,14 @@ public class MovementScript : MonoBehaviour
     void Start()
     {
         mrig = GetComponent<Rigidbody2D>();
-        BlocksChanged();
-        InitialiseGraph();
+
+        // Assumes that we are being loaded directly
+        if (transform.childCount > 0)
+        {
+            BlocksChanged();
+            InitialiseGraph();
+        }
+        // Otherwise, we wait for a LoadRobot call.
     }
 
     // e.g. lost a wheel/block
