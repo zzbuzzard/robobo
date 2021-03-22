@@ -20,7 +20,6 @@ public abstract class Block : MonoBehaviour
 
     protected virtual void Start()
     {
-        print(gameObject.name);
         maxHP = hp;
         myCollider = GetComponent<Collider2D>();
         myCollider.density = density;
