@@ -11,7 +11,7 @@ public class BlockGraph
     XY controlPos;
 
     // right, down, left, up
-    static int[] ox = { 1, 0, -1, 0 },
+    public static int[] ox = { 1, 0, -1, 0 },
            oy = { 0, -1, 0, 1 };
 
     // no clue what this documentation shit is
