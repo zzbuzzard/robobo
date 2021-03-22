@@ -89,6 +89,7 @@ public abstract class Block : MonoBehaviour
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
         rig.mass = density;
+        rig.drag = 0.5f;
 
         transform.SetParent(null);
         Destroy(this); // destroy this component

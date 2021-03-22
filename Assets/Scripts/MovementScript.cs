@@ -34,16 +34,27 @@ public class MovementScript : MonoBehaviour
     public float moveForce = 500;
     public float turnForce = 10000.0f; // eek this is a bit high
 
-
+    // Load in gameobjects based on this Robot object
     public void LoadRobot(Robot robot)
     {
+        mrig = GetComponent<Rigidbody2D>();
         transform.DetachChildren();
+
+        children = new List<GameObject>();
+
+        // Load in each block
         foreach (XY pos in robot.blocks.Keys)
         {
             Robot.BlockType type = robot.blocks[pos];
             GameObject prefab = Robot.blockTypePrefabs[(int)type];
 
-            Instantiate(prefab, new Vector2(pos.Item1 * 1.5f, pos.Item2 * 1.5f), Quaternion.identity, transform);
+            float zrot = robot.rotation[pos] * 90.0f;
+            Quaternion angle = Quaternion.Euler(0, 0, zrot);
+
+            GameObject obj = Instantiate(prefab, new Vector2(pos.Item1 * 1.5f, pos.Item2 * 1.5f), angle, transform);
+            Block block = obj.GetComponent<Block>();
+            block.x = pos.Item1;
+            block.y = pos.Item2;
         }
 
         wheelPositions = robot.wheels;

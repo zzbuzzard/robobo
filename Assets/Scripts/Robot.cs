@@ -32,12 +32,23 @@ public class Robot
     }
 
     public IDictionary<XY, BlockType> blocks;
+    public IDictionary<XY, int> rotation;
     public XY center;
     public List<Vector2> wheels;
 
-    public Robot(IDictionary<XY, BlockType> blocks, XY center, List<Vector2> wheels)
+    // Takes a map of (position) to a tuple (block type, rotation)
+    //  (rotation is an int, 0..3)
+    // Then the XY of the center, followed by the wheel positions
+    public Robot(IDictionary<XY, System.Tuple<BlockType, int>> blocks, XY center, List<Vector2> wheels)
     {
-        this.blocks = blocks;
+        this.blocks = new Dictionary<XY, BlockType>();
+        this.rotation = new Dictionary<XY, int>();
+        foreach (XY xy in blocks.Keys)
+        {
+            this.blocks[xy]   = blocks[xy].Item1;
+            this.rotation[xy] = blocks[xy].Item2;
+        }
+
         this.center = center;
         this.wheels = wheels;
     }
