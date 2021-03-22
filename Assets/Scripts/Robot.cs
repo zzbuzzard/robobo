@@ -13,13 +13,16 @@ public class Robot
         METAL,
         SPIKE,
         PISTON,
+        CHAINSAW,
 
         // Keep this one last
         NONE,
     }
 
+    public static Robot.BlockType[] weapons = { Robot.BlockType.SPIKE, Robot.BlockType.PISTON, Robot.BlockType.CHAINSAW };
+
     // relative to Resources/Prefabs/BlockPrefabs
-    public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block", "piston_block" };
+    public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block", "piston_block", "chainsaw_block" };
     public static GameObject[] blockTypePrefabs;
     public static void LoadBlockTypePrefabs()
     {
@@ -55,5 +58,85 @@ public class Robot
 
         this.center = center;
         this.wheels = wheels;
+    }
+
+    public static Robot GenerateRandomRobot(int blockNum, int weaponNum)
+    {
+        IDictionary<XY, System.Tuple<BlockType, int>> blocks = new Dictionary<XY, System.Tuple<BlockType, int>>();
+        blocks[new XY(0, 0)] = new System.Tuple<BlockType, int>(BlockType.CONTROL, 0);
+
+        IList<XY> spaces = new List<XY>();
+        for (int i = 0; i < 4; i++) spaces.Add(new XY(BlockGraph.ox[i], BlockGraph.oy[i]));
+
+        for (int _=0; _<blockNum-1; _++)
+        {
+            while (spaces.Count > 0)
+            {
+                int index = Random.Range(0, spaces.Count);
+                XY xy = spaces[index];
+                spaces.RemoveAt(index);
+
+                bool placed = false;
+
+                if (!blocks.ContainsKey(xy))
+                {
+                    blocks[xy] = new System.Tuple<BlockType, int>(BlockType.METAL, 0);
+                    placed = true;
+
+                    for (int i = 0; i < 4; i++)
+                    {
+                        XY xy2 = new XY(xy.Item1 + BlockGraph.ox[i], xy.Item2 + BlockGraph.oy[i]);
+                        if (!spaces.Contains(xy2) && !blocks.ContainsKey(xy2))
+                        {
+                            spaces.Add(xy2);
+                        }
+                    }
+                }
+
+                if (placed) break;
+            }
+        }
+
+        for (int _ = 0; _ < weaponNum; _++)
+        {
+            while(spaces.Count > 0)
+            {
+                int index = Random.Range(0, spaces.Count - 1);
+                XY xy = spaces[index];
+                spaces.RemoveAt(index);
+
+                if (!blocks.ContainsKey(xy))
+                {
+                    BlockType chosen = weapons[Random.Range(0, weapons.Length)];
+
+                    int ind = 2;
+                    for (int i=0; i<4; i++)
+                    {
+                        XY xy2 = new XY(xy.Item1 + BlockGraph.ox[i], xy.Item2 + BlockGraph.oy[i]);
+                        if (blocks.ContainsKey(xy2))
+                        {
+                            ind = i;
+                            break;
+                        }
+                    }
+                    ind = (2 + ind) % 4;
+                    blocks[xy] = new System.Tuple<BlockType, int>(chosen, ind);
+
+                    break;
+                }
+            }
+        }
+
+        List<Vector2> wheelz = new List<Vector2>();
+        int c = 0;
+        foreach (XY x in blocks.Keys) {
+            if (c == 0) {
+                c = 2;
+                wheelz.Add(new Vector2(x.Item1, x.Item2) * 1.5f);
+            }
+            else c--;
+        }
+
+        return new Robot(blocks, new XY(0, 0), wheelz);
     }
 }

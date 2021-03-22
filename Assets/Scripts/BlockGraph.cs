@@ -10,9 +10,9 @@ public class BlockGraph
     IDictionary<XY, Block> posMap;
     XY controlPos;
 
-    // right, down, left, up
-    public static int[] ox = { 1, 0, -1, 0 },
-           oy = { 0, -1, 0, 1 };
+    // up, left, down, right
+    public static int[] ox = { 0, -1, 0, 1 },
+           oy = { 1, 0, -1, 0 };
 
     // no clue what this documentation shit is
     /// <summary>

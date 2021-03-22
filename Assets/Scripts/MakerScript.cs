@@ -20,7 +20,8 @@ public class MakerScript : MonoBehaviour
         { 0, Robot.BlockType.CONTROL },
         { 1, Robot.BlockType.METAL },
         { 2, Robot.BlockType.SPIKE },
-        { 3, Robot.BlockType.PISTON }
+        { 3, Robot.BlockType.PISTON },
+        { 4, Robot.BlockType.CHAINSAW }
     };
 
     Robot.BlockType currentBlock = Robot.BlockType.METAL;

@@ -1072,22 +1072,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1986746555}
     m_Modifications:
-    - target: {fileID: 424367346286395868, guid: 933c84822f9f29a4aac50f681570566f, type: 3}
-      propertyPath: hp
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 424367346286395868, guid: 933c84822f9f29a4aac50f681570566f, type: 3}
-      propertyPath: force
-      value: -100000
-      objectReference: {fileID: 0}
-    - target: {fileID: 424367346286395868, guid: 933c84822f9f29a4aac50f681570566f, type: 3}
-      propertyPath: sparks
-      value: 
-      objectReference: {fileID: 4635022592639975620, guid: bc8593bb20c8d05418be2d49c2fe796a, type: 3}
-    - target: {fileID: 424367346286395868, guid: 933c84822f9f29a4aac50f681570566f, type: 3}
-      propertyPath: density
-      value: 10
-      objectReference: {fileID: 0}
     - target: {fileID: 8421856335448374592, guid: 933c84822f9f29a4aac50f681570566f, type: 3}
       propertyPath: m_RootOrder
       value: 0

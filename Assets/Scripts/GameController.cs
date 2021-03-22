@@ -7,6 +7,7 @@ using UnityEngine;
 public class GameController : MonoBehaviour
 {
     public GameObject player;
+    public GameObject enemy;
 
     // Load the game
     private void Awake()
@@ -16,5 +17,18 @@ public class GameController : MonoBehaviour
 
         GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
         playerObj.GetComponent<MovementScript>().LoadRobot(chosenRobot);
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            int blockz = Random.Range(3, 8);
+            int weaponz = Random.Range(1, blockz);
+            Robot r = Robot.GenerateRandomRobot(blockz, weaponz);
+
+            GameObject enemyObj = Instantiate(enemy, Vector2.zero, Quaternion.identity);
+            enemyObj.GetComponent<MovementScript>().LoadRobot(r);
+        }
     }
 }
