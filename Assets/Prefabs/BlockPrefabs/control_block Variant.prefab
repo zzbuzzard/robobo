@@ -38,8 +38,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe2de934f147cb242bb95664804df8ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 40
+  hp: 30
   density: 1.5
+  x: 0
+  y: 0
 --- !u!1001 &4630930988101120282
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49,7 +51,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3330776072051076601, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Name
-      value: control_block
+      value: control_block Variant
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Sprite

@@ -59,12 +59,13 @@ public class MovementScript : MonoBehaviour
         blockGraph = new BlockGraph(blocks, control);
     }
 
+    // Removes a block, and detaches all those who are no longer connected
     public void RemoveBlock(Block a)
     {
         List<Block> deaths = blockGraph.KillComponent(a);
         foreach (Block b in deaths)
         {
-            b.Die();
+            b.Detach();
         }
         BlocksChanged();
     }
@@ -114,7 +115,6 @@ public class MovementScript : MonoBehaviour
         InitialiseGraph();
     }
 
-
     // e.g. lost a wheel/block
     // TODO: Lose wheels when containing block is lost, or something?    
     private void BlocksChanged()
@@ -124,7 +124,10 @@ public class MovementScript : MonoBehaviour
         int c = transform.childCount;
         for (int i = 0; i < c; i++)
         {
-            children.Add(transform.GetChild(i).gameObject);
+            GameObject g = transform.GetChild(i).gameObject;
+            Block b = g.GetComponent<Block>();
+            if (b != null && !b.IsDead())
+                children.Add(g);
         }
 
         // We have no children - just kill the gameobject.

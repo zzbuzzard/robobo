@@ -38,6 +38,11 @@ public class BlockGraph
     public List<Block> KillComponent(Block a)
     {
         XY pos = new XY(a.x, a.y);
+
+        // Already been destroyed
+        if (!posMap.ContainsKey(pos))
+            return new List<Block>();
+
         posMap.Remove(pos);
 
         // Wow. This isn't the same as pos == controlPos, for whatever the fuck reason. 
@@ -49,7 +54,6 @@ public class BlockGraph
             {
                 deleted.Add(posMap[x]);
             }
-            deleted.Add(a);
             posMap.Clear();
             return deleted;
         }

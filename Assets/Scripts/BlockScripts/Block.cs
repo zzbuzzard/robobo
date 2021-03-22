@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // A script class, but it's abstract so can never be used
-// It's purpose is to define base behaviour for all blocks
+// Its purpose is to define base behaviour for all blocks
 
 // Enforce blocks have a collider
 [RequireComponent(typeof(Collider2D))]
@@ -16,6 +16,16 @@ public abstract class Block : MonoBehaviour
 
     public int x, y;
 
+    private int maxHP;
+
+    private void Start()
+    {
+        maxHP = hp;
+        myCollider = GetComponent<Collider2D>();
+        myCollider.density = density;
+        parent = transform.parent.GetComponent<MovementScript>();
+    }
+
     // Overriden by ControlBlock
     public virtual bool IsControl()
     {
@@ -27,13 +37,6 @@ public abstract class Block : MonoBehaviour
     public MovementScript GetParent()
     {
         return parent;
-    }
-
-    private void Start()
-    {
-        myCollider = GetComponent<Collider2D>();
-        myCollider.density = density;
-        parent = transform.parent.GetComponent<MovementScript>();
     }
 
     public void TakeDamage(int damage)
@@ -54,20 +57,40 @@ public abstract class Block : MonoBehaviour
 
     private bool dead = false;
 
-    // TODO: Some kinda particle effect?
-    public void Die()
+    public bool IsDead() { return dead; }
+
+    // SOMEONE ELSES' HP HIT ZERO: We were told by parent
+    public void Detach()
     {
         // make sure everything only dies once
         if (dead) return;
         dead = true;
 
+        // detach, but don't tell parent as we came from the parent
+        DestroyBlock();
+    }
+
+    // TODO: Some kinda particle effect?
+    // HP HIT ZERO: Tell parent
+    private void Die()
+    {
+        // make sure everything only dies once
+        if (dead) return;
+        dead = true;
+
+        // detach and tell parent
+        parent.RemoveBlock(this);
+        DestroyBlock();
+    }
+
+    private void DestroyBlock()
+    {
         // Just for fun, so it can be kicked about
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
         rig.mass = density;
 
-        // detach and tell parent
         transform.SetParent(null);
-        parent.RemoveBlock(this);
+        Destroy(this); // destroy this component
     }
 }
