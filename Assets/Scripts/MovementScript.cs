@@ -129,11 +129,13 @@ public class MovementScript : MonoBehaviour
 
     public float CalculateTorque(float angle)
     {
-        float c = dampConst * Mathf.Sqrt(SMOA * turnForce);
-        float dampingMoment = c * mrig.angularVelocity * Mathf.Deg2Rad;
-        float springMoment = angle * turnForce;
+        float maxTurn = turnForce * wheelPositions.Count;
 
-        return Mathf.Clamp(springMoment - dampingMoment, -turnForce, turnForce);
+        float c = dampConst * Mathf.Sqrt(SMOA * maxTurn);
+        float dampingMoment = c * mrig.angularVelocity * Mathf.Deg2Rad;
+        float springMoment = angle * maxTurn;
+
+        return Mathf.Clamp(springMoment - dampingMoment, -maxTurn, maxTurn);
     }
 
 

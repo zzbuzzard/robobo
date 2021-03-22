@@ -36,10 +36,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8dd9c6d261d3ad54c950338b97c5f3bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   hp: 100
-  density: 5
+  density: 3
   x: 0
   y: 0
   bone: {fileID: 0}
@@ -73,7 +73,7 @@ Animator:
   m_UpdateMode: 1
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
@@ -128,7 +128,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Sprite
-      value: 
+      value:
       objectReference: {fileID: 520077643628115487, guid: 35442099e8fa11644965da68c4644b69, type: 3}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Color.b
@@ -156,11 +156,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076606, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_LocalScale.x
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076606, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_LocalScale.y
-      value: 1
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076606, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_LocalScale.z
@@ -328,7 +328,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 0.2500001
+      value: 0.25000012
+      objectReference: {fileID: 0}
+    - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
+      propertyPath: m_Bounds.m_Extent.y
+      value: 0.31250018
       objectReference: {fileID: 0}
     - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Extent.y

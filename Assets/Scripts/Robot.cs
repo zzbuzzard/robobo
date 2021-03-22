@@ -12,9 +12,12 @@ public class Robot
         CONTROL,
         METAL,
         SPIKE,
-        PISTON
+        PISTON,
+
+        // Keep this one last
+        NONE,
     }
-    
+
     // relative to Resources/Prefabs/BlockPrefabs
     public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block", "piston_block" };
     public static GameObject[] blockTypePrefabs;
