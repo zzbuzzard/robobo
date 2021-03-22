@@ -3,10 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 1) map (pos -> block)
-// 2) list of blocks (bad)
-// 3) 
-
 using XY = System.Tuple<int, int>;
 
 public class BlockGraph
@@ -38,6 +34,11 @@ public class BlockGraph
     public List<Block> KillComponent(Block a)
     {
         XY pos = new XY(a.x, a.y);
+
+        // Already been destroyed
+        if (!posMap.ContainsKey(pos))
+            return new List<Block>();
+
         posMap.Remove(pos);
 
         // Wow. This isn't the same as pos == controlPos, for whatever the fuck reason. 
@@ -49,7 +50,6 @@ public class BlockGraph
             {
                 deleted.Add(posMap[x]);
             }
-            deleted.Add(a);
             posMap.Clear();
             return deleted;
         }

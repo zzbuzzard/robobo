@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using XY = System.Tuple<int, int>;
+
 // Movement:
 // First, produce a set of forces which move in direction V
 //  -> Set all wheels force to V
@@ -32,6 +34,35 @@ public class MovementScript : MonoBehaviour
     public float moveForce = 500;
     public float turnForce = 10000.0f; // eek this is a bit high
 
+    // Load in gameobjects based on this Robot object
+    public void LoadRobot(Robot robot)
+    {
+        mrig = GetComponent<Rigidbody2D>();
+        transform.DetachChildren();
+
+        children = new List<GameObject>();
+
+        // Load in each block
+        foreach (XY pos in robot.blocks.Keys)
+        {
+            Robot.BlockType type = robot.blocks[pos];
+            GameObject prefab = Robot.blockTypePrefabs[(int)type];
+
+            float zrot = robot.rotation[pos] * 90.0f;
+            Quaternion angle = Quaternion.Euler(0, 0, zrot);
+
+            GameObject obj = Instantiate(prefab, new Vector2(pos.Item1 * 1.5f, pos.Item2 * 1.5f), angle, transform);
+            Block block = obj.GetComponent<Block>();
+            block.x = pos.Item1;
+            block.y = pos.Item2;
+        }
+
+        wheelPositions = robot.wheels;
+
+        BlocksChanged();
+        InitialiseGraph();
+    }
+
     BlockGraph blockGraph;
     public void InitialiseGraph()
     {
@@ -52,19 +83,20 @@ public class MovementScript : MonoBehaviour
 
         if (control == -1)
         {
-            Debug.LogError("No control block in " + gameObject.name);
+            Debug.LogWarning("No control block in " + gameObject.name);
             return;
         }
 
         blockGraph = new BlockGraph(blocks, control);
     }
 
+    // Removes a block, and detaches all those who are no longer connected
     public void RemoveBlock(Block a)
     {
         List<Block> deaths = blockGraph.KillComponent(a);
         foreach (Block b in deaths)
         {
-            b.Die();
+            b.Detach();
         }
         BlocksChanged();
     }
@@ -110,10 +142,15 @@ public class MovementScript : MonoBehaviour
     void Start()
     {
         mrig = GetComponent<Rigidbody2D>();
-        BlocksChanged();
-        InitialiseGraph();
-    }
 
+        // Assumes that we are being loaded directly
+        if (transform.childCount > 0)
+        {
+            BlocksChanged();
+            InitialiseGraph();
+        }
+        // Otherwise, we wait for a LoadRobot call.
+    }
 
     // e.g. lost a wheel/block
     // TODO: Lose wheels when containing block is lost, or something?    
@@ -124,7 +161,10 @@ public class MovementScript : MonoBehaviour
         int c = transform.childCount;
         for (int i = 0; i < c; i++)
         {
-            children.Add(transform.GetChild(i).gameObject);
+            GameObject g = transform.GetChild(i).gameObject;
+            Block b = g.GetComponent<Block>();
+            if (b != null && !b.IsDead())
+                children.Add(g);
         }
 
         // We have no children - just kill the gameobject.

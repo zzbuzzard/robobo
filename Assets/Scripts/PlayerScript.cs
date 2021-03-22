@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using XY = System.Tuple<int, int>;
+
 public class PlayerScript : MonoBehaviour
 {
     // Front angle
