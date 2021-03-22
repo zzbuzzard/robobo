@@ -79,8 +79,8 @@ public abstract class Block : MonoBehaviour
         dead = true;
 
         // detach and tell parent
-        parent.RemoveBlock(this);
         DestroyBlock();
+        parent.RemoveBlock(this);
     }
 
     private void DestroyBlock()
