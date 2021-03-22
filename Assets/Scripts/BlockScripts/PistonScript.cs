@@ -6,8 +6,10 @@ public class PistonScript : Block
 {
     public Transform bone;
 
-    void Start()
+    protected override void Start()
     {
+        // Need to call Block.Start
+        base.Start();
         bone = transform.Find("Piston");
     }
 }

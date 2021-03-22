@@ -28,7 +28,7 @@ public class Controller
 
         List<Vector2> wheelz = new List<Vector2>();
         wheelz.Add(new Vector2(-1.5f, 0.0f));
-        wheelz.Add(new Vector2(11.5f, 0.0f));
+        wheelz.Add(new Vector2(1.5f, 0.0f));
 
         playerRobot = new Robot(dict, new XY(0, 0), wheelz);
     }
