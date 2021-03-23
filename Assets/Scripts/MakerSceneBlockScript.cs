@@ -1,13 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.EventSystems;
 using XY = System.Tuple<int, int>;
 
 public class MakerSceneBlockScript : MonoBehaviour
 {
     private Robot.BlockType currentBlock = Robot.BlockType.NONE;
-    int rotate = 0;
+    private int rotate = 0;
+    private SpriteRenderer rend;
 
     public Sprite emptySprite;
 
@@ -33,17 +34,19 @@ public class MakerSceneBlockScript : MonoBehaviour
         rotate = 0;
         SetTransform();
     }
+    public void MarkReachable(bool reachable)
+    {
+        rend.color = (reachable ? Color.white : Color.red);
+    }
 
     public bool IsEmpty()
     {
         return currentBlock == Robot.BlockType.NONE;
     }
-
     public Robot.BlockType GetBlock()
     {
         return currentBlock;
     }
-
     public int GetRotation()
     {
         return rotate;
@@ -62,17 +65,16 @@ public class MakerSceneBlockScript : MonoBehaviour
             rend.sprite = Robot.blockTypePrefabs[(int)currentBlock].GetComponent<SpriteRenderer>().sprite;
     }
 
-    private SpriteRenderer rend;
-
     private void Start()
     {
         rend = GetComponent<SpriteRenderer>();
         ClearBlock();
         SetTransform();
     }
-
     private void OnMouseDown()
     {
+        // Check GUI
+        if (EventSystem.current.IsPointerOverGameObject()) return;
         maker.SpaceClicked(this);
     }
 }

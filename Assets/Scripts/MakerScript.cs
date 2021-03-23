@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 using XY = System.Tuple<int, int>;
 
@@ -11,6 +13,10 @@ using XY = System.Tuple<int, int>;
 //  - Blocks where you can place
 //  - Click at bottom to select the thing you want
 //  - Then click a block, click again to rotate
+
+// TODO:
+//  - Allow for NxM blocks
+//  - Drag and drop: auto snaps to grid, including auto snapping rotation to nearest boi
 
 public class MakerScript : MonoBehaviour
 {
@@ -25,42 +31,69 @@ public class MakerScript : MonoBehaviour
     };
 
     Robot.BlockType currentBlock = Robot.BlockType.METAL;
+    //private IDictionary<XY, MakerSceneBlockScript> squares;
 
-    private IDictionary<XY, MakerSceneBlockScript> squares;
+    static int squareWidth = 10;
+    static int squareHeight = 10;
+    MakerSceneBlockScript[,] positions; // 2D array
+
     public GameObject squareObj;
+    public TextMeshProUGUI errorText;
+    public Button goButton;
+
+    // errors: if any are true, then it's invalid
+    public bool noControl { get; private set; }
+    public bool tooManyControl { get; private set; }
+    public bool disconnected { get; private set; }
+
+    private void GenerateSquares()
+    {
+        positions = new MakerSceneBlockScript[squareWidth, squareHeight];
+        for (int i=0; i<squareWidth; i++)
+        {
+            for (int j=0; j<squareHeight; j++)
+            {
+                GameObject obj = Instantiate(squareObj, new Vector2(i - squareWidth / 2.0f, j - squareHeight / 2.0f), Quaternion.identity);
+                MakerSceneBlockScript square = obj.GetComponent<MakerSceneBlockScript>();
+                square.pos = new XY(i, j);
+                square.maker = this;
+
+                positions[i, j] = square;
+            }
+        }
+    }
 
     void Start()
     {
-        squares = new Dictionary<XY, MakerSceneBlockScript>();
-        MakeSquare(new XY(0, 0));
+        GenerateSquares();
+        CheckIssues();
+
+        //squares = new Dictionary<XY, MakerSceneBlockScript>();
+        //MakeSquare(new XY(0, 0));
     }
 
-    private void MakeSquare(XY pos)
-    {
-        if (squares.ContainsKey(pos))
-        {
-            Debug.LogWarning("Trying to create a square at a position which is occupied");
-            return;
-        }
+    //private void MakeSquare(XY pos)
+    //{
+    //    if (squares.ContainsKey(pos))
+    //    {
+    //        Debug.LogWarning("Trying to create a square at a position which is occupied");
+    //        return;
+    //    }
 
-        GameObject obj = Instantiate(squareObj, new Vector3(pos.Item1, pos.Item2, 0.0f), Quaternion.identity);
-        MakerSceneBlockScript square = obj.GetComponent<MakerSceneBlockScript>();
-        square.pos = pos;
-        square.maker = this;
-        squares[pos] = square;
-    }
+    //    squares[pos] = square;
+    //}
 
-    private void DelSquare(XY pos)
-    {
-        if (!squares.ContainsKey(pos))
-        {
-            Debug.LogWarning("Trying to delete a square which didn't exist");
-            return;
-        }
-        MakerSceneBlockScript m = squares[pos];
-        Destroy(m.gameObject);
-        squares.Remove(pos);
-    }
+    //private void DelSquare(XY pos)
+    //{
+    //    if (!squares.ContainsKey(pos))
+    //    {
+    //        Debug.LogWarning("Trying to delete a square which didn't exist");
+    //        return;
+    //    }
+    //    MakerSceneBlockScript m = squares[pos];
+    //    Destroy(m.gameObject);
+    //    squares.Remove(pos);
+    //}
 
     public void SpaceClicked(MakerSceneBlockScript space)
     {
@@ -75,57 +108,76 @@ public class MakerScript : MonoBehaviour
             else space.Rotate();
         }
 
-        RecheckBounds();
+        CheckIssues();
     }
 
-    // Checks if valid (connected to start)
-    // Also checks if we have a control
-    // And places MakerSceneBlocks
-    private void RecheckBounds()
+    private void CheckIssues()
     {
-        // TODO: Search from start
+        bool[,] nodeSeen = new bool[squareWidth, squareHeight];
+        List<XY> controls = new List<XY>();
 
-        print("Rechecking bounds");
+        // Find control blocks
+        for (int i = 0; i < squareWidth; i++) {
+            for (int j = 0; j < squareHeight; j++) {
+                nodeSeen[i, j] = false;
+                if (positions[i, j] != null && positions[i, j].GetBlock() == Robot.BlockType.CONTROL) {
+                    controls.Add(new XY(i, j));
+                }
+            }
+        }
 
-        // bfs from each which isn't empty
+        tooManyControl = (controls.Count > 1);
+        noControl = (controls.Count == 0);
+
         Queue<XY> queue = new Queue<XY>();
-        ISet<XY> seen = new HashSet<XY>();
-        
-        foreach (XY x in squares.Keys)
+
+        // BFS from each control
+        foreach (XY xy in controls)
         {
-            if (!squares[x].IsEmpty() && !seen.Contains(x))
+            if (nodeSeen[xy.Item1, xy.Item2]) continue;
+            queue.Enqueue(xy);
+            nodeSeen[xy.Item1, xy.Item2] = true;
+
+            while (queue.Count > 0)
             {
-                queue.Enqueue(x);
-                seen.Add(x);
-
-                while (queue.Count > 0)
+                XY a = queue.Dequeue();
+                for (int i = 0; i < 4; i++)
                 {
-                    print("Queue size: " + queue.Count);
+                    XY b = new XY(a.Item1 + BlockGraph.ox[i], a.Item2 + BlockGraph.oy[i]);
 
-                    XY a = queue.Dequeue();
-                    for (int i=0; i<4; i++)
+                    if (b.Item1 >= 0 && b.Item1 < squareWidth && b.Item2 >= 0 && b.Item2 < squareHeight
+                        && !nodeSeen[b.Item1, b.Item2] && !positions[b.Item1, b.Item2].IsEmpty())
                     {
-                        XY b = new XY(a.Item1 + BlockGraph.ox[i], a.Item2 + BlockGraph.oy[i]);
-                        if (squares.ContainsKey(b) && !seen.Contains(b) && !squares[b].IsEmpty())
-                        {
-                            seen.Add(b);
-                            queue.Enqueue(b);
-                        }
+                        nodeSeen[b.Item1, b.Item2] = true;
+                        queue.Enqueue(b);
                     }
                 }
             }
         }
 
-        foreach (XY x in seen)
-        {
-            for (int i=0; i<4; i++)
-            {
-                XY y = new XY(x.Item1 + BlockGraph.ox[i], x.Item2 + BlockGraph.oy[i]);
-                if (!squares.ContainsKey(y))
-                {
-                    MakeSquare(y);
+        disconnected = false;
+
+        // Check for disconnected nodes, mark those reachable as "reachable"
+        for (int i = 0; i < squareWidth; i++) {
+            for (int j = 0; j < squareHeight; j++) {
+                if (positions[i, j].IsEmpty()) continue;
+
+                positions[i, j].MarkReachable(nodeSeen[i, j]);
+                if (!nodeSeen[i, j]) {
+                    disconnected = true;
                 }
             }
+        }
+
+        if (disconnected || tooManyControl || noControl)
+        {
+            errorText.SetText("Invalid robot, nerd");
+            goButton.interactable = false;
+        }
+        else
+        {
+            errorText.SetText("");
+            goButton.interactable = true;
         }
     }
 
@@ -141,6 +193,7 @@ public class MakerScript : MonoBehaviour
 
     public void StartClicked()
     {
+        if (noControl || tooManyControl || disconnected) return;
         Controller.playerRobot = GetRobot();
         SceneManager.LoadScene("ControlledScene");
     }
@@ -152,25 +205,29 @@ public class MakerScript : MonoBehaviour
 
         int tilWheel = 0;
         List<Vector2> wheelz = new List<Vector2>();
-        wheelz.Add(new Vector2(-1.5f, 0.0f));
-        wheelz.Add(new Vector2(1.5f, 0.0f));
 
-        foreach (XY x in squares.Keys)
+        for (int i = 0; i < squareWidth; i++)
         {
-            if (!squares[x].IsEmpty())
+            for (int j = 0; j < squareHeight; j++)
             {
-                dict[x] = new System.Tuple<Robot.BlockType, int>(
-                    squares[x].GetBlock(), squares[x].GetRotation()
-                    );
-
-                if (squares[x].GetBlock() == Robot.BlockType.CONTROL) center = x;
-
-                if (tilWheel == 0)
+                if (!positions[i, j].IsEmpty())
                 {
-                    tilWheel = 2;
-                    wheelz.Add(new Vector2(x.Item1, x.Item2) * 1.5f);
+                    XY x = new XY(i, j);
+
+                    dict[x] = new System.Tuple<Robot.BlockType, int>(
+                        positions[i, j].GetBlock(), positions[i, j].GetRotation());
+
+                    if (positions[i, j].GetBlock() == Robot.BlockType.CONTROL) center = x;
+
+                    // TODO: Remove. Better wheel system needed.
+                    if (tilWheel == 0)
+                    {
+                        tilWheel = 2;
+                        wheelz.Add(new Vector2(x.Item1, x.Item2) * 1.5f);
+                    }
+                    else tilWheel--;
                 }
-                else tilWheel--;
+
             }
         }
 
