@@ -39,7 +39,7 @@ public abstract class Block : MonoBehaviour
         return parent;
     }
 
-    public void TakeDamage(int damage)
+    public virtual void TakeDamage(int damage)
     {
         hp -= damage;
         if (hp <= 0)
