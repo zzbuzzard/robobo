@@ -21,6 +21,10 @@ public class MovementScript : MonoBehaviour
 {
     public List<Vector2> wheelPositions;
     //private Vector2[] wheelForces;
+
+    // TODO: REPLACE wheelPositions with wheels
+    public List<MovementBlock> wheels;
+
     private Vector2[] turnOneUnit;
 
     private List<GameObject> children;
@@ -61,6 +65,7 @@ public class MovementScript : MonoBehaviour
         BlocksChanged();
         InitialiseGraph(robot);
     }
+
     public void AddWheel(GameObject wheel)
     {
         wheelPositions.Add(wheel.transform.localPosition);
@@ -118,7 +123,7 @@ public class MovementScript : MonoBehaviour
     public void RemoveBlock(Block a)
     {
         blockGraph.RemoveAt(new XY(a.x, a.y));
-        if(a.WheelType() != Block.wheelType.BLOCK)
+        if(a.GetWheelType() != Block.WheelType.NONE)
         {
             bool r = wheelPositions.Remove(((HoverScript)a).parentObject.transform.localPosition);
             Debug.Log(r);
@@ -128,8 +133,8 @@ public class MovementScript : MonoBehaviour
         {
             Block b = blockDict[xy];
             b.Detach();
-            Debug.Log(b.WheelType());
-            if (b.WheelType() != Block.wheelType.BLOCK)
+            Debug.Log(b.GetWheelType());
+            if (b.GetWheelType() != Block.WheelType.NONE)
             {
                 bool r = wheelPositions.Remove(((HoverScript)b).parentObject.transform.localPosition);
                 Debug.Log(r);

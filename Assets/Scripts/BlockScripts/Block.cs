@@ -18,10 +18,9 @@ public abstract class Block : MonoBehaviour
 
     private int maxHP;
 
-
-    public enum wheelType
+    public enum WheelType
     {
-        BLOCK,
+        NONE,
         HOVER,
         WHEEL,
         TRACK
@@ -42,9 +41,9 @@ public abstract class Block : MonoBehaviour
     }
 
     // Overriden by wheels
-    public virtual wheelType WheelType()
+    public virtual WheelType GetWheelType()
     {
-        return wheelType.BLOCK;
+        return WheelType.NONE;
     }
 
     // I have no idea why this is necessary. C# sucks
