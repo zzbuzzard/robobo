@@ -36,23 +36,27 @@ public class MakerScript : MonoBehaviour
     static int squareWidth = 10;
     static int squareHeight = 10;
     MakerSceneBlockScript[,] positions; // 2D array
-    XY[,] posOccupiedBy;
-    private static XY nullXY = new XY(-1, -1);
+
+    //XY[,] posOccupiedBy;
+    //private static XY nullXY = new XY(-1, -1);
+
+    BlockGraph blockGraph;
 
     public GameObject squareObj;
     public TextMeshProUGUI errorText;
     public Button goButton;
 
     // errors: if any are true, then it's invalid
-    public bool noControl { get; private set; }
-    public bool tooManyControl { get; private set; }
-    public bool disconnected { get; private set; }
-    public bool overlaps { get; private set; }
+    //public bool noControl { get; private set; }
+    //public bool tooManyControl { get; private set; }
+    //public bool disconnected { get; private set; }
+    //public bool overlaps { get; private set; }
 
     private void GenerateSquares()
     {
+        blockGraph = new BlockGraph();
         positions = new MakerSceneBlockScript[squareWidth, squareHeight];
-        posOccupiedBy = new XY[squareWidth, squareHeight];
+        //posOccupiedBy = new XY[squareWidth, squareHeight];
 
         for (int i=0; i<squareWidth; i++)
         {
@@ -64,7 +68,7 @@ public class MakerScript : MonoBehaviour
                 square.maker = this;
 
                 positions[i, j] = square;
-                posOccupiedBy[i, j] = nullXY;
+                //posOccupiedBy[i, j] = nullXY;
             }
         }
     }
@@ -109,19 +113,29 @@ public class MakerScript : MonoBehaviour
 
             // If this space is empty, but it is actually part of another block,
             // Then forward this call to the real MakerSceneBlockScript
-            if (posOccupiedBy[pos.x, pos.y] != nullXY) {
-                XY realPos = posOccupiedBy[pos.x, pos.y];
+            if (blockGraph.IsOccupied(pos))
+            {
+                XY realPos = blockGraph.GetOccupiedBy(pos);
                 SpaceClicked(positions[realPos.x, realPos.y]);
                 return;
             }
 
             space.SetBlock(currentBlock);
+            blockGraph.AddBlock(pos, 0, currentBlock);
         }
         else
         {
             int r = space.GetRotation();
-            if (r == 3) space.ClearBlock();
-            else space.Rotate();
+            if (r == 3)
+            {
+                space.ClearBlock();
+                blockGraph.RemoveAt(space.pos);
+            }
+            else
+            {
+                space.Rotate();
+                blockGraph.RotateAt(space.pos);
+            }
         }
 
         CheckIssues();
@@ -129,115 +143,46 @@ public class MakerScript : MonoBehaviour
 
     private void CheckIssues()
     {
-        bool[,] nodeSeen = new bool[squareWidth, squareHeight];
-        List<XY> controls = new List<XY>();
-
-        // Initialise
-        for (int i = 0; i < squareWidth; i++) {
-            for (int j = 0; j < squareHeight; j++) {
-                nodeSeen[i, j] = false;
-                posOccupiedBy[i, j] = nullXY;
-            }
-        }
-
-        overlaps = false;
-
-        // Find control blocks + overlaps
-        for (int i = 0; i < squareWidth; i++) {
-            for (int j = 0; j < squareHeight; j++) {
-                if (positions[i, j].IsEmpty()) continue;
-
-                // Mark everything we occupy as occupied
-                BlockType block = positions[i, j].GetBlock();
-                List<XY> occupied = BlockInfo.blockTypeShapes[(int)block].GetOccupiedPositions
-                    (i, j, positions[i, j].GetRotation());
-                XY myPos = new XY(i, j);
-                foreach (XY xy in occupied) {
-                    if (posOccupiedBy[xy.x, xy.y] != nullXY) {
-                        overlaps = true;
-
-                        // XY other = posOccupiedBy[xy.x, xy.y];
-                        // positions[other.x, other.y].MarkOverlap(true);
-                    }
-
-                    posOccupiedBy[xy.x, xy.y] = myPos;
-                }
-
-                if (block == BlockType.CONTROL)
-                {
-                    controls.Add(new XY(i, j));
-                }
-            }
-        }
-
-        tooManyControl = (controls.Count > 1);
-        noControl = (controls.Count == 0);
-
-        Queue<XY> queue = new Queue<XY>();
-
-        // BFS from each control
-        foreach (XY xy in controls)
+        for (int i = 0; i < squareWidth; i++)
         {
-            if (nodeSeen[xy.x, xy.y]) continue;
-            queue.Enqueue(xy);
-            nodeSeen[xy.x, xy.y] = true;
-
-            while (queue.Count > 0)
+            for (int j = 0; j < squareHeight; j++)
             {
-                XY a = queue.Dequeue();
-                //Debug.Log("Got from queue " + a);
-
-                // Get neighbours
-                BlockType myBlock = positions[a.x, a.y].GetBlock();
-                int myRot = positions[a.x, a.y].GetRotation();
-                List<XY> neighours = BlockInfo.blockTypeShapes[(int)myBlock].GetJoins(a.x, a.y, myRot);
-
-                // Loop through neighbours
-                foreach (XY nei in neighours)
-                {
-                    if (nei.x >= 0 && nei.x < squareWidth && nei.y >= 0 && nei.y < squareHeight
-                        && posOccupiedBy[nei.x, nei.y] != nullXY)
-                        //&& !nodeSeen[nei.x, b.Item2] && !positions[b.Item1, b.Item2].IsEmpty())
-                    {
-                        // Get the block occupying this position
-                        XY loc = posOccupiedBy[nei.x, nei.y];
-                        BlockType neiBlock = positions[loc.x, loc.y].GetBlock();
-                        int neiRot = positions[loc.x, loc.y].GetRotation();
-
-                        // Just give up if we've seen it already
-                        if (nodeSeen[loc.x, loc.y]) continue;
-
-                        // Determine if the connection does in fact go both ways
-                        bool conn = BlockShape.IsConnected(
-                            a.x, a.y, myRot, myBlock,
-                            loc.x, loc.y, neiRot, neiBlock);
-
-                        if (conn)
-                        {
-                            //Debug.Log("Found " + loc);
-                            nodeSeen[loc.x, loc.y] = true;
-                            queue.Enqueue(loc);
-                        }
-                    }
-                }
-            }
-        }
-
-        disconnected = false;
-
-        // Check for disconnected nodes, mark those reachable as "reachable"
-        for (int i = 0; i < squareWidth; i++) {
-            for (int j = 0; j < squareHeight; j++) {
                 if (positions[i, j].IsEmpty()) continue;
-
-                positions[i, j].MarkReachable(nodeSeen[i, j]);
-                if (!nodeSeen[i, j]) {
-                    disconnected = true;
-                }
+                positions[i, j].MarkReachable(true);
             }
         }
 
-        if (disconnected || tooManyControl || noControl || overlaps)
+        foreach (XY xy in blockGraph.Unreachable())
+        {
+            positions[xy.x, xy.y].MarkReachable(false);
+        }
+
+        foreach (XY xy in blockGraph.GetOverlaps())
+        {
+            positions[xy.x, xy.y].MarkReachable(false);
+        }
+
+        bool valid = true;
+
+        if (!blockGraph.IsConnected())
+        {
+            valid = false;
+            // TODO: Error message
+        }
+
+        if (blockGraph.NumberOfControlBlocks() != 1)
+        {
+            valid = false;
+            // TODO: Error message
+        }
+
+        if (blockGraph.HasOverlaps())
+        {
+            valid = false;
+            // TODO: Error message
+        }
+
+        if (!valid)
         {
             errorText.SetText("Invalid robot, nerd");
             goButton.interactable = false;
@@ -261,7 +206,7 @@ public class MakerScript : MonoBehaviour
 
     public void StartClicked()
     {
-        if (noControl || tooManyControl || disconnected) return;
+        if (blockGraph==null || !blockGraph.IsValidRobot()) return;
         Controller.playerRobot = GetRobot();
         SceneManager.LoadScene("ControlledScene");
     }

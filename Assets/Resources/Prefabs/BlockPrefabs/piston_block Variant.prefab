@@ -36,14 +36,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8dd9c6d261d3ad54c950338b97c5f3bf, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   hp: 20
   density: 3
   x: 0
   y: 0
   bone: {fileID: 0}
-  force: 20000
+  force: 40000
 --- !u!111 &8547698959930579268
 Animation:
   m_ObjectHideFlags: 0
@@ -74,7 +74,7 @@ Animator:
   m_UpdateMode: 1
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
-  m_WarningMessage: 
+  m_WarningMessage:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
@@ -114,8 +114,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45045f2d5cc92404eb172dbddaadf392, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   parentObject: {fileID: 391696055384023858}
 --- !u!114 &1866905250671725073
 MonoBehaviour:
@@ -127,8 +127,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b27014e2a94ee14a8b84352bd555a32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   block: {fileID: 3978548364857575878, guid: 4b1d67dfdfbf94341849cd7f9fe6bcc8, type: 3}
 --- !u!1001 &3122927809793593035
 PrefabInstance:
@@ -139,7 +139,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1955328881520909848, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: block
-      value: 
+      value:
       objectReference: {fileID: 3978548364857575878}
     - target: {fileID: 3330776072051076601, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Name
@@ -159,7 +159,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Sprite
-      value: 
+      value:
       objectReference: {fileID: 520077643628115487, guid: 35442099e8fa11644965da68c4644b69, type: 3}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Color.b
