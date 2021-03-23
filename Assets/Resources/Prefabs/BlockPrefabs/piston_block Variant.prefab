@@ -43,7 +43,7 @@ MonoBehaviour:
   x: 0
   y: 0
   bone: {fileID: 0}
-  force: 10000
+  force: 40000
 --- !u!111 &8547698959930579268
 Animation:
   m_ObjectHideFlags: 0

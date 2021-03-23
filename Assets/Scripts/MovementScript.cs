@@ -37,11 +37,10 @@ public class MovementScript : MonoBehaviour
     // Load in gameobjects based on this Robot object
     public void LoadRobot(Robot robot)
     {
+        initialised = true;
         mrig = GetComponent<Rigidbody2D>();
         transform.DetachChildren();
-
-        children = new List<GameObject>();
-
+        
         // Load in each block
         foreach (XY pos in robot.blocks.Keys)
         {
@@ -60,12 +59,29 @@ public class MovementScript : MonoBehaviour
         wheelPositions = robot.wheels;
 
         BlocksChanged();
-        InitialiseGraph();
+        InitialiseGraph(robot);
     }
 
     BlockGraph blockGraph;
-    public void InitialiseGraph()
-    {
+    IDictionary<XY, Block> blockDict;
+    private bool initialised = false;
+
+    // Ah, isn't that beautiful
+    void InitialiseGraph(Robot robot) {
+        Debug.Log("Initialise graph non scuffed");
+        blockGraph = new BlockGraph(robot);
+
+        // TODO: Remove this, it'll slow things down v slightly
+        if (!blockGraph.IsValidRobot()) {
+            Debug.LogWarning(gameObject.name + "is an invalid robot!!!");
+        }
+    }
+
+    // Guesses the graph from the components
+    // Ok not guess it's not that bad it's just a bit scuffed
+    void InitialiseGraphScuffed() {
+        initialised = true;
+
         List<Block> blocks = new List<Block>();
         int index = 0;
         int control = -1;
@@ -87,15 +103,23 @@ public class MovementScript : MonoBehaviour
             return;
         }
 
-        blockGraph = new BlockGraph(blocks, control);
+        Debug.Log("Scuffed initialisation");
+        blockGraph = new BlockGraph();
+        foreach (Block b in blocks) {
+            // no dude thats too scuffed
+            blockGraph.AddBlock(new XY(b.x, b.y), 0, BlockType.METAL);
+        }
     }
 
     // Removes a block, and detaches all those who are no longer connected
     public void RemoveBlock(Block a)
     {
-        List<Block> deaths = blockGraph.KillComponent(a);
-        foreach (Block b in deaths)
+        blockGraph.RemoveAt(new XY(a.x, a.y));
+
+        List<XY> deaths = blockGraph.RemoveAllUnreachable();
+        foreach (XY xy in deaths)
         {
+            Block b = blockDict[xy];
             b.Detach();
         }
         BlocksChanged();
@@ -146,10 +170,10 @@ public class MovementScript : MonoBehaviour
         mrig = GetComponent<Rigidbody2D>();
 
         // Assumes that we are being loaded directly
-        if (transform.childCount > 0)
+        if (!initialised && transform.childCount > 0)
         {
             BlocksChanged();
-            InitialiseGraph();
+            InitialiseGraphScuffed();
         }
         // Otherwise, we wait for a LoadRobot call.
     }
@@ -158,15 +182,21 @@ public class MovementScript : MonoBehaviour
     // TODO: Lose wheels when containing block is lost, or something?    
     private void BlocksChanged()
     {
-        // Load children
+        blockDict = new Dictionary<XY, Block>();
         children = new List<GameObject>();
+
+        // Load children and blockDict
+
         int c = transform.childCount;
         for (int i = 0; i < c; i++)
         {
             GameObject g = transform.GetChild(i).gameObject;
             Block b = g.GetComponent<Block>();
             if (b != null && !b.IsDead())
+            {
                 children.Add(g);
+                blockDict[new XY(b.x, b.y)] = b;
+            }
         }
 
         // We have no children - just kill the gameobject.
