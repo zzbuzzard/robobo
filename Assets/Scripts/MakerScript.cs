@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-using XY = System.Tuple<int, int>;
+using XY = UnityEngine.Vector2Int;
 
 // Script to manage the making of a robot
 
@@ -21,21 +21,23 @@ using XY = System.Tuple<int, int>;
 public class MakerScript : MonoBehaviour
 {
     // Maps a button ID to the block type it represents
-    static IDictionary<int, Robot.BlockType> buttonToBlock = new Dictionary<int, Robot.BlockType>()
+    static IDictionary<int, BlockType> buttonToBlock = new Dictionary<int, BlockType>()
     {
-        { 0, Robot.BlockType.CONTROL },
-        { 1, Robot.BlockType.METAL },
-        { 2, Robot.BlockType.SPIKE },
-        { 3, Robot.BlockType.PISTON },
-        { 4, Robot.BlockType.CHAINSAW }
+        { 0, BlockType.CONTROL },
+        { 1, BlockType.METAL },
+        { 2, BlockType.SPIKE },
+        { 3, BlockType.PISTON },
+        { 4, BlockType.CHAINSAW }
     };
 
-    Robot.BlockType currentBlock = Robot.BlockType.METAL;
+    BlockType currentBlock = BlockType.METAL;
     //private IDictionary<XY, MakerSceneBlockScript> squares;
 
     static int squareWidth = 10;
     static int squareHeight = 10;
     MakerSceneBlockScript[,] positions; // 2D array
+    XY[,] posOccupiedBy;
+    private static XY nullXY = new XY(-1, -1);
 
     public GameObject squareObj;
     public TextMeshProUGUI errorText;
@@ -45,10 +47,13 @@ public class MakerScript : MonoBehaviour
     public bool noControl { get; private set; }
     public bool tooManyControl { get; private set; }
     public bool disconnected { get; private set; }
+    public bool overlaps { get; private set; }
 
     private void GenerateSquares()
     {
         positions = new MakerSceneBlockScript[squareWidth, squareHeight];
+        posOccupiedBy = new XY[squareWidth, squareHeight];
+
         for (int i=0; i<squareWidth; i++)
         {
             for (int j=0; j<squareHeight; j++)
@@ -59,6 +64,7 @@ public class MakerScript : MonoBehaviour
                 square.maker = this;
 
                 positions[i, j] = square;
+                posOccupiedBy[i, j] = nullXY;
             }
         }
     }
@@ -99,6 +105,16 @@ public class MakerScript : MonoBehaviour
     {
         if (space.IsEmpty())
         {
+            XY pos = space.pos;
+
+            // If this space is empty, but it is actually part of another block,
+            // Then forward this call to the real MakerSceneBlockScript
+            if (posOccupiedBy[pos.x, pos.y] != nullXY) {
+                XY realPos = posOccupiedBy[pos.x, pos.y];
+                SpaceClicked(positions[realPos.x, realPos.y]);
+                return;
+            }
+
             space.SetBlock(currentBlock);
         }
         else
@@ -116,11 +132,39 @@ public class MakerScript : MonoBehaviour
         bool[,] nodeSeen = new bool[squareWidth, squareHeight];
         List<XY> controls = new List<XY>();
 
-        // Find control blocks
+        // Initialise
         for (int i = 0; i < squareWidth; i++) {
             for (int j = 0; j < squareHeight; j++) {
                 nodeSeen[i, j] = false;
-                if (positions[i, j] != null && positions[i, j].GetBlock() == Robot.BlockType.CONTROL) {
+                posOccupiedBy[i, j] = nullXY;
+            }
+        }
+
+        overlaps = false;
+
+        // Find control blocks + overlaps
+        for (int i = 0; i < squareWidth; i++) {
+            for (int j = 0; j < squareHeight; j++) {
+                if (positions[i, j].IsEmpty()) continue;
+
+                // Mark everything we occupy as occupied
+                BlockType block = positions[i, j].GetBlock();
+                List<XY> occupied = BlockInfo.blockTypeShapes[(int)block].GetOccupiedPositions
+                    (i, j, positions[i, j].GetRotation());
+                XY myPos = new XY(i, j);
+                foreach (XY xy in occupied) {
+                    if (posOccupiedBy[xy.x, xy.y] != nullXY) {
+                        overlaps = true;
+
+                        // XY other = posOccupiedBy[xy.x, xy.y];
+                        // positions[other.x, other.y].MarkOverlap(true);
+                    }
+
+                    posOccupiedBy[xy.x, xy.y] = myPos;
+                }
+
+                if (block == BlockType.CONTROL)
+                {
                     controls.Add(new XY(i, j));
                 }
             }
@@ -134,22 +178,46 @@ public class MakerScript : MonoBehaviour
         // BFS from each control
         foreach (XY xy in controls)
         {
-            if (nodeSeen[xy.Item1, xy.Item2]) continue;
+            if (nodeSeen[xy.x, xy.y]) continue;
             queue.Enqueue(xy);
-            nodeSeen[xy.Item1, xy.Item2] = true;
+            nodeSeen[xy.x, xy.y] = true;
 
             while (queue.Count > 0)
             {
                 XY a = queue.Dequeue();
-                for (int i = 0; i < 4; i++)
-                {
-                    XY b = new XY(a.Item1 + BlockGraph.ox[i], a.Item2 + BlockGraph.oy[i]);
+                //Debug.Log("Got from queue " + a);
 
-                    if (b.Item1 >= 0 && b.Item1 < squareWidth && b.Item2 >= 0 && b.Item2 < squareHeight
-                        && !nodeSeen[b.Item1, b.Item2] && !positions[b.Item1, b.Item2].IsEmpty())
+                // Get neighbours
+                BlockType myBlock = positions[a.x, a.y].GetBlock();
+                int myRot = positions[a.x, a.y].GetRotation();
+                List<XY> neighours = BlockInfo.blockTypeShapes[(int)myBlock].GetJoins(a.x, a.y, myRot);
+
+                // Loop through neighbours
+                foreach (XY nei in neighours)
+                {
+                    if (nei.x >= 0 && nei.x < squareWidth && nei.y >= 0 && nei.y < squareHeight
+                        && posOccupiedBy[nei.x, nei.y] != nullXY)
+                        //&& !nodeSeen[nei.x, b.Item2] && !positions[b.Item1, b.Item2].IsEmpty())
                     {
-                        nodeSeen[b.Item1, b.Item2] = true;
-                        queue.Enqueue(b);
+                        // Get the block occupying this position
+                        XY loc = posOccupiedBy[nei.x, nei.y];
+                        BlockType neiBlock = positions[loc.x, loc.y].GetBlock();
+                        int neiRot = positions[loc.x, loc.y].GetRotation();
+
+                        // Just give up if we've seen it already
+                        if (nodeSeen[loc.x, loc.y]) continue;
+
+                        // Determine if the connection does in fact go both ways
+                        bool conn = BlockShape.IsConnected(
+                            a.x, a.y, myRot, myBlock,
+                            loc.x, loc.y, neiRot, neiBlock);
+
+                        if (conn)
+                        {
+                            //Debug.Log("Found " + loc);
+                            nodeSeen[loc.x, loc.y] = true;
+                            queue.Enqueue(loc);
+                        }
                     }
                 }
             }
@@ -169,7 +237,7 @@ public class MakerScript : MonoBehaviour
             }
         }
 
-        if (disconnected || tooManyControl || noControl)
+        if (disconnected || tooManyControl || noControl || overlaps)
         {
             errorText.SetText("Invalid robot, nerd");
             goButton.interactable = false;
@@ -200,7 +268,7 @@ public class MakerScript : MonoBehaviour
 
     public Robot GetRobot()
     {
-        IDictionary<XY, System.Tuple<Robot.BlockType, int>> dict = new Dictionary<XY, System.Tuple<Robot.BlockType, int>>();
+        IDictionary<XY, System.Tuple<BlockType, int>> dict = new Dictionary<XY, System.Tuple<BlockType, int>>();
         XY center = new XY(0, 0);
 
         int tilWheel = 0;
@@ -212,18 +280,18 @@ public class MakerScript : MonoBehaviour
             {
                 if (!positions[i, j].IsEmpty())
                 {
-                    XY x = new XY(i, j);
+                    XY xy = new XY(i, j);
 
-                    dict[x] = new System.Tuple<Robot.BlockType, int>(
+                    dict[xy] = new System.Tuple<BlockType, int>(
                         positions[i, j].GetBlock(), positions[i, j].GetRotation());
 
-                    if (positions[i, j].GetBlock() == Robot.BlockType.CONTROL) center = x;
+                    if (positions[i, j].GetBlock() == BlockType.CONTROL) center = xy;
 
                     // TODO: Remove. Better wheel system needed.
                     if (tilWheel == 0)
                     {
                         tilWheel = 2;
-                        wheelz.Add(new Vector2(x.Item1, x.Item2) * 1.5f);
+                        wheelz.Add(new Vector2(xy.x, xy.y) * 1.5f);
                     }
                     else tilWheel--;
                 }

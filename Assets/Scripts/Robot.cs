@@ -2,42 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using XY = System.Tuple<int, int>;
+using XY = UnityEngine.Vector2Int;
 
 // A class to store a robot (it's blocks, stats, etc...)
 public class Robot
 {
-    public enum BlockType
-    {
-        CONTROL,
-        METAL,
-        SPIKE,
-        PISTON,
-        CHAINSAW,
-
-        // Keep this one last
-        NONE,
-    }
-
-    public static Robot.BlockType[] weapons = { Robot.BlockType.SPIKE, Robot.BlockType.PISTON, Robot.BlockType.CHAINSAW };
-
-    // relative to Resources/Prefabs/BlockPrefabs
-    public static string[] blockTypePaths = { "control_block", "metal_block", "spike_block", "piston_block", "chainsaw_block" };
-    public static GameObject[] blockTypePrefabs;
-    public static void LoadBlockTypePrefabs()
-    {
-        int N = blockTypePaths.Length;
-        blockTypePrefabs = new GameObject[N];
-        for (int i = 0; i < N; i++)
-        {
-            blockTypePrefabs[i] = Resources.Load<GameObject>("Prefabs/BlockPrefabs/" + blockTypePaths[i] + " Variant");
-            if (blockTypePrefabs[i] == null)
-            {
-                Debug.LogWarning("Warning: Block \"" + blockTypePaths[i] + "\" not found.");
-            }
-        }
-    }
-
     public IDictionary<XY, BlockType> blocks;
     public IDictionary<XY, int> rotation;
     public XY center;
@@ -85,7 +54,7 @@ public class Robot
 
                     for (int i = 0; i < 4; i++)
                     {
-                        XY xy2 = new XY(xy.Item1 + BlockGraph.ox[i], xy.Item2 + BlockGraph.oy[i]);
+                        XY xy2 = new XY(xy.x + BlockGraph.ox[i], xy.y + BlockGraph.oy[i]);
                         if (!spaces.Contains(xy2) && !blocks.ContainsKey(xy2))
                         {
                             spaces.Add(xy2);
@@ -107,12 +76,12 @@ public class Robot
 
                 if (!blocks.ContainsKey(xy))
                 {
-                    BlockType chosen = weapons[Random.Range(0, weapons.Length)];
+                    BlockType chosen = BlockInfo.weapons[Random.Range(0, BlockInfo.weapons.Length)];
 
                     int ind = 2;
                     for (int i=0; i<4; i++)
                     {
-                        XY xy2 = new XY(xy.Item1 + BlockGraph.ox[i], xy.Item2 + BlockGraph.oy[i]);
+                        XY xy2 = new XY(xy.x + BlockGraph.ox[i], xy.y + BlockGraph.oy[i]);
                         if (blocks.ContainsKey(xy2))
                         {
                             ind = i;
@@ -129,10 +98,10 @@ public class Robot
 
         List<Vector2> wheelz = new List<Vector2>();
         int c = 0;
-        foreach (XY x in blocks.Keys) {
+        foreach (XY xy in blocks.Keys) {
             if (c == 0) {
                 c = 2;
-                wheelz.Add(new Vector2(x.Item1, x.Item2) * 1.5f);
+                wheelz.Add(new Vector2(xy.x, xy.y) * 1.5f);
             }
             else c--;
         }

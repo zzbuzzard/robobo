@@ -2,11 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using XY = System.Tuple<int, int>;
+using XY = UnityEngine.Vector2Int;
 
 public class MakerSceneBlockScript : MonoBehaviour
 {
-    private Robot.BlockType currentBlock = Robot.BlockType.NONE;
+    private BlockType currentBlock = BlockType.NONE;
     private int rotate = 0;
     private SpriteRenderer rend;
 
@@ -16,7 +16,7 @@ public class MakerSceneBlockScript : MonoBehaviour
     public XY pos;
     public MakerScript maker;
 
-    public void SetBlock(Robot.BlockType type)
+    public void SetBlock(BlockType type)
     {
         currentBlock = type;
         rotate = 0;
@@ -30,7 +30,7 @@ public class MakerSceneBlockScript : MonoBehaviour
     }
     public void ClearBlock()
     {
-        currentBlock = Robot.BlockType.NONE;
+        currentBlock = BlockType.NONE;
         rotate = 0;
         SetTransform();
     }
@@ -41,9 +41,9 @@ public class MakerSceneBlockScript : MonoBehaviour
 
     public bool IsEmpty()
     {
-        return currentBlock == Robot.BlockType.NONE;
+        return currentBlock == BlockType.NONE;
     }
-    public Robot.BlockType GetBlock()
+    public BlockType GetBlock()
     {
         return currentBlock;
     }
@@ -57,12 +57,12 @@ public class MakerSceneBlockScript : MonoBehaviour
         const float baseSize = 2.0f;
 
         transform.rotation = Quaternion.Euler(0, 0, 90.0f * rotate);
-        transform.localScale = Vector3.one * (currentBlock == Robot.BlockType.NONE ? 0.9f : 1.0f) * baseSize;
+        transform.localScale = Vector3.one * (currentBlock == BlockType.NONE ? 0.9f : 1.0f) * baseSize;
 
-        if (currentBlock == Robot.BlockType.NONE) 
+        if (currentBlock == BlockType.NONE) 
             rend.sprite = emptySprite;
         else
-            rend.sprite = Robot.blockTypePrefabs[(int)currentBlock].GetComponent<SpriteRenderer>().sprite;
+            rend.sprite = BlockInfo.blockTypePrefabs[(int)currentBlock].GetComponent<SpriteRenderer>().sprite;
     }
 
     private void Start()

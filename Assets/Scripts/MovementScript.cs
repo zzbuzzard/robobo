@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using XY = System.Tuple<int, int>;
+using XY = UnityEngine.Vector2Int;
 
 // Movement:
 // First, produce a set of forces which move in direction V
@@ -45,16 +45,16 @@ public class MovementScript : MonoBehaviour
         // Load in each block
         foreach (XY pos in robot.blocks.Keys)
         {
-            Robot.BlockType type = robot.blocks[pos];
-            GameObject prefab = Robot.blockTypePrefabs[(int)type];
+            BlockType type = robot.blocks[pos];
+            GameObject prefab = BlockInfo.blockTypePrefabs[(int)type];
 
             float zrot = robot.rotation[pos] * 90.0f;
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
-            GameObject obj = Instantiate(prefab, new Vector2(pos.Item1 * 1.5f, pos.Item2 * 1.5f), angle, transform);
+            GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f), angle, transform);
             Block block = obj.GetComponent<Block>();
-            block.x = pos.Item1;
-            block.y = pos.Item2;
+            block.x = pos.x;
+            block.y = pos.y;
         }
 
         wheelPositions = robot.wheels;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using XY = System.Tuple<int, int>;
+using XY = UnityEngine.Vector2Int;
 
 public class BlockGraph
 {
@@ -40,10 +40,8 @@ public class BlockGraph
             return new List<Block>();
 
         posMap.Remove(pos);
-
-        // Wow. This isn't the same as pos == controlPos, for whatever the fuck reason. 
-        // Theirs is referential equality only??
-        if (pos.Item1 == controlPos.Item1 && pos.Item2 == controlPos.Item2)
+        
+        if (pos.x == controlPos.x && pos.y == controlPos.y)
         {
             List<Block> deleted = new List<Block>();
             foreach (XY x in posMap.Keys)
@@ -68,7 +66,7 @@ public class BlockGraph
             // Four neighbours (right down left up)
             for (int i=0; i<4; i++)
             {
-                XY next = new XY(front.Item1 + ox[i], front.Item2 + oy[i]);
+                XY next = new XY(front.x + ox[i], front.y + oy[i]);
 
                 // Check if it has a block here, and the block is unseen
                 if (posMap.ContainsKey(next) && !seen.Contains(next))
