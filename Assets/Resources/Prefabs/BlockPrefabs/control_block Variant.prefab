@@ -49,6 +49,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1955328881520909848, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
+      propertyPath: block
+      value: 
+      objectReference: {fileID: 418001362}
     - target: {fileID: 3330776072051076601, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Name
       value: control_block Variant

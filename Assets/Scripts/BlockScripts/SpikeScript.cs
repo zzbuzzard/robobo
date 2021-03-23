@@ -16,8 +16,9 @@ public class SpikeScript : Block
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        Block b = collision.collider.transform.GetComponent<Block>();
-        
+        Damageable d = collision.collider.transform.GetComponent<Damageable>();
+        if (d == null) return;
+        Block b = d.block;
 
         // Don't do sparks if it's nobody or if it's part of the same parent
         if (b == null || b.GetParent() == parent) return;

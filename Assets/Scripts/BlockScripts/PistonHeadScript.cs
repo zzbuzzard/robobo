@@ -2,26 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PistonHeadScript : Block
+public class PistonHeadScript : MonoBehaviour
 {
 
 
-    protected PistonScript parent;
+    protected PistonScript parentPiston;
     public GameObject parentObject;
 
     void Start()
     {
-        parent = parentObject.GetComponent<PistonScript>();
+        parentPiston = parentObject.GetComponent<PistonScript>();
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        parent.PistonHeadCollision(collision);
+        parentPiston.PistonHeadCollision(collision);
 
-    }
-
-    public override void TakeDamage(int damage)
-    {
-        parent.TakeDamage(damage);
     }
 }
