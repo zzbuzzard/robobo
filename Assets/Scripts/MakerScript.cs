@@ -214,11 +214,8 @@ public class MakerScript : MonoBehaviour
 
     public Robot GetRobot()
     {
-        IDictionary<XY, System.Tuple<BlockType, int>> dict = new Dictionary<XY, System.Tuple<BlockType, int>>();
-        XY center = new XY(0, 0);
-
-        int tilWheel = 0;
-        List<Vector2> wheelz = new List<Vector2>();
+        IDictionary<XY, BlockType> blockType = new Dictionary<XY, BlockType>();
+        IDictionary<XY, int> rotations = new Dictionary<XY, int>();
 
         for (int i = 0; i < squareWidth; i++)
         {
@@ -228,20 +225,9 @@ public class MakerScript : MonoBehaviour
                 {
                     XY xy = new XY(i, j);
 
-                    dict[xy] = new System.Tuple<BlockType, int>(
-                        positions[i, j].GetBlock(), positions[i, j].GetRotation());
-
-                    if (positions[i, j].GetBlock() == BlockType.CONTROL) center = xy;
-
-                    // TODO: Remove. Better wheel system needed.
-                    if (tilWheel == 0)
-                    {
-                        tilWheel = 2;
-                        wheelz.Add(new Vector2(xy.x, xy.y) * 1.5f);
-                    }
-                    else tilWheel--;
+                    blockType[xy] = positions[i, j].GetBlock();
+                    rotations[xy] = positions[i, j].GetRotation();                    
                 }
-
             }
         }
 
@@ -249,6 +235,6 @@ public class MakerScript : MonoBehaviour
         // center XY
         // List (Vector2) wheels
 
-        return new Robot(dict, center, wheelz);
+        return new Robot(blockType, rotations);
     }
 }

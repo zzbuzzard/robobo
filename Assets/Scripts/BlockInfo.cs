@@ -120,6 +120,7 @@ public class BlockShape
 public class BlockInfo
 {
     public static BlockType[] weapons = { BlockType.SPIKE, BlockType.PISTON, BlockType.CHAINSAW };
+    public static BlockType[] wheels  = { BlockType.HOVER };
 
     // relative to Resources/Prefabs/BlockPrefabs
     public static string[] blockTypePaths = {
