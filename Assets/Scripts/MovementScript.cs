@@ -57,12 +57,15 @@ public class MovementScript : MonoBehaviour
             block.y = pos.y;
         }
 
-        wheelPositions = robot.wheels;
+        //wheelPositions = robot.wheels;
 
         BlocksChanged();
         InitialiseGraph();
     }
-
+    public void AddWheel(GameObject wheel)
+    {
+        wheelPositions.Add(wheel.transform.localPosition);
+    }
     BlockGraph blockGraph;
     public void InitialiseGraph()
     {
@@ -93,10 +96,22 @@ public class MovementScript : MonoBehaviour
     // Removes a block, and detaches all those who are no longer connected
     public void RemoveBlock(Block a)
     {
+        if (a.WheelType() != Block.wheelType.BLOCK)
+        {
+            bool r = wheelPositions.Remove(((HoverScript)a).parentObject.transform.localPosition);
+            Debug.Log(r);
+        }
         List<Block> deaths = blockGraph.KillComponent(a);
         foreach (Block b in deaths)
         {
             b.Detach();
+            Debug.Log(b.WheelType());
+            if (b.WheelType() != Block.wheelType.BLOCK)
+            {
+                bool r = wheelPositions.Remove(((HoverScript)b).parentObject.transform.localPosition);
+                Debug.Log(r);
+            }
+            
         }
         BlocksChanged();
     }
@@ -200,6 +215,7 @@ public class MovementScript : MonoBehaviour
     private void LoadTurnOneUnit()
     {
         int N = wheelPositions.Count;
+        if (N == 0) return;
         Vector2 totForce = Vector2.zero;
         Vector2 com = mrig.centerOfMass;
 
@@ -237,6 +253,7 @@ public class MovementScript : MonoBehaviour
         Vector2 worldPos = transform.TransformPoint(localPos);
         Vector2 worldForce = transform.TransformDirection(localForce);
         mrig.AddForceAtPosition(worldForce, worldPos);
+        Debug.DrawLine(worldPos, worldPos + worldForce * 0.1f, Color.green);
     }
 
     void FixedUpdate()

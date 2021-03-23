@@ -18,6 +18,15 @@ public abstract class Block : MonoBehaviour
 
     private int maxHP;
 
+
+    public enum wheelType
+    {
+        BLOCK,
+        HOVER,
+        WHEEL,
+        TRACK
+    }
+
     protected virtual void Start()
     {
         maxHP = hp;
@@ -30,6 +39,12 @@ public abstract class Block : MonoBehaviour
     public virtual bool IsControl()
     {
         return false;
+    }
+
+    // Overriden by wheels
+    public virtual wheelType WheelType()
+    {
+        return wheelType.BLOCK;
     }
 
     // I have no idea why this is necessary. C# sucks
@@ -77,10 +92,10 @@ public abstract class Block : MonoBehaviour
         // make sure everything only dies once
         if (dead) return;
         dead = true;
-
+        parent.RemoveBlock(this);
         // detach and tell parent
         DestroyBlock();
-        parent.RemoveBlock(this);
+        
     }
 
     private void DestroyBlock()

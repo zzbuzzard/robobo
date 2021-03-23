@@ -66,9 +66,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ab78ecd0a76759408c6d9ea5ad6a49b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wheelPositions:
-  - {x: -1.5, y: 0}
-  - {x: 1.5, y: 0}
+  wheelPositions: []
   dampConst: 0.5
   moveForce: 500
   turnForce: 10000
