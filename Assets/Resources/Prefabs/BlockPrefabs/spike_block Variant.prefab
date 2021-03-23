@@ -42,7 +42,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hp: 50
   density: 0.1
+  x: 0
+  y: 0
   sparks: {fileID: 4635022592639975620, guid: bc8593bb20c8d05418be2d49c2fe796a, type: 3}
+  damage_mul: 0.1
 --- !u!1001 &3856037484163115791
 PrefabInstance:
   m_ObjectHideFlags: 0

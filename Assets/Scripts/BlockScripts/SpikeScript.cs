@@ -12,10 +12,12 @@ public class SpikeScript : Block
 
     float force = 5000.0f;
     int damage = 5;
+    public float damage_mul = 1;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Block b = collision.collider.transform.GetComponent<Block>();
+        
 
         // Don't do sparks if it's nobody or if it's part of the same parent
         if (b == null || b.GetParent() == parent) return;
@@ -36,8 +38,11 @@ public class SpikeScript : Block
 
         Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
 
+
+        float increased_damage = damage * damage_mul * collision.relativeVelocity.magnitude;
+        Debug.Log(increased_damage);
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
-        b.TakeDamage(damage);
+        b.TakeDamage((int)increased_damage);
     }
 }

@@ -16,7 +16,7 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0.006353624}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
+    pivot: {x: 0.5, y: 0.4}
     oldSize: {x: 0.5, y: 0.625}
     newSize: {x: 0.5, y: 0.625}
     adaptiveTilingThreshold: 0.5
@@ -36,8 +36,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8dd9c6d261d3ad54c950338b97c5f3bf, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   hp: 100
   density: 3
   x: 0
@@ -73,7 +73,7 @@ Animator:
   m_UpdateMode: 1
   m_ApplyRootMotion: 0
   m_LinearVelocityBlending: 0
-  m_WarningMessage:
+  m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorControllerStateOnDisable: 0
@@ -128,7 +128,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Sprite
-      value:
+      value: 
       objectReference: {fileID: 520077643628115487, guid: 35442099e8fa11644965da68c4644b69, type: 3}
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_Color.b
@@ -149,6 +149,10 @@ PrefabInstance:
     - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_MaskInteraction
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
+      propertyPath: m_WasSpriteAssigned
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076606, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_RootOrder
@@ -206,8 +210,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
+    m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
 --- !u!1 &391696055384023858 stripped
 GameObject:
@@ -244,7 +247,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4739899743405752349, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: 0.000000029802322
+      value: 0.000000014901161
       objectReference: {fileID: 0}
     - target: {fileID: -4739899743405752349, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Center.z
@@ -252,11 +255,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4739899743405752349, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Extent.x
-      value: 0.25000003
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -4739899743405752349, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Extent.y
-      value: 0.25000003
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: -1127608514994740123, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_RootOrder
@@ -320,7 +323,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Center.y
-      value: 0.06250006
+      value: 0.06250009
       objectReference: {fileID: 0}
     - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Center.z
@@ -333,10 +336,6 @@ PrefabInstance:
     - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
       propertyPath: m_Bounds.m_Extent.y
       value: 0.31250018
-      objectReference: {fileID: 0}
-    - target: {fileID: 2045800013629763824, guid: 35442099e8fa11644965da68c4644b69, type: 3}
-      propertyPath: m_Bounds.m_Extent.y
-      value: 0.31250012
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 7377170880814958693, guid: 35442099e8fa11644965da68c4644b69, type: 3}
