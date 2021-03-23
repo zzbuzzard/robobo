@@ -27,7 +27,8 @@ public class MakerScript : MonoBehaviour
         { 1, BlockType.METAL },
         { 2, BlockType.SPIKE },
         { 3, BlockType.PISTON },
-        { 4, BlockType.CHAINSAW }
+        { 4, BlockType.CHAINSAW },
+        { 5, BlockType.HOVER }
     };
 
     BlockType currentBlock = BlockType.METAL;

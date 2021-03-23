@@ -11,6 +11,7 @@ public enum BlockType
     SPIKE,
     PISTON,
     CHAINSAW,
+    HOVER,
 
     // Keep this one last
     NONE,
@@ -127,6 +128,7 @@ public class BlockInfo
         "spike_block",
         "piston_block",
         "chainsaw_block",
+        "hover_block",
     };
     public static BlockShape[] blockTypeShapes = {
         BlockShape.OneByOne(),
@@ -142,7 +144,9 @@ public class BlockInfo
 
         // Chainsaw
         new BlockShape(new List<XY>(){ new XY(0, 0), new XY(0, 1) },
-            new List<XY>(){ new XY(0, -1), new XY(-1, 0), new XY(1, 0) })
+            new List<XY>(){ new XY(0, -1), new XY(-1, 0), new XY(1, 0) }),
+
+        BlockShape.OneByOne(),
     };
 
     public static GameObject[] blockTypePrefabs;
