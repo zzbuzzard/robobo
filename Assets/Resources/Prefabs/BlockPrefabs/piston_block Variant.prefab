@@ -38,7 +38,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8dd9c6d261d3ad54c950338b97c5f3bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 1
+  hp: 20
   density: 3
   x: 0
   y: 0
@@ -116,10 +116,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45045f2d5cc92404eb172dbddaadf392, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hp: 0
-  density: 0
-  x: 0
-  y: 0
   parentObject: {fileID: 391696055384023858}
 --- !u!114 &1866905250671725073
 MonoBehaviour:
