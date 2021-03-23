@@ -118,7 +118,11 @@ public class MovementScript : MonoBehaviour
     public void RemoveBlock(Block a)
     {
         blockGraph.RemoveAt(new XY(a.x, a.y));
-
+        if(a.WheelType() != Block.wheelType.BLOCK)
+        {
+            bool r = wheelPositions.Remove(((HoverScript)a).parentObject.transform.localPosition);
+            Debug.Log(r);
+        }
         List<XY> deaths = blockGraph.RemoveAllUnreachable();
         foreach (XY xy in deaths)
         {
