@@ -49,7 +49,7 @@ public class Robot
         }
     }
 
-    public static Robot GenerateRandomRobot(int blockNum, int weaponNum)
+    public static Robot GenerateRandomRobot(int blockNum, int weaponNum, float hoverProb = 0.2f)
     {
         BlockGraph blockGraph = new BlockGraph();
         blockGraph.AddBlock(new XY(0, 0), 0, BlockType.CONTROL);
@@ -57,6 +57,8 @@ public class Robot
         IList<XY> spaces = new List<XY>();
         foreach (XY xy in BlockInfo.blockTypeShapes[(int)BlockType.CONTROL].GetJoins(0, 0, 0))
             spaces.Add(xy);
+
+        bool hasWheel = false;
 
         // Place body
         for (int _=0; _<blockNum-1; _++)
@@ -67,10 +69,17 @@ public class Robot
                 XY xy = spaces[index];
                 spaces.RemoveAt(index);
 
-                if (blockGraph.CanPlace(xy, 0, BlockType.METAL))
+                BlockType chosen = BlockType.METAL;
+                if (Random.Range(0.0f, 1.0f) < hoverProb) chosen = BlockType.HOVER;
+                if (!hasWheel) {
+                    chosen = BlockType.HOVER;
+                    hasWheel = true;
+                }
+
+                if (blockGraph.CanPlace(xy, 0, chosen))
                 {
-                    blockGraph.AddBlock(xy, 0, BlockType.METAL);
-                    foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)BlockType.CONTROL].GetJoins(xy.x, xy.y, 0)) {
+                    blockGraph.AddBlock(xy, 0, chosen);
+                    foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)chosen].GetJoins(xy.x, xy.y, 0)) {
                         if (!blockGraph.IsOccupied(xy2))
                             spaces.Add(xy2);
                     }

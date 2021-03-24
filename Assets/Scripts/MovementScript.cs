@@ -19,18 +19,16 @@ using XY = UnityEngine.Vector2Int;
 [RequireComponent(typeof(Rigidbody2D))]
 public class MovementScript : MonoBehaviour
 {
-    // Positions
-    public List<XY> wheels;
-
-    private Vector2[] turnOneUnit;
-
-    private List<GameObject> children;
-
+    // Wheel positions in integer, relative, local coords
     Rigidbody2D mrig;
-
-    BlockGraph blockGraph;
-    IDictionary<XY, Block> blockDict;
     private bool initialised = false;
+
+    public List<XY> wheels;
+    private Vector2[] turnOneUnit; // Forces required to turn a unit about COM
+    private List<GameObject> children;
+    private BlockGraph blockGraph;
+    private IDictionary<XY, Block> blockDict;
+    private XY centerXY;
 
     //private float MASS;
     private float SMOA;
@@ -61,6 +59,7 @@ public class MovementScript : MonoBehaviour
             block.y = pos.y;
         }
 
+        centerXY = robot.center;
         wheels = robot.wheels;
 
         BlocksChanged();
@@ -78,10 +77,10 @@ public class MovementScript : MonoBehaviour
         }
     }
 
-    // Guesses the graph from the components
-    // Ok not guess it's not that bad it's just a bit scuffed
+    // TODO: Unscuff or just remove tbh
     void InitialiseGraphScuffed() {
         initialised = true;
+        centerXY = new XY(0, 0);
 
         List<Block> blocks = new List<Block>();
         int index = 0;
@@ -175,6 +174,13 @@ public class MovementScript : MonoBehaviour
 
         return Mathf.Clamp(springMoment - dampingMoment, -maxTurn, maxTurn);
     }
+
+    // World space
+    public Vector2 GetControlPos()
+    {
+        return transform.TransformPoint(1.5f * (Vector2)centerXY);
+    }
+
 
 
     // PRIVATE FUNCTIONS:

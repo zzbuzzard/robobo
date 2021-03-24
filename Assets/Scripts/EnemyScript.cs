@@ -22,7 +22,7 @@ public class EnemyScript : MonoBehaviour
     {
         if (player == null) return;
 
-        Vector2 playerPos = player.transform.TransformPoint(player.GetComponent<Rigidbody2D>().centerOfMass);
+        Vector2 playerPos = player.mover.GetControlPos();
         Vector2 mPos = mrig.worldCenterOfMass;
 
         /////////////////////// Move:
