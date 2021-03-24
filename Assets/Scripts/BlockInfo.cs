@@ -150,6 +150,10 @@ public class BlockInfo
         BlockShape.OneByOne(),
     };
 
+    public static bool[] blockRotatable = {
+        false, false, true, true, true, false
+    };
+
     public static GameObject[] blockTypePrefabs;
     public static void LoadBlockTypePrefabs()
     {

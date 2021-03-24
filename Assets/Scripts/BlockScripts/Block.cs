@@ -91,10 +91,10 @@ public abstract class Block : MonoBehaviour
         // make sure everything only dies once
         if (dead) return;
         dead = true;
-        parent.RemoveBlock(this);
+
         // detach and tell parent
+        parent.RemoveBlock(this);
         DestroyBlock();
-        
     }
 
     private void DestroyBlock()

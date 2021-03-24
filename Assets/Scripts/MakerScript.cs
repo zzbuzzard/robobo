@@ -126,8 +126,11 @@ public class MakerScript : MonoBehaviour
         }
         else
         {
+            bool rotatable = BlockInfo.blockRotatable[(int)space.GetBlock()];
+
             int r = space.GetRotation();
-            if (r == 3)
+
+            if (r == 3 || !rotatable)
             {
                 space.ClearBlock();
                 blockGraph.RemoveAt(space.pos);
