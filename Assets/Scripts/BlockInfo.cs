@@ -15,7 +15,7 @@ public enum BlockType
     HOVER,
 
     // Keep this one last
-    NONE,
+    NONE = -1,
 }
 
 public enum WheelType
@@ -24,7 +24,7 @@ public enum WheelType
     WHEEL,
     TRACK,
 
-    NONE,
+    NONE = -1,
 }
 
 public class BlockInfo

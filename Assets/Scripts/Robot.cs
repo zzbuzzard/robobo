@@ -1,8 +1,10 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEngine;
 
+using Random = UnityEngine.Random;
 using XY = UnityEngine.Vector2Int;
 
 // A class to store a robot (its blocks, stats, etc...)
@@ -129,5 +131,74 @@ public class Robot
         }
 
         return new Robot(map, map2);
+    }
+
+    public static void SaveRobotToFile(Robot robot, string name)
+    {
+        string path = Application.persistentDataPath + "/" + name + ".robot";
+        FileStream file;
+
+        if (File.Exists(path)) file = File.OpenWrite(path);
+        else file = File.Create(path);
+
+        // Save block types, rotations
+        // FORMAT: number, [x, y, BlockType, name]
+        BinaryWriter writer = new BinaryWriter(file);
+
+
+        Int32 count = (Int32)robot.blockTypes.Count;
+        writer.Write(count);
+        foreach (XY xy in robot.blockTypes.Keys)
+        {
+            Int32 x = (Int32)xy.x;
+            Int32 y = (Int32)xy.y;
+            Int16 block = (Int16)robot.blockTypes[xy];
+            Int16 rot = (Int16)robot.rotations[xy];
+
+            writer.Write(x);
+            writer.Write(y);
+            writer.Write(block);
+            writer.Write(rot);
+        }
+
+        writer.Close();
+        file.Close();
+    }
+
+    public static Robot LoadRobotFromFile(string name)
+    {
+        string path = Application.persistentDataPath + "/" + name + ".robot";
+        FileStream file;
+
+        if (!File.Exists(path))
+        {
+            Debug.LogError("File didn't exist! Robot name " + name);
+        }
+
+        file = File.OpenRead(path);
+
+        // FORMAT: number, [x, y, BlockType, name]
+        BinaryReader reader = new BinaryReader(file);
+        Int32 count = reader.ReadInt32();
+
+        IDictionary<XY, BlockType> blockTypes = new Dictionary<XY, BlockType>();
+        IDictionary<XY, int> rotations = new Dictionary<XY, int>();
+
+        for (int i=0; i<count; i++)
+        {
+            int x     = reader.ReadInt32();
+            int y     = reader.ReadInt32();
+            int block = reader.ReadInt16();
+            int rot   = reader.ReadInt16();
+
+            XY pos = new XY(x, y);
+            BlockType blockType = (BlockType)Enum.ToObject(typeof(BlockType), block);
+
+            blockTypes[pos] = blockType;
+            rotations[pos] = rot;
+        }
+        file.Close();
+
+        return new Robot(blockTypes, rotations);
     }
 }
