@@ -76,13 +76,6 @@ public class MovementScript : MonoBehaviour
             }
         }
     }
-    public void AddWheel(GameObject wheel)
-    {
-        wheelPositions.Add(wheel.transform.localPosition);
-    }
-    BlockGraph blockGraph;
-    IDictionary<XY, Block> blockDict;
-    private bool initialised = false;
 
     // Ah, isn't that beautiful
     void InitialiseGraph(Robot robot) {
