@@ -120,6 +120,7 @@ public class BlockShape
 public class BlockInfo
 {
     public static BlockType[] weapons = { BlockType.SPIKE, BlockType.PISTON, BlockType.CHAINSAW };
+    public static BlockType[] wheels  = { BlockType.HOVER };
 
     // relative to Resources/Prefabs/BlockPrefabs
     public static string[] blockTypePaths = {
@@ -139,7 +140,7 @@ public class BlockInfo
             new List<XY>(){ new XY(0, -1) }),
 
         // Piston - cant go in front
-        new BlockShape(new List<XY>(){ new XY(0, 0) },
+        new BlockShape(new List<XY>(){ new XY(0, 0), new XY(0, 1) },
             new List<XY>(){ new XY(0, -1), new XY(1, 0), new XY(-1, 0) }),
 
         // Chainsaw
@@ -147,6 +148,10 @@ public class BlockInfo
             new List<XY>(){ new XY(0, -1), new XY(-1, 0), new XY(1, 0) }),
 
         BlockShape.OneByOne(),
+    };
+
+    public static bool[] blockRotatable = {
+        false, false, true, true, true, false
     };
 
     public static GameObject[] blockTypePrefabs;

@@ -52,9 +52,9 @@ public class BlockGraph
         controlSet = new HashSet<XY>();
         overlappingBlocks = new HashSet<XY>();
 
-        foreach (XY xy in robot.blocks.Keys) {
-            BlockType type = robot.blocks[xy];
-            int rot = robot.rotation[xy];
+        foreach (XY xy in robot.blockTypes.Keys) {
+            BlockType type = robot.blockTypes[xy];
+            int rot = robot.rotations[xy];
 
             AddBlock(xy, rot, type);
         }

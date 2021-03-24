@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 using XY = UnityEngine.Vector2Int;
@@ -7,29 +8,48 @@ using XY = UnityEngine.Vector2Int;
 // A class to store a robot (its blocks, stats, etc...)
 public class Robot
 {
-    public IDictionary<XY, BlockType> blocks;
-    public IDictionary<XY, int> rotation;
+    public IDictionary<XY, BlockType> blockTypes;
+    public IDictionary<XY, int> rotations;
+
     public XY center;
-    public List<Vector2> wheels;
+    public List<XY> wheels;
 
     // Takes a map of (position) to a tuple (block type, rotation)
     //  (rotation is an int, 0..3)
     // Then the XY of the center, followed by the wheel positions
-    public Robot(IDictionary<XY, System.Tuple<BlockType, int>> blocks, XY center, List<Vector2> wheels)
+    public Robot(IDictionary<XY, BlockType> blockTypes, IDictionary<XY, int> rotations)
     {
-        this.blocks = new Dictionary<XY, BlockType>();
-        this.rotation = new Dictionary<XY, int>();
-        foreach (XY xy in blocks.Keys)
+        this.blockTypes = blockTypes;
+        this.rotations = rotations;
+
+        wheels = new List<XY>();
+
+        int c = 0;
+        foreach (XY xy in blockTypes.Keys)
         {
-            this.blocks[xy]   = blocks[xy].Item1;
-            this.rotation[xy] = blocks[xy].Item2;
+            BlockType type = blockTypes[xy];
+            
+            // Check if control
+            if (type == BlockType.CONTROL)
+            {
+                c++;
+                center = xy;
+            }
+
+            // Check if wheel
+            if (BlockInfo.wheels.Contains(type))
+            {
+                wheels.Add(xy);
+            }
         }
 
-        this.center = center;
-        this.wheels = wheels;
+        if (c != 1)
+        {
+            Debug.LogWarning("Constructing a robot with the incorrect number of control blocks: " + c);
+        }
     }
 
-    public static Robot GenerateRandomRobot(int blockNum, int weaponNum)
+    public static Robot GenerateRandomRobot(int blockNum, int weaponNum, float hoverProb = 0.2f)
     {
         BlockGraph blockGraph = new BlockGraph();
         blockGraph.AddBlock(new XY(0, 0), 0, BlockType.CONTROL);
@@ -37,6 +57,8 @@ public class Robot
         IList<XY> spaces = new List<XY>();
         foreach (XY xy in BlockInfo.blockTypeShapes[(int)BlockType.CONTROL].GetJoins(0, 0, 0))
             spaces.Add(xy);
+
+        bool hasWheel = false;
 
         // Place body
         for (int _=0; _<blockNum-1; _++)
@@ -47,10 +69,17 @@ public class Robot
                 XY xy = spaces[index];
                 spaces.RemoveAt(index);
 
-                if (blockGraph.CanPlace(xy, 0, BlockType.METAL))
+                BlockType chosen = BlockType.METAL;
+                if (Random.Range(0.0f, 1.0f) < hoverProb) chosen = BlockType.HOVER;
+                if (!hasWheel) {
+                    chosen = BlockType.HOVER;
+                    hasWheel = true;
+                }
+
+                if (blockGraph.CanPlace(xy, 0, chosen))
                 {
-                    blockGraph.AddBlock(xy, 0, BlockType.METAL);
-                    foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)BlockType.CONTROL].GetJoins(xy.x, xy.y, 0)) {
+                    blockGraph.AddBlock(xy, 0, chosen);
+                    foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)chosen].GetJoins(xy.x, xy.y, 0)) {
                         if (!blockGraph.IsOccupied(xy2))
                             spaces.Add(xy2);
                     }
@@ -90,21 +119,15 @@ public class Robot
             }
         }
 
-        List<Vector2> wheelz = new List<Vector2>();
-        IDictionary<XY, System.Tuple<BlockType, int>> map = new Dictionary<XY, System.Tuple<BlockType, int>>();
+        IDictionary<XY, BlockType> map = new Dictionary<XY, BlockType>();
+        IDictionary<XY, int> map2 = new Dictionary<XY, int>();
 
-        int c = 0;
         foreach (XY xy in blockGraph.GetBlockPositions()) {
-            if (c == 0) {
-                c = 2;
-                wheelz.Add(new Vector2(xy.x, xy.y) * 1.5f);
-            }
-            else c--;
-
             BlockGraph.BlockData data = blockGraph.GetBlockData(xy);
-            map[xy] = new System.Tuple<BlockType, int>(data.type, data.rot);
+            map[xy] = data.type;
+            map2[xy] = data.rot;
         }
 
-        return new Robot(map, new XY(0, 0), wheelz);
+        return new Robot(map, map2);
     }
 }

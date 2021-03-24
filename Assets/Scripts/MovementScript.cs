@@ -19,17 +19,16 @@ using XY = UnityEngine.Vector2Int;
 [RequireComponent(typeof(Rigidbody2D))]
 public class MovementScript : MonoBehaviour
 {
-    public List<Vector2> wheelPositions;
-    //private Vector2[] wheelForces;
-
-    // TODO: REPLACE wheelPositions with wheels
-    public List<MovementBlock> wheels;
-
-    private Vector2[] turnOneUnit;
-
-    private List<GameObject> children;
-
+    // Wheel positions in integer, relative, local coords
     Rigidbody2D mrig;
+    private bool initialised = false;
+
+    public List<XY> wheels;
+    private Vector2[] turnOneUnit; // Forces required to turn a unit about COM
+    private List<GameObject> children;
+    private BlockGraph blockGraph;
+    private IDictionary<XY, Block> blockDict;
+    private XY centerXY;
 
     //private float MASS;
     private float SMOA;
@@ -46,12 +45,12 @@ public class MovementScript : MonoBehaviour
         transform.DetachChildren();
 
         // Load in each block
-        foreach (XY pos in robot.blocks.Keys)
+        foreach (XY pos in robot.blockTypes.Keys)
         {
-            BlockType type = robot.blocks[pos];
+            BlockType type = robot.blockTypes[pos];
             GameObject prefab = BlockInfo.blockTypePrefabs[(int)type];
 
-            float zrot = robot.rotation[pos] * 90.0f;
+            float zrot = robot.rotations[pos] * 90.0f;
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
             GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f), angle, transform);
@@ -60,7 +59,8 @@ public class MovementScript : MonoBehaviour
             block.y = pos.y;
         }
 
-        //wheelPositions = robot.wheels;
+        centerXY = robot.center;
+        wheels = robot.wheels;
 
         BlocksChanged();
         InitialiseGraph(robot);
@@ -95,10 +95,10 @@ public class MovementScript : MonoBehaviour
         }
     }
 
-    // Guesses the graph from the components
-    // Ok not guess it's not that bad it's just a bit scuffed
+    // TODO: Unscuff or just remove tbh
     void InitialiseGraphScuffed() {
         initialised = true;
+        centerXY = new XY(0, 0);
 
         List<Block> blocks = new List<Block>();
         int index = 0;
@@ -132,35 +132,34 @@ public class MovementScript : MonoBehaviour
     // Removes a block, and detaches all those who are no longer connected
     public void RemoveBlock(Block a)
     {
-        blockGraph.RemoveAt(new XY(a.x, a.y));
-        if(a.GetWheelType() != Block.WheelType.NONE)
-        {
-            bool r = wheelPositions.Remove(((HoverScript)a).parentObject.transform.localPosition);
-            Debug.Log(r);
-        }
+        XY pos = new XY(a.x, a.y);
+        blockGraph.RemoveAt(pos);
+
+        // Delete from wheels if wheel
+        if (a.GetWheelType() != Block.WheelType.NONE)
+            wheels.Remove(pos);
+
         List<XY> deaths = blockGraph.RemoveAllUnreachable();
         foreach (XY xy in deaths)
         {
             Block b = blockDict[xy];
             b.Detach();
-            Debug.Log(b.GetWheelType());
-            if (b.GetWheelType() != Block.WheelType.NONE)
-            {
-                bool r = wheelPositions.Remove(((HoverScript)b).parentObject.transform.localPosition);
-                Debug.Log(r);
-            }
 
+            // Delete from wheels if wheel
+            if (b.GetWheelType() != Block.WheelType.NONE)
+                wheels.Remove(new XY(b.x, b.y));
         }
         BlocksChanged();
     }
 
     public void ApplyTorque(float f)
     {
-        if (wheelPositions.Count == 0) return;
-        for (int i = 0; i < wheelPositions.Count; i++)
+        for (int i = 0; i < wheels.Count; i++)
         {
-            ApplyForce(turnOneUnit[i] * f, wheelPositions[i]);
-            //wheelForces[i] += turnOneUnit[i] * f;
+            // TODO: Should this be through the COM? Though, it doesnt have a COM as it has no rigidbody
+            Vector2 wheelPos = blockDict[wheels[i]].transform.localPosition;
+
+            ApplyForce(turnOneUnit[i] * f, wheelPos);
         }
     }
 
@@ -171,11 +170,13 @@ public class MovementScript : MonoBehaviour
         f *= moveForce;
 
         float moment = 0;
-        for (int i = 0; i < wheelPositions.Count; i++)
+        for (int i = 0; i < wheels.Count; i++)
         {
-            //wheelForces[i] = f;
-            ApplyForce(f, wheelPositions[i]);
-            Vector2 comToPos = wheelPositions[i] - mrig.centerOfMass;
+            // TODO: Should this be through the COM? Though, it doesnt have a COM as it has no rigidbody
+            Vector2 wheelPos = blockDict[wheels[i]].transform.localPosition;
+
+            ApplyForce(f, wheelPos);
+            Vector2 comToPos = wheelPos - mrig.centerOfMass;
             moment += Vector3.Cross(comToPos, f).z;
         }
         return moment;
@@ -183,7 +184,7 @@ public class MovementScript : MonoBehaviour
 
     public float CalculateTorque(float angle)
     {
-        float maxTurn = turnForce * wheelPositions.Count;
+        float maxTurn = turnForce * wheels.Count;
 
         float c = dampConst * Mathf.Sqrt(SMOA * maxTurn);
         float dampingMoment = c * mrig.angularVelocity * Mathf.Deg2Rad;
@@ -191,6 +192,13 @@ public class MovementScript : MonoBehaviour
 
         return Mathf.Clamp(springMoment - dampingMoment, -maxTurn, maxTurn);
     }
+
+    // World space
+    public Vector2 GetControlPos()
+    {
+        return transform.TransformPoint(1.5f * (Vector2)centerXY);
+    }
+
 
 
     // PRIVATE FUNCTIONS:
@@ -216,7 +224,6 @@ public class MovementScript : MonoBehaviour
         children = new List<GameObject>();
 
         // Load children and blockDict
-
         int c = transform.childCount;
         for (int i = 0; i < c; i++)
         {
@@ -237,7 +244,7 @@ public class MovementScript : MonoBehaviour
         }
 
         //wheelForces = new Vector2[wheelPositions.Count];
-        turnOneUnit = new Vector2[wheelPositions.Count];
+        turnOneUnit = new Vector2[wheels.Count];
 
         LoadStats();
         LoadTurnOneUnit();
@@ -259,14 +266,15 @@ public class MovementScript : MonoBehaviour
 
     private void LoadTurnOneUnit()
     {
-        int N = wheelPositions.Count;
+        int N = wheels.Count;
         if (N == 0) return;
         Vector2 totForce = Vector2.zero;
         Vector2 com = mrig.centerOfMass;
 
         for (int i = 0; i < N - 1; i++)
         {
-            Vector2 comToPos = wheelPositions[i] - com;
+            Vector2 wheelPos = blockDict[wheels[i]].transform.localPosition;
+            Vector2 comToPos = wheelPos - com;
             Vector2 rotated = Vector2.Perpendicular(comToPos);
             turnOneUnit[i] = rotated;
             totForce += turnOneUnit[i];
@@ -276,7 +284,8 @@ public class MovementScript : MonoBehaviour
         turnOneUnit[N - 1] = -totForce;
         for (int i = 0; i < N; i++)
         {
-            Vector2 comToPos = wheelPositions[i] - com;
+            Vector2 wheelPos = blockDict[wheels[i]].transform.localPosition;
+            Vector2 comToPos = wheelPos - com;
             moment += Vector3.Cross(comToPos, turnOneUnit[i]).z;
         }
 
@@ -301,8 +310,8 @@ public class MovementScript : MonoBehaviour
         Debug.DrawLine(worldPos, worldPos + worldForce * 0.1f, Color.green);
     }
 
-    void FixedUpdate()
-    {
+    //void FixedUpdate()
+    //{
         // I miss this debugging thing ;(
         // could add it back but wheelForces is gone
         //for (int i = 0; i < wheelPositions.Count; i++)
@@ -311,5 +320,5 @@ public class MovementScript : MonoBehaviour
         //    Vector2 worldForce = transform.TransformDirection(wheelForces[i]);
         //    Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
         //}
-    }
+    //}
 }
