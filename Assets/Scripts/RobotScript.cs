@@ -38,7 +38,7 @@ public class RobotScript : MonoBehaviour
             float zrot = robot.rotations[pos] * 90.0f;
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
-            GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f), angle, transform);
+            GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f) + (Vector2)transform.position, angle, transform);
             Block block = obj.GetComponent<Block>();
             block.x = pos.x;
             block.y = pos.y;
@@ -134,7 +134,7 @@ public class RobotScript : MonoBehaviour
 
             // Delete from wheels if wheel
             if (b.Wheel != WheelType.NONE)
-                wheelMap[a.Wheel].Remove(new XY(b.x, b.y));
+                wheelMap[b.Wheel].Remove(new XY(b.x, b.y));
         }
         BlocksChanged();
     }

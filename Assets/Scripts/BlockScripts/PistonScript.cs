@@ -19,10 +19,10 @@ public class PistonScript : UsableWeaponBlock
         bone = transform.Find("Piston");
         anim = GetComponentInChildren<Animation>();
     }
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        Debug.Log("Entered");
-    }
+    //private void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //    Debug.Log("Entered");
+    //}
     public override void Use()
     {
         enabled = true;
