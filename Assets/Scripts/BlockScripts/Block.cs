@@ -65,6 +65,7 @@ public abstract class Block : MonoBehaviour
 
         // detach, but don't tell parent as we came from the parent
         DestroyBlock();
+        Destroy(this); // destroy this component
     }
 
     // TODO: Some kinda particle effect?
@@ -76,8 +77,9 @@ public abstract class Block : MonoBehaviour
         dead = true;
 
         // detach and tell parent
-        parent.RemoveBlock(this);
         DestroyBlock();
+        parent.RemoveBlock(this); // Must be last, as this statement may delete this object
+        Destroy(this); // destroy this component
     }
 
     private void DestroyBlock()
@@ -85,11 +87,10 @@ public abstract class Block : MonoBehaviour
         // Just for fun, so it can be kicked about
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
-        rig.drag = 3;
+        rig.drag = 5;
         rig.angularDrag = 1;
-        rig.mass = density * 4;
+        rig.mass = density * 1.5f * 1.5f; // should be collider area, but that doesn't seem to be gettable
 
         transform.SetParent(null);
-        Destroy(this); // destroy this component
     }
 }
