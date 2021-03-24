@@ -9,7 +9,6 @@ public class RobotScript : MonoBehaviour
 {
     // Wheel positions in integer, relative, local coords
     public Rigidbody2D mrig { get; private set; }
-    private bool initialised = false;
 
     // Map WheelType.HOVER -> List of positions, etc.
     public IDictionary<WheelType, List<XY>> wheelMap;
@@ -20,10 +19,11 @@ public class RobotScript : MonoBehaviour
     private IDictionary<XY, Block> blockDict;
     private XY centerXY;
 
+    public bool manual = false;
+
     // Load in gameobjects based on this Robot object
     public void LoadRobot(Robot robot)
     {
-        initialised = true;
         mrig = GetComponent<Rigidbody2D>();
         transform.DetachChildren();
 
@@ -83,37 +83,54 @@ public class RobotScript : MonoBehaviour
         }
     }
 
-    // TODO: Unscuff or just remove tbh
-    void InitialiseGraphScuffed() {
-        initialised = true;
-        centerXY = new XY(0, 0);
+    // Should only be used in testing - slightly dodgy
+    void ManualInitialisation() {
+        IDictionary<XY, BlockType> blockTypes = new Dictionary<XY, BlockType>();
+        IDictionary<XY, int> rotations = new Dictionary<XY, int>();
 
-        List<Block> blocks = new List<Block>();
-        int index = 0;
-        int control = -1;
-
-        foreach (GameObject g in children)
+        for (int i=0; i<transform.childCount; i++)
         {
+            GameObject g = transform.GetChild(i).gameObject;
             Block b = g.GetComponent<Block>();
-            if (b != null)
-            {
-                if (b.Type == BlockType.CONTROL) control = index;
-                blocks.Add(b);
-                index++;
-            }
+            if (b == null || b.IsDead()) continue;
+
+            Vector2 p = g.transform.localPosition;
+            int x = Mathf.RoundToInt(p.x / 1.5f);
+            int y = Mathf.RoundToInt(p.y / 1.5f);
+            XY xy = new XY(x, y);
+
+            int rot = Mathf.RoundToInt(g.transform.localRotation.eulerAngles.z / 90.0f);
+
+            blockTypes[xy] = b.Type;
+            rotations[xy] = rot;
+
+            b.x = x;
+            b.y = y;
         }
 
-        if (control == -1)
+        Robot robot = new Robot(blockTypes, rotations);
+
+        // Copy paste from robot
+        mrig = GetComponent<Rigidbody2D>();
+        hoverMovementController = new HoverMovementController(this);
+
+        centerXY = robot.center;
+
+        // Put wheels into categories and give to controllers
+        wheelMap = new Dictionary<WheelType, List<XY>>();
+        foreach (WheelType wheelType in BlockInfo.wheelTypes)
         {
-            Debug.LogWarning("No control block in " + gameObject.name);
-            return;
+            wheelMap[wheelType] = new List<XY>();
         }
-        
-        blockGraph = new BlockGraph();
-        foreach (Block b in blocks) {
-            // no dude thats too scuffed
-            blockGraph.AddBlock(new XY(b.x, b.y), 0, BlockType.METAL);
+        foreach (XY xy in robot.wheels)
+        {
+            BlockType type = robot.blockTypes[xy];
+            WheelType wheelType = BlockInfo.blockInfos[(int)type].wheelType;
+            wheelMap[wheelType].Add(xy);
         }
+
+        BlocksChanged();
+        InitialiseGraph(robot);
     }
 
     // Removes a block, and detaches all those who are no longer connected
@@ -149,14 +166,9 @@ public class RobotScript : MonoBehaviour
 
     void Start()
     {
-        mrig = GetComponent<Rigidbody2D>();
+        if (manual)
+            ManualInitialisation();
 
-        // Assumes that we are being loaded directly
-        if (!initialised && transform.childCount > 0)
-        {
-            BlocksChanged();
-            InitialiseGraphScuffed();
-        }
         // Otherwise, we wait for a LoadRobot call.
     }
 
@@ -189,7 +201,6 @@ public class RobotScript : MonoBehaviour
 
         hoverMovementController.UpdateWheels(wheelMap[WheelType.HOVER]);
     }
-
 
     // World move + World look
     public void Move(Vector2 moveDirection, Vector2 lookDirection)
