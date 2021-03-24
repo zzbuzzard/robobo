@@ -13,27 +13,23 @@ public class PistonScript : UsableWeaponBlock
 
     protected override void Start()
     {
-        // Need to call Block.Start
         base.Start();
         bone = transform.Find("Piston");
         anim = GetComponentInChildren<Animation>();
     }
-    //private void OnCollisionEnter2D(Collision2D collision)
-    //{
-    //    Debug.Log("Entered");
-    //}
+
     public override void Use()
     {
         anim.Play();
     }
+
     public void PistonHeadCollision(Collision2D collision)
     {
         if (!anim.isPlaying) return;
         Block b = collision.collider.transform.GetComponent<Block>();
 
-
-        // Don't do sparks if it's nobody or if it's part of the same parent
-        if (b == null) return;
+        // Don't hit myself, but hit any other physics object
+        if (b != null && b.GetParent() == parent) return;
 
         // Current method: Apply force at avg contact position, opposite to avg normal
         //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
