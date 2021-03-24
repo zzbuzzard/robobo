@@ -18,6 +18,8 @@ public class EnemyScript : MonoBehaviour
         if (playerObj != null) player = playerObj.GetComponent<PlayerScript>();
     }
 
+    float useTimer = 0.0f;
+
     void FixedUpdate()
     {
         if (player == null) return;
@@ -26,5 +28,15 @@ public class EnemyScript : MonoBehaviour
         Vector2 mPos = mrig.worldCenterOfMass;
 
         mover.Move((playerPos - mPos).normalized, playerPos - mPos);
+
+        useTimer -= Time.deltaTime;
+        if (Vector2.Distance(playerPos, mPos) < 20.0f)
+        {
+            if (useTimer <= 0.0f)
+            {
+                mover.Use();
+                useTimer = 1.0f;
+            }
+        }
     }
 }
