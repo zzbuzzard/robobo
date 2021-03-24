@@ -62,7 +62,7 @@ public class MakerSceneBlockScript : MonoBehaviour
         if (currentBlock == BlockType.NONE) 
             rend.sprite = emptySprite;
         else
-            rend.sprite = BlockInfo.blockTypePrefabs[(int)currentBlock].GetComponent<SpriteRenderer>().sprite;
+            rend.sprite = BlockInfo.blockInfos[(int)currentBlock].prefab.GetComponent<SpriteRenderer>().sprite;
     }
 
     private void Start()

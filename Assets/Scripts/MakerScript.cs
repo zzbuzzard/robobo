@@ -126,7 +126,7 @@ public class MakerScript : MonoBehaviour
         }
         else
         {
-            bool rotatable = BlockInfo.blockRotatable[(int)space.GetBlock()];
+            bool rotatable = BlockInfo.blockInfos[(int)space.GetBlock()].rotatable;
 
             int r = space.GetRotation();
 

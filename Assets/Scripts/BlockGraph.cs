@@ -63,7 +63,7 @@ public class BlockGraph
     // Set the occupiedByMap for this thing, checking for overlaps
     private void SetOccupied(XY root) {
         BlockData data = blockDataMap[root];
-        List<XY> occupied = BlockInfo.blockTypeShapes[(int)data.type].GetOccupiedPositions(root.x, root.y, data.rot);
+        List<XY> occupied = BlockInfo.blockInfos[(int)data.type].shape.GetOccupiedPositions(root.x, root.y, data.rot);
         foreach(XY oc in occupied)
         {
             if (occupiedByMap.ContainsKey(oc)) {
@@ -193,8 +193,8 @@ public class BlockGraph
     {
         if (blockDataMap.Count == 0) return true;
 
-        List<XY> occ = BlockInfo.blockTypeShapes[(int)type].GetOccupiedPositions(xy.x, xy.y, rotation);
-        List<XY> joins = BlockInfo.blockTypeShapes[(int)type].GetJoins(xy.x, xy.y, rotation);
+        List<XY> occ = BlockInfo.blockInfos[(int)type].shape.GetOccupiedPositions(xy.x, xy.y, rotation);
+        List<XY> joins = BlockInfo.blockInfos[(int)type].shape.GetJoins(xy.x, xy.y, rotation);
 
         // Check positions are free
         foreach (XY p in occ) {
@@ -242,7 +242,7 @@ public class BlockGraph
             controlSet.Add(xy);
         }
 
-        BlockShape myShape = BlockInfo.blockTypeShapes[(int)type];
+        BlockShape myShape = BlockInfo.blockInfos[(int)type].shape;
 
         HashSet<XY> considered = new HashSet<XY>();
 
