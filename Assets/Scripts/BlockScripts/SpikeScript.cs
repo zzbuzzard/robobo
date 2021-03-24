@@ -39,7 +39,7 @@ public class SpikeScript : WeaponBlock
 
 
         float increased_damage = damage * damage_mul * collision.relativeVelocity.magnitude;
-        Debug.Log(increased_damage);
+        //Debug.Log(increased_damage);
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
         DealDamage(b, increased_damage);

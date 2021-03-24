@@ -21,14 +21,6 @@ public abstract class Block : MonoBehaviour
 
     private float maxHP;
 
-    public enum WheelType
-    {
-        NONE,
-        HOVER,
-        WHEEL,
-        TRACK
-    }
-
     protected virtual void Start()
     {
         maxHP = hp;

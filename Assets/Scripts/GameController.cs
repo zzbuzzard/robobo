@@ -16,7 +16,7 @@ public class GameController : MonoBehaviour
         Robot chosenRobot = Controller.playerRobot;
 
         GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
-        playerObj.GetComponent<MovementScript>().LoadRobot(chosenRobot);
+        playerObj.GetComponent<RobotScript>().LoadRobot(chosenRobot);
     }
 
     private void Update()
@@ -28,7 +28,7 @@ public class GameController : MonoBehaviour
             Robot r = Robot.GenerateRandomRobot(blockz, weaponz);
 
             GameObject enemyObj = Instantiate(enemy, Vector2.zero, Quaternion.identity);
-            enemyObj.GetComponent<MovementScript>().LoadRobot(r);
+            enemyObj.GetComponent<RobotScript>().LoadRobot(r);
         }
     }
 }

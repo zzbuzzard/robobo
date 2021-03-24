@@ -37,7 +37,7 @@ public class Robot
             }
 
             // Check if wheel
-            if (BlockInfo.wheels.Contains(type))
+            if (BlockInfo.wheelBlocks.Contains(type))
             {
                 wheels.Add(xy);
             }
@@ -55,7 +55,7 @@ public class Robot
         blockGraph.AddBlock(new XY(0, 0), 0, BlockType.CONTROL);
 
         IList<XY> spaces = new List<XY>();
-        foreach (XY xy in BlockInfo.blockTypeShapes[(int)BlockType.CONTROL].GetJoins(0, 0, 0))
+        foreach (XY xy in BlockInfo.blockInfos[(int)BlockType.CONTROL].shape.GetJoins(0, 0, 0))
             spaces.Add(xy);
 
         bool hasWheel = false;
@@ -79,7 +79,7 @@ public class Robot
                 if (blockGraph.CanPlace(xy, 0, chosen))
                 {
                     blockGraph.AddBlock(xy, 0, chosen);
-                    foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)chosen].GetJoins(xy.x, xy.y, 0)) {
+                    foreach (XY xy2 in BlockInfo.blockInfos[(int)chosen].shape.GetJoins(xy.x, xy.y, 0)) {
                         if (!blockGraph.IsOccupied(xy2))
                             spaces.Add(xy2);
                     }
@@ -106,7 +106,7 @@ public class Robot
                     {
                         blockGraph.AddBlock(xy, r, chosen);
                         placed = true;
-                        foreach (XY xy2 in BlockInfo.blockTypeShapes[(int)chosen].GetJoins(xy.x, xy.y, r))
+                        foreach (XY xy2 in BlockInfo.blockInfos[(int)chosen].shape.GetJoins(xy.x, xy.y, r))
                         {
                             if (!blockGraph.IsOccupied(xy2))
                                 spaces.Add(xy2);
