@@ -28,7 +28,8 @@ public class MakerScript : MonoBehaviour
         { 2, BlockType.SPIKE },
         { 3, BlockType.PISTON },
         { 4, BlockType.CHAINSAW },
-        { 5, BlockType.HOVER }
+        { 5, BlockType.HOVER },
+        { 6, BlockType.TRACK }
     };
 
     BlockType currentBlock = BlockType.METAL;
@@ -123,11 +124,11 @@ public class MakerScript : MonoBehaviour
         }
         else
         {
-            bool rotatable = BlockInfo.blockInfos[(int)space.GetBlock()].rotatable;
+            int maxRot = BlockInfo.blockInfos[(int)space.GetBlock()].maxRot;
 
             int r = space.GetRotation();
 
-            if (r == 3 || !rotatable)
+            if (r == maxRot)
             {
                 space.ClearBlock();
                 blockGraph.RemoveAt(space.pos);

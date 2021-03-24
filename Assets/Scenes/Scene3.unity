@@ -2668,6 +2668,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: hover_block Variant
       objectReference: {fileID: 0}
+    - target: {fileID: 4925876966229700835, guid: 6331383f21ed2f244baced5cea383432, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4925876966229700836, guid: 6331383f21ed2f244baced5cea383432, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -2862,6 +2866,10 @@ PrefabInstance:
     - target: {fileID: 4925876966229700835, guid: 6331383f21ed2f244baced5cea383432, type: 3}
       propertyPath: m_Name
       value: hover_block Variant (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4925876966229700835, guid: 6331383f21ed2f244baced5cea383432, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4925876966229700836, guid: 6331383f21ed2f244baced5cea383432, type: 3}
       propertyPath: m_RootOrder

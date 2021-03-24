@@ -17,6 +17,16 @@ public class GameController : MonoBehaviour
 
         GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
         playerObj.GetComponent<RobotScript>().LoadRobot(chosenRobot);
+
+        SpawnEnemy(chosenRobot);
+    }
+
+    private void SpawnEnemy(Robot r)
+    {
+        float angle = Random.Range(0.0f, Mathf.PI * 2);
+
+        GameObject enemyObj = Instantiate(enemy, 15.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), Quaternion.identity);
+        enemyObj.GetComponent<RobotScript>().LoadRobot(r);
     }
 
     private void Update()
@@ -27,10 +37,7 @@ public class GameController : MonoBehaviour
             int weaponz = Random.Range(1, blockz);
             Robot r = Robot.GenerateRandomRobot(blockz, weaponz);
 
-            float angle = Random.Range(0.0f, Mathf.PI * 2);
-
-            GameObject enemyObj = Instantiate(enemy, 10.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), Quaternion.identity);
-            enemyObj.GetComponent<RobotScript>().LoadRobot(r);
+            SpawnEnemy(r);
         }
     }
 }

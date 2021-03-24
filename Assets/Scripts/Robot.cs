@@ -51,7 +51,7 @@ public class Robot
         }
     }
 
-    public static Robot GenerateRandomRobot(int blockNum, int weaponNum, float hoverProb = 0.2f)
+    public static Robot GenerateRandomRobot(int blockNum, int weaponNum, float wheelProb = 0.2f)
     {
         BlockGraph blockGraph = new BlockGraph();
         blockGraph.AddBlock(new XY(0, 0), 0, BlockType.CONTROL);
@@ -72,10 +72,10 @@ public class Robot
                 spaces.RemoveAt(index);
 
                 BlockType chosen = BlockType.METAL;
-                if (Random.Range(0.0f, 1.0f) < hoverProb) chosen = BlockType.HOVER;
-                if (!hasWheel) {
-                    chosen = BlockType.HOVER;
+                if (Random.Range(0.0f, 1.0f) < wheelProb || !hasWheel)
+                {
                     hasWheel = true;
+                    chosen = BlockType.HOVER;
                 }
 
                 if (blockGraph.CanPlace(xy, 0, chosen))
