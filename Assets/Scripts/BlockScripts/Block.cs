@@ -9,10 +9,13 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public abstract class Block : MonoBehaviour
 {
+    public abstract BlockType Type { get; }
+    public abstract WheelType Wheel { get; }
+
     public float hp;
     public float density;
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
-    protected MovementScript parent; // the MovementScript of my parent
+    protected RobotScript parent; // the RobotScript of my parent
 
     public int x, y;
 
@@ -31,24 +34,12 @@ public abstract class Block : MonoBehaviour
         maxHP = hp;
         myCollider = GetComponent<Collider2D>();
         myCollider.density = density;
-        parent = transform.parent.GetComponent<MovementScript>();
-    }
-
-    // Overriden by ControlBlock
-    public virtual bool IsControl()
-    {
-        return false;
-    }
-
-    // Overriden by wheels
-    public virtual WheelType GetWheelType()
-    {
-        return WheelType.NONE;
+        parent = transform.parent.GetComponent<RobotScript>();
     }
 
     // I have no idea why this is necessary. C# sucks
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
-    public MovementScript GetParent()
+    public RobotScript GetParent()
     {
         return parent;
     }

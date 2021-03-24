@@ -4,5 +4,11 @@ using UnityEngine;
 
 public abstract class WeaponBlock : Block
 {
-    public abstract void DealDamage(Block target, float damage);
+    public override WheelType Wheel => WheelType.NONE;
+
+    public void DealDamage(Block target, float damage)
+    {
+        // TODO: Debuffs?
+        target.TakeDamage(damage);
+    }
 }

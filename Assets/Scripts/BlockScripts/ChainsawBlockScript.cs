@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class ChainsawBlockScript : UsableWeaponBlock
 {
+    public override BlockType Type => BlockType.CHAINSAW;
+
     public GameObject sparks;
     private CapsuleCollider2D capsule;
     public float force = 10000f;
@@ -17,9 +19,6 @@ public class ChainsawBlockScript : UsableWeaponBlock
         capsule = GetComponent<CapsuleCollider2D>();
         anim = GetComponent<Animation>();
     }
-
-
-    // Start is called before the first frame update
 
     public override void Use()
     {
@@ -66,10 +65,5 @@ public class ChainsawBlockScript : UsableWeaponBlock
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
         DealDamage(b, damage);
-    }
-
-    public override void DealDamage(Block target, float damage)
-    {
-        target.TakeDamage(damage);
     }
 }

@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class PistonScript : UsableWeaponBlock
 {
+    public override BlockType Type => BlockType.PISTON;
+
     public float damage = 0;
     public Transform bone;
     public float force = 10000f;
     private Animation anim;
     private bool enabled;
+
     protected override void Start()
     {
         // Need to call Block.Start
@@ -48,10 +51,6 @@ public class PistonScript : UsableWeaponBlock
         avg_normal /= collision.contactCount;
 
         collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
-    }
-    public override void DealDamage(Block target, float damage)
-    {
-
     }
 }
 

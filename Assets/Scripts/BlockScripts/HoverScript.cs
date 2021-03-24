@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class HoverScript : MovementBlock
 {
-    public override WheelType GetWheelType()
-    {
-        return WheelType.HOVER;
-    }
+    public override BlockType Type => BlockType.HOVER;
+    public override WheelType Wheel => WheelType.HOVER;
 }

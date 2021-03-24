@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // TODO: Should inherit from some kinda StaticBlock class
-public class ControlBlock : Block
+public class ControlBlock : StaticBlock
 {
-    public override bool IsControl()
-    {
-        return true;
-    }
+    public override BlockType Type => BlockType.CONTROL;
 }

@@ -2,6 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MovementBlock : Block
+public abstract class MovementBlock : Block
 {
 }

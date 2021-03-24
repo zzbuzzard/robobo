@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class PistonHeadScript : MonoBehaviour
 {
-
-
     protected PistonScript parentPiston;
     public GameObject parentObject;
 
