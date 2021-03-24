@@ -13,6 +13,7 @@ public enum BlockType
     PISTON,
     CHAINSAW,
     HOVER,
+    TRACK,
 
     // Keep this one last
     NONE = -1,
