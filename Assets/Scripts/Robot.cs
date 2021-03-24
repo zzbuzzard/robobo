@@ -67,26 +67,39 @@ public class Robot
         {
             while (spaces.Count > 0)
             {
-                int index = Random.Range(0, spaces.Count);
+                int index = Random.Range(0, spaces.Count - 1);
                 XY xy = spaces[index];
                 spaces.RemoveAt(index);
-
-                BlockType chosen = BlockType.METAL;
-                if (Random.Range(0.0f, 1.0f) < wheelProb || !hasWheel)
+                BlockType chosen;
+                if (!hasWheel || Random.Range(0, 1.0f) < wheelProb)
                 {
-                    hasWheel = true;
-                    chosen = BlockType.HOVER;
+                    chosen = BlockInfo.wheelBlocks[Random.Range(0, BlockInfo.wheelBlocks.Length)];
                 }
+                else
+                { 
+                    chosen = BlockType.METAL;
+                }
+                int maxr = BlockInfo.blockInfos[(int)chosen].maxRot;
 
-                if (blockGraph.CanPlace(xy, 0, chosen))
+                bool placed = false;
+
+                for (int r = 0; r <= maxr; r++)
                 {
-                    blockGraph.AddBlock(xy, 0, chosen);
-                    foreach (XY xy2 in BlockInfo.blockInfos[(int)chosen].shape.GetJoins(xy.x, xy.y, 0)) {
-                        if (!blockGraph.IsOccupied(xy2))
-                            spaces.Add(xy2);
+                    if (blockGraph.CanPlace(xy, r, chosen))
+                    {
+                        blockGraph.AddBlock(xy, r, chosen);
+                        placed = true;
+                        foreach (XY xy2 in BlockInfo.blockInfos[(int)chosen].shape.GetJoins(xy.x, xy.y, r))
+                        {
+                            if (!blockGraph.IsOccupied(xy2))
+                                spaces.Add(xy2);
+                        }
+                        break;
                     }
-                    break;
                 }
+
+                if (placed) break;
+
             }
         }
 
@@ -99,10 +112,11 @@ public class Robot
                 XY xy = spaces[index];
                 spaces.RemoveAt(index);
                 BlockType chosen = BlockInfo.weapons[Random.Range(0, BlockInfo.weapons.Length)];
+                int maxr = BlockInfo.blockInfos[(int)chosen].maxRot;
 
                 bool placed = false;
 
-                for (int r = 0; r < 4; r++)
+                for (int r = 0; r <= maxr; r++)
                 {
                     if (blockGraph.CanPlace(xy, r, chosen))
                     {

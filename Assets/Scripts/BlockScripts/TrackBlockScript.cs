@@ -12,8 +12,9 @@ public class TrackBlockScript : Block
     public float forward_friction;
     public float lateral_friction;
     // Start is called before the first frame update
-    void Start()
+    protected override void Start()
     {
+        base.Start();
         mrig = transform.parent.GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }

@@ -53,7 +53,7 @@ public class BlockInfo
         new BlockInfo("hover_block", BlockShape.OneByOne(), 0, WheelType.HOVER),
         new BlockInfo("track_block",
             new BlockShape(new List<XY>(){ new XY(-1, 0), new XY(0, 0), new XY(1, 0) },
-            new List<XY>(){ new XY(-1, -1), new XY(0, -1), new XY(1, -1), new XY(-1, 1), new XY(0, 1), new XY(0, 1) }),
+            new List<XY>(){ new XY(-1, -1), new XY(0, -1), new XY(1, -1), new XY(-1, 1), new XY(0, 1), new XY(1, 1) }),
             1, WheelType.HOVER),
     };
 
