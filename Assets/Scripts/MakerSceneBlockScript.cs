@@ -64,10 +64,16 @@ public class MakerSceneBlockScript : MonoBehaviour
         transform.rotation = Quaternion.Euler(0, 0, 90.0f * rotate);
         transform.localScale = Vector3.one * (currentBlock == BlockType.NONE ? 0.9f : 1.0f) * baseSize;
 
-        if (currentBlock == BlockType.NONE) 
+        if (currentBlock == BlockType.NONE)
+        {
             rend.sprite = emptySprite;
+            rend.sortingOrder = 0;
+        }
         else
+        {
             rend.sprite = BlockInfo.blockInfos[(int)currentBlock].prefab.GetComponent<SpriteRenderer>().sprite;
+            rend.sortingOrder = 1;
+        }
     }
 
     private void Start()
