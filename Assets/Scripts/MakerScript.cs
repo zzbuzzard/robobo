@@ -78,9 +78,6 @@ public class MakerScript : MonoBehaviour
     {
         GenerateSquares();
         CheckIssues();
-
-        //squares = new Dictionary<XY, MakerSceneBlockScript>();
-        //MakeSquare(new XY(0, 0));
     }
 
     //private void MakeSquare(XY pos)
@@ -239,5 +236,52 @@ public class MakerScript : MonoBehaviour
         // List (Vector2) wheels
 
         return new Robot(blockType, rotations);
+    }
+
+    private void ResetGrid()
+    {
+        blockGraph = new BlockGraph();
+        for (int i = 0; i < squareWidth; i++)
+        {
+            for (int j = 0; j < squareHeight; j++)
+            {
+                positions[i, j].ClearBlock();
+            }
+        }
+        CheckIssues();
+    }
+
+    private void LoadRobot(Robot r)
+    {
+        ResetGrid();
+
+        IDictionary<XY, BlockType> types = r.blockTypes;
+        IDictionary<XY, int> rots = r.rotations;
+
+        foreach (XY xy in types.Keys)
+        {
+            BlockType type = types[xy];
+            int rot = rots[xy];
+
+            positions[xy.x, xy.y].SetBlock(type);
+            positions[xy.x, xy.y].SetRotation(rot);
+
+            blockGraph.AddBlock(xy, rot, type);
+        }
+
+        CheckIssues();
+    }
+
+    // TODO: Better save/load system
+    public void LoadClicked()
+    {
+        Robot r = Robot.LoadRobotFromFile("default");
+        LoadRobot(r);
+    }
+
+    public void SaveClicked()
+    {
+        Robot r = GetRobot();
+        Robot.SaveRobotToFile(r, "default");
     }
 }

@@ -28,6 +28,11 @@ public class MakerSceneBlockScript : MonoBehaviour
         rotate %= 4;
         SetTransform();
     }
+    public void SetRotation(int r)
+    {
+        rotate = (r % 4 + 4) % 4;
+        SetTransform();
+    }
     public void ClearBlock()
     {
         currentBlock = BlockType.NONE;
