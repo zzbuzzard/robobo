@@ -10,7 +10,6 @@ public class PistonScript : UsableWeaponBlock
     public Transform bone;
     public float force = 10000f;
     private Animation anim;
-    private bool enabled;
 
     protected override void Start()
     {
@@ -25,9 +24,7 @@ public class PistonScript : UsableWeaponBlock
     //}
     public override void Use()
     {
-        enabled = true;
         anim.Play();
-        enabled = false;
     }
     public void PistonHeadCollision(Collision2D collision)
     {
