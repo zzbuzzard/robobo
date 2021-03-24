@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 // TODO: Should inherit from some kinda WeaponBlock class
-public class SpikeScript : Block
+public class SpikeScript : WeaponBlock
 {
     public GameObject sparks;
 
@@ -11,7 +11,7 @@ public class SpikeScript : Block
     //       Also, damage done should maybe depend on force of collision or something?
 
     float force = 5000.0f;
-    int damage = 5;
+    public float damage = 5f;
     public float damage_mul = 1;
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -44,6 +44,11 @@ public class SpikeScript : Block
         Debug.Log(increased_damage);
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
-        b.TakeDamage((int)increased_damage);
+        DealDamage(b, increased_damage);
+    }
+
+    public override void DealDamage(Block target, float damage)
+    {
+        target.TakeDamage(damage);
     }
 }

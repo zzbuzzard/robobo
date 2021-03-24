@@ -65,7 +65,17 @@ public class MovementScript : MonoBehaviour
         BlocksChanged();
         InitialiseGraph(robot);
     }
-
+    public void Use()
+    {
+        foreach (GameObject g in children)
+        {
+            UsableWeaponBlock b = g.GetComponent<UsableWeaponBlock>();
+            if (b != null)
+            {
+                b.Use();
+            }
+        }
+    }
     public void AddWheel(GameObject wheel)
     {
         wheelPositions.Add(wheel.transform.localPosition);
@@ -146,6 +156,7 @@ public class MovementScript : MonoBehaviour
 
     public void ApplyTorque(float f)
     {
+        if (wheelPositions.Count == 0) return;
         for (int i = 0; i < wheelPositions.Count; i++)
         {
             ApplyForce(turnOneUnit[i] * f, wheelPositions[i]);

@@ -36,7 +36,8 @@ public class PlayerScript : MonoBehaviour
             movement.y += 1;
         if (Input.GetKey(KeyCode.S))
             movement.y -= 1;
-        
+        if (Input.GetKey(KeyCode.E))
+            mover.Use() ;
         movement = transform.InverseTransformDirection(movement);
         float cancelMoment = mover.ApplyMovement(movement);
 

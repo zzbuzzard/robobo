@@ -2,22 +2,42 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChainsawBlockScript : Block
+public class ChainsawBlockScript : UsableWeaponBlock
 {
+    public GameObject sparks;
+    private CapsuleCollider2D capsule;
+    public float force = 10000f;
+    public float damage = 5f;
+
+    private Animation anim;
 
     protected override void Start()
     {
         base.Start();
         capsule = GetComponent<CapsuleCollider2D>();
+        anim = GetComponent<Animation>();
     }
 
-    public GameObject sparks;
-    private CapsuleCollider2D capsule;
-    public float force = 10000f;
-    public int damage = 5;
+
     // Start is called before the first frame update
+
+    public override void Use()
+    {
+        Debug.Log("Tryna play");
+        if (!anim.isPlaying)
+        {
+            Debug.Log("playing");
+            anim.Play();
+            return;
+        }
+        Debug.Log("Stopping");
+        anim.Stop();
+
+    }
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        if (!anim.isPlaying) return;
         if (collision.otherCollider != capsule) return;
 
         Block b = collision.collider.transform.GetComponent<Block>();
@@ -45,6 +65,11 @@ public class ChainsawBlockScript : Block
         Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
-        b.TakeDamage(damage);
+        DealDamage(b, damage);
+    }
+
+    public override void DealDamage(Block target, float damage)
+    {
+        target.TakeDamage(damage);
     }
 }

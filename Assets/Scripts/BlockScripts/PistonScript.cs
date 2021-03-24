@@ -2,23 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PistonScript : Block
+public class PistonScript : UsableWeaponBlock
 {
+    public float damage = 0;
     public Transform bone;
     public float force = 10000f;
+    private Animation anim;
+    private bool enabled;
     protected override void Start()
     {
         // Need to call Block.Start
         base.Start();
         bone = transform.Find("Piston");
+        anim = GetComponentInChildren<Animation>();
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         Debug.Log("Entered");
     }
-
+    public override void Use()
+    {
+        enabled = true;
+        anim.Play();
+        enabled = false;
+    }
     public void PistonHeadCollision(Collision2D collision)
     {
+        if (!anim.isPlaying) return;
         Block b = collision.collider.transform.GetComponent<Block>();
 
 
@@ -38,6 +48,10 @@ public class PistonScript : Block
         avg_normal /= collision.contactCount;
 
         collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
+    }
+    public override void DealDamage(Block target, float damage)
+    {
+
     }
 }
 

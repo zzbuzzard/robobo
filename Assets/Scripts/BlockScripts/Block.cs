@@ -9,14 +9,14 @@ using UnityEngine;
 [RequireComponent(typeof(Collider2D))]
 public abstract class Block : MonoBehaviour
 {
-    public int hp;
+    public float hp;
     public float density;
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
     protected MovementScript parent; // the MovementScript of my parent
 
     public int x, y;
 
-    private int maxHP;
+    private float maxHP;
 
     public enum WheelType
     {
@@ -53,7 +53,7 @@ public abstract class Block : MonoBehaviour
         return parent;
     }
 
-    public virtual void TakeDamage(int damage)
+    public virtual void TakeDamage(float damage)
     {
         hp -= damage;
         if (hp <= 0)
