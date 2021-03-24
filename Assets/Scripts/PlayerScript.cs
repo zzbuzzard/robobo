@@ -10,13 +10,28 @@ public class PlayerScript : MonoBehaviour
     private float front = 0.75f;
     public MovementScript mover;
     Rigidbody2D mrig;
-
+    Vector2 movement;
     // Start is called before the first frame update
     void Start()
     {
         mrig = GetComponent<Rigidbody2D>();
     }
 
+    void Update()
+    {
+        Vector2 temp_movement = Vector2.zero;
+        if (Input.GetKey(KeyCode.A))
+            temp_movement.x -= 1;
+        if (Input.GetKey(KeyCode.D))
+            temp_movement.x += 1;
+        if (Input.GetKey(KeyCode.W))
+            temp_movement.y += 1;
+        if (Input.GetKey(KeyCode.S))
+            temp_movement.y -= 1;
+        if (Input.GetKeyDown(KeyCode.E))
+            mover.Use();
+        movement = temp_movement;
+    }
     void FixedUpdate()
     {
 
@@ -28,16 +43,7 @@ public class PlayerScript : MonoBehaviour
         }
         /////////////////////// Move:
         Vector2 movement = Vector2.zero;
-        if (Input.GetKey(KeyCode.A))
-            movement.x -= 1;
-        if (Input.GetKey(KeyCode.D))
-            movement.x += 1;
-        if (Input.GetKey(KeyCode.W))
-            movement.y += 1;
-        if (Input.GetKey(KeyCode.S))
-            movement.y -= 1;
-        if (Input.GetKey(KeyCode.E))
-            mover.Use() ;
+        
         movement = transform.InverseTransformDirection(movement);
         float cancelMoment = mover.ApplyMovement(movement);
 

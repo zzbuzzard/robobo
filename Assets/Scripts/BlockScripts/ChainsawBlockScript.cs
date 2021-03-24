@@ -8,14 +8,14 @@ public class ChainsawBlockScript : UsableWeaponBlock
     private CapsuleCollider2D capsule;
     public float force = 10000f;
     public float damage = 5f;
-
-    private Animation anim;
+    private bool isRunning = false;
+    private Animator anim;
 
     protected override void Start()
     {
         base.Start();
         capsule = GetComponent<CapsuleCollider2D>();
-        anim = GetComponent<Animation>();
+        anim = GetComponent<Animator>();
     }
 
 
@@ -23,21 +23,14 @@ public class ChainsawBlockScript : UsableWeaponBlock
 
     public override void Use()
     {
-        Debug.Log("Tryna play");
-        if (!anim.isPlaying)
-        {
-            Debug.Log("playing");
-            anim.Play();
-            return;
-        }
-        Debug.Log("Stopping");
-        anim.Stop();
+        isRunning = !isRunning;
+        anim.SetBool("IsRunning", isRunning);
 
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!anim.isPlaying) return;
+        if (!isRunning) return;
         if (collision.otherCollider != capsule) return;
 
         Block b = collision.collider.transform.GetComponent<Block>();

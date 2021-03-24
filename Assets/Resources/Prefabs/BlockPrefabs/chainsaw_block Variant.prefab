@@ -42,22 +42,6 @@ CapsuleCollider2D:
   m_Offset: {x: 0, y: 0.5}
   m_Size: {x: 0.5, y: 1}
   m_Direction: 0
---- !u!111 &6833904833323213344
-Animation:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8421856335448374599}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Animation: {fileID: 7400000, guid: 56362f2a2135cff4cb360ea578068d7b, type: 2}
-  m_Animations:
-  - {fileID: 7400000, guid: 56362f2a2135cff4cb360ea578068d7b, type: 2}
-  m_WrapMode: 0
-  m_PlayAutomatically: 0
-  m_AnimatePhysics: 0
-  m_CullingType: 0
 --- !u!95 &6182825830443705390
 Animator:
   serializedVersion: 3
@@ -68,7 +52,7 @@ Animator:
   m_GameObject: {fileID: 8421856335448374599}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: c53397ccdb7ba34439b16cf4de73ce54, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
