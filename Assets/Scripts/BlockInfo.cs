@@ -36,25 +36,25 @@ public class BlockInfo
 
     public static BlockInfo[] blockInfos =
     {
-        new BlockInfo("control_block", BlockShape.OneByOne(), 0, WheelType.NONE),
-        new BlockInfo("metal_block", BlockShape.OneByOne(), 0, WheelType.NONE),
+        new BlockInfo("control_block", BlockShape.OneByOne(), 0, WheelType.NONE, "control"),
+        new BlockInfo("metal_block", BlockShape.OneByOne(), 0, WheelType.NONE, "metal"),
         new BlockInfo("spike_block",
             new BlockShape(new List<XY>(){ new XY(0, 0) },
             new List<XY>(){ new XY(0, -1) }),
-            3, WheelType.NONE),
+            3, WheelType.NONE, "spike"),
         new BlockInfo("piston_block",
             new BlockShape(new List<XY>(){ new XY(0, 0), new XY(0, 1) },
             new List<XY>(){ new XY(0, -1), new XY(1, 0), new XY(-1, 0) }),
-            3, WheelType.NONE),
+            3, WheelType.NONE, "piston_image"),
         new BlockInfo("chainsaw_block",
             new BlockShape(new List<XY>(){ new XY(0, 0), new XY(0, 1) },
             new List<XY>(){ new XY(0, -1), new XY(-1, 0), new XY(1, 0) }),
-            3, WheelType.NONE),
-        new BlockInfo("hover_block", BlockShape.OneByOne(), 0, WheelType.HOVER),
+            3, WheelType.NONE, "Chainsaw1"),
+        new BlockInfo("hover_block", BlockShape.OneByOne(), 0, WheelType.HOVER, "Hover"),
         new BlockInfo("track_block",
             new BlockShape(new List<XY>(){ new XY(-1, 0), new XY(0, 0), new XY(1, 0) },
             new List<XY>(){ new XY(-1, -1), new XY(0, -1), new XY(1, -1), new XY(-1, 1), new XY(0, 1), new XY(1, 1) }),
-            1, WheelType.TRACK),
+            1, WheelType.TRACK, "Tracks1"),
     };
 
     public static void LoadBlockTypePrefabs()
@@ -68,24 +68,38 @@ public class BlockInfo
             {
                 Debug.LogWarning("Warning: Block \"" + blockInfos[i].path + "\" not found.");
             }
+
+            blockInfos[i].showSprite = Resources.Load<Sprite>("Sprites/" + blockInfos[i].spritePath);
+            if (blockInfos[i].showSprite == null)
+            {
+                Debug.LogWarning("Warning: Block \"" + blockInfos[i].path + "\" could not find sprite.");
+            }
+
         }
     }
 
 
     // Non-static stuff
 
-    public string path { get; private set; }
+    private string path; // Path to prefab
+    public GameObject prefab { get; private set; }
+
+    private string spritePath; // The sprite which shows up on the build screens
+    public Sprite showSprite { get; private set; }
+
     public BlockShape shape { get; private set; }
     public int maxRot { get; private set; } // 0 means not rotatable, 1 means hor/ver, 3 means full circle
     public WheelType wheelType { get; private set; }
-    public GameObject prefab { get; private set; }
 
-    public BlockInfo(string path, BlockShape shape, int maxRot, WheelType wheelType)
+    public BlockInfo(string path, BlockShape shape, int maxRot, WheelType wheelType, string spritePath)
     {
         this.path = path;
         this.shape = shape;
         this.maxRot = maxRot;
         this.wheelType = wheelType;
+        this.spritePath = spritePath;
+
         this.prefab = null; // Set in LoadBlockTypePrefabs
+        this.showSprite = null;
     }
 }

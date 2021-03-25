@@ -276,8 +276,11 @@ public class MakerScript : MonoBehaviour
     // TODO: Better save/load system
     public void LoadClicked()
     {
-        Robot r = Robot.LoadRobotFromFile("default");
-        LoadRobot(r);
+        Robot r = Robot.LoadRobotFromName("default");
+        if (r != null)
+            LoadRobot(r);
+
+        Robot.LoadAllRobots();
     }
 
     public void SaveClicked()

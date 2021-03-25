@@ -10,6 +10,7 @@ public class MakerSceneBlockScript : MonoBehaviour
     private int rotate = 0;
     private SpriteRenderer rend;
 
+    public float baseSize = 2.0f;
     public Sprite emptySprite;
 
     // Must be set by creator
@@ -59,19 +60,18 @@ public class MakerSceneBlockScript : MonoBehaviour
 
     private void SetTransform()
     {
-        const float baseSize = 2.0f;
-
         transform.rotation = Quaternion.Euler(0, 0, 90.0f * rotate);
-        transform.localScale = Vector3.one * (currentBlock == BlockType.NONE ? 0.9f : 1.0f) * baseSize;
 
         if (currentBlock == BlockType.NONE)
         {
+            transform.localScale = Vector3.one * baseSize * 0.9f;
             rend.sprite = emptySprite;
             rend.sortingOrder = 0;
         }
         else
         {
-            rend.sprite = BlockInfo.blockInfos[(int)currentBlock].prefab.GetComponent<SpriteRenderer>().sprite;
+            transform.localScale = Vector3.one * baseSize * 0.9f;
+            rend.sprite = BlockInfo.blockInfos[(int)currentBlock].showSprite;
             rend.sortingOrder = 1;
         }
     }

@@ -30,20 +30,23 @@ public class TrackMovementController : MovementController
         V = new List<XY>();
     }
 
-    public override void UpdateWheels(List<XY> newList, List<int> rotation)
+    public override void UpdateWheels(List<Block> newList)
     {
         H.Clear();
         V.Clear();
 
         for (int i=0; i<newList.Count; i++)
         {
-            if (rotation[i] % 2 == 0)
-                H.Add(newList[i]);
+            int rotation = Mathf.RoundToInt(newList[i].transform.localRotation.eulerAngles.z / 90.0f);
+            XY pos = new XY(newList[i].x, newList[i].y);
+
+            if (rotation % 2 == 0)
+                H.Add(pos);
             else
-                V.Add(newList[i]);
+                V.Add(pos);
         }
 
-        LoadStats(); 
+        LoadStats();
     }
 
     public override void Move(Vector2 moveDirection, Vector2 lookDirection)
@@ -52,11 +55,23 @@ public class TrackMovementController : MovementController
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
 
         // If one is empty, we only move in forward direction
-        Vector2 forward = new Vector2(0, 1);
-        if (H.Count * V.Count == 0)
-            moveDirection = Vector2.Dot(forward, moveDirection) * forward.normalized;
 
-        ApplyMovement(moveDirection);
+        // Vertical only
+        if (H.Count == 0)
+        {
+            Vector2 forward = new Vector2(0, 1);
+            moveDirection = Vector2.Dot(forward, moveDirection) * forward.normalized;
+        }
+        else
+        if (V.Count == 0)
+        {
+            Vector2 forward = new Vector2(1, 0);
+            moveDirection = Vector2.Dot(forward, moveDirection) * forward.normalized;
+        }
+
+        // Movement
+        // TODO: maxMovePower should depend on direction; take x and y components, add vectors for max from each
+        parent.mrig.AddRelativeForce(moveDirection * maxMovePower);
 
         float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
         if (ang < 0) ang += 1;
@@ -64,46 +79,19 @@ public class TrackMovementController : MovementController
         float curAng = parent.transform.rotation.eulerAngles.z / 360.0f - front;
         if (curAng < 0) curAng += 1;
 
-        // get the two cases for rotation
-        float a, b;
-        if (curAng < ang)
-        {
-            a = ang - curAng;
-            b = ang - 1 - curAng;
-        }
-        else
-        {
-            a = ang + 1 - curAng;
-            b = ang - curAng;
-        }
-        float turn;
-        if (Mathf.Abs(a) < Mathf.Abs(b)) turn = a;
-        else turn = b;
-
+        float turn = GetRotation(curAng, ang, parent.mrig);
         turn = CalculateTorque(turn);
-        ApplyTorque(turn);
-    }
 
-    private void ApplyTorque(float f)
-    {
-        parent.mrig.AddTorque(f);
-    }
-
-    // F being a local force
-    private void ApplyMovement(Vector2 f)
-    {
-        parent.mrig.AddRelativeForce(f * moveForce);
+        parent.mrig.AddTorque(turn);
     }
 
     private float CalculateTorque(float angle)
     {
-        float maxTurn = turnForce * (H.Count + V.Count);
-
-        float c = dampConst * Mathf.Sqrt(SMOA * maxTurn);
+        float c = dampConst * Mathf.Sqrt(SMOA * maxTurnPower);
         float dampingMoment = c * parent.mrig.angularVelocity * Mathf.Deg2Rad;
-        float springMoment = angle * maxTurn;
+        float springMoment = angle * maxTurnPower;
 
-        return Mathf.Clamp(springMoment - dampingMoment, -maxTurn, maxTurn);
+        return Mathf.Clamp(springMoment - dampingMoment, -maxTurnPower, maxTurnPower);
     }
 
     // TODO: I scuffed arnavs calculation (in my defence, you don't seem to be able to do collider.area)
@@ -118,5 +106,27 @@ public class TrackMovementController : MovementController
             SMOA += r.density * Mathf.Pow((this_com - com).magnitude, 2.0f);
             // smoa += r.mass * Mathf.Pow((r.worldCenterOfMass - COM).magnitude, 2.0f);
         }
+
+        maxMovePower = maxWheelPower * (H.Count + V.Count);
+        maxTurnPower = 0.0f;
+
+        Vector2 maxWheelForce = new Vector2(maxWheelPower, 0.0f);
+        foreach (XY xy in H)
+        {
+            Vector2 localPos = XYToLocal(xy);
+            Vector2 comToPos = localPos - com;
+
+            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+        }
+
+        maxWheelForce = new Vector2(0.0f, maxWheelPower);
+        foreach (XY xy in V)
+        {
+            Vector2 localPos = XYToLocal(xy);
+            Vector2 comToPos = localPos - com;
+
+            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+        }
+        maxTurnPower *= 1.5f;
     }
 }
