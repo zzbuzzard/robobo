@@ -7,8 +7,8 @@ public class HoverScript : MovementBlock
     public override BlockType Type => BlockType.HOVER;
     public override WheelType Wheel => WheelType.HOVER;
 
-    private float maxMoveRad = 1.0f;
-    private float maxForceMove = 100.0f;
+    private float maxMoveRad = 0.15f;
+    private float maxForceMove = 500.0f;
     public GameObject moveObj;
 
     public void ShowForce(Vector2 localForce)
@@ -19,6 +19,6 @@ public class HoverScript : MovementBlock
 
         localForce *= maxMoveRad;
 
-        moveObj.transform.localPosition = localForce;
+        moveObj.transform.localPosition = Vector2.Lerp(moveObj.transform.localPosition, localForce, 0.1f);
     }
 }
