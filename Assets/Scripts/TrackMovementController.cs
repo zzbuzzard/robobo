@@ -16,7 +16,7 @@ public class TrackMovementController : MovementController
 
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
     public float moveForce = 1500;
-    public float turnForce = 10000.0f; // eek this is a bit high
+    public float turnForce = 5000.0f; // eek this is a bit high
 
     public TrackMovementController(RobotScript parent) : base(parent)
     {
