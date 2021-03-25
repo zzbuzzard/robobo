@@ -16,4 +16,15 @@ public static class Util
             r = Rotate(r);
         return r;
     }
+
+    // -0.3 -> 0.7
+    // 3.8 -> 0.8
+    // etc.
+    public static float MoveToOne(float f)
+    {
+        // x = floor(f), then
+        // x < f < x+1
+        // 0 < f-x < 1
+        return f - Mathf.Floor(f);
+    }
 }
