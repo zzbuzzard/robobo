@@ -22,7 +22,15 @@ public class RobotScript : MonoBehaviour
     private XY centerXY;
 
     public bool manual = false;
-
+    public int NumTypes(BlockType block)
+    {
+        int n = 0;
+        foreach (Block b in blockDict.Values)
+        {
+            if (b.Type == block) n += 1;
+        }
+        return n;
+    }
     // Load in gameobjects based on this Robot object
     public void LoadRobot(Robot robot)
     {
