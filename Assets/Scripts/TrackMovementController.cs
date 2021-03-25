@@ -8,8 +8,8 @@ public class TrackMovementController : MovementController
 {
     private float front = 0.75f;
 
-    List<XY> H;
-    List<XY> V;
+    public List<XY> H;
+    public List<XY> V;
 
     //private float MASS;
     private float SMOA;

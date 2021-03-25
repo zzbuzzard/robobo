@@ -61,8 +61,8 @@ MonoBehaviour:
   density: 1
   x: 0
   y: 0
-  forward_friction: 0.02
-  lateral_friction: 1.5
+  forward_friction: 0.3
+  lateral_friction: 2
 --- !u!1001 &2839447232186056340
 PrefabInstance:
   m_ObjectHideFlags: 0
