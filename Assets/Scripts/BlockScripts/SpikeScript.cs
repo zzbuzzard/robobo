@@ -8,9 +8,14 @@ public class SpikeScript : WeaponBlock
 
     public GameObject sparks;
 
-    float force = 5000.0f;
-    public float damage = 5f;
-    public float damage_mul = 1;
+    [SerializeField]
+    private float force = 5000.0f;
+
+    [SerializeField]
+    private float damage = 5f;
+
+    [SerializeField]
+    private float damage_mul = 1;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {

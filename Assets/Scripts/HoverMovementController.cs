@@ -35,9 +35,14 @@ public class HoverMovementController : MovementController
     //private float MASS;
     private float SMOA;
 
-    public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
-    public float moveForce = 500;
-    public float turnForce = 10000.0f; // eek this is a bit high
+    [SerializeField]
+    private float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
+
+    [SerializeField]
+    private float moveForce = 500;
+
+    [SerializeField]
+    private float turnForce = 10000.0f; // eek this is a bit high
 
     public HoverMovementController(RobotScript parent) : base(parent)
     {

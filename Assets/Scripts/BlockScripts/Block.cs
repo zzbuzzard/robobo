@@ -12,8 +12,12 @@ public abstract class Block : MonoBehaviour
     public abstract BlockType Type { get; }
     public abstract WheelType Wheel { get; }
 
-    public float hp;
-    public float density;
+    [SerializeField]
+    private float hp;
+
+    [SerializeField]
+    private float density;
+
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
     protected RobotScript parent; // the RobotScript of my parent
 

@@ -6,15 +6,16 @@ public class PistonScript : UsableWeaponBlock
 {
     public override BlockType Type => BlockType.PISTON;
 
-    public float damage = 0;
-    public Transform bone;
-    public float force = 10000f;
+    [SerializeField]
+    private float damage = 0;
+
+    [SerializeField]
+    private float force = 10000f;
     private Animation anim;
 
     protected override void Start()
     {
         base.Start();
-        bone = transform.Find("Piston");
         anim = GetComponentInChildren<Animation>();
     }
 

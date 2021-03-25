@@ -9,8 +9,14 @@ public class TrackBlockScript : MovementBlock
 
     private Animator anim;
     private Rigidbody2D mrig;
-    public float forward_friction;
-    public float lateral_friction;
+
+    [SerializeField]
+    private float forward_friction;
+
+    [SerializeField]
+    private float lateral_friction;
+
+
     private RobotScript controller;
     // Start is called before the first frame update
     protected override void Start()

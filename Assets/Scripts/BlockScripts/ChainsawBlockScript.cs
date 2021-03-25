@@ -6,10 +6,17 @@ public class ChainsawBlockScript : UsableWeaponBlock
 {
     public override BlockType Type => BlockType.CHAINSAW;
 
-    public GameObject sparks;
+    [SerializeField]
+    private GameObject sparks;
+
     private CapsuleCollider2D capsule;
-    public float force = 10000f;
-    public float damage = 5f;
+
+    [SerializeField]
+    private float force = 10000f;
+
+    [SerializeField]
+    private float damage = 5f;
+
     private bool isRunning = false;
     private Animator anim;
 
