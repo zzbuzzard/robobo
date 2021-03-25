@@ -5,7 +5,7 @@ using UnityEngine;
 public class TrackBlockScript : Block
 {
     public override BlockType Type => BlockType.HOVER;
-    public override WheelType Wheel => WheelType.HOVER;
+    public override WheelType Wheel => WheelType.TRACK;
 
     private Animator anim;
     private Rigidbody2D mrig;
