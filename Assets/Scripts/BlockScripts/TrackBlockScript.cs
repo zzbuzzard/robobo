@@ -19,13 +19,10 @@ public class TrackBlockScript : Block
         anim = GetComponent<Animator>();
     }
 
-    // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if (mrig == null) {
-            mrig = GetComponent<Rigidbody2D>();
-            return;
-                }
+        if (parent == null || parent.currentWheelType != WheelType.TRACK) return;
+
         float mass = mrig.mass;
         Vector2 vel = mrig.GetPointVelocity(transform.position);
         

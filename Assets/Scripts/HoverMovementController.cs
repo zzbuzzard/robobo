@@ -52,8 +52,6 @@ public class HoverMovementController : MovementController
 
     public override void Move(Vector2 moveDirection, Vector2 lookDirection)
     {
-        return;
-
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
         float cancel = ApplyMovement(moveDirection);

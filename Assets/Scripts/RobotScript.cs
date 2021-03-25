@@ -12,6 +12,7 @@ public class RobotScript : MonoBehaviour
 
     // Map WheelType.HOVER -> List of positions, etc.
     public IDictionary<WheelType, List<XY>> wheelMap;
+    public WheelType currentWheelType { get; private set; }
 
     HoverMovementController hoverMovementController;
     TrackMovementController trackMovementController;
@@ -177,7 +178,6 @@ public class RobotScript : MonoBehaviour
     }
 
     // e.g. lost a wheel/block
-    // TODO: Lose wheels when containing block is lost, or something?
     private void BlocksChanged()
     {
         blockDict = new Dictionary<XY, Block>();
@@ -203,6 +203,18 @@ public class RobotScript : MonoBehaviour
             return;
         }
 
+        // Find the highest priority wheel which we have more than 0 of
+        currentWheelType = WheelType.NONE;
+        for (int i=0; i<BlockInfo.wheelTypes.Length; i++)
+        {
+            WheelType t = BlockInfo.wheelTypes[i];
+            if (wheelMap[t].Count > 0)
+            {
+                currentWheelType = t;
+                break;
+            }
+        }
+
         hoverMovementController.UpdateWheels(wheelMap[WheelType.HOVER], ScuffedRotFromRotation(wheelMap[WheelType.HOVER]));
         trackMovementController.UpdateWheels(wheelMap[WheelType.TRACK], ScuffedRotFromRotation(wheelMap[WheelType.TRACK]));
     }
@@ -221,11 +233,26 @@ public class RobotScript : MonoBehaviour
     }
 
     // World move + World look
+    // World move must be a vector with magnitude at most 1
     public void Move(Vector2 moveDirection, Vector2 lookDirection)
     {
-        // TODO: Pick the right one depending on a variable
-        hoverMovementController.Move(moveDirection, lookDirection);
-        trackMovementController.Move(moveDirection, lookDirection);
+        if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
+
+        if (currentWheelType != WheelType.NONE)
+        {
+            switch (currentWheelType)
+            {
+                case WheelType.HOVER:
+                    hoverMovementController.Move(moveDirection, lookDirection);
+                    break;
+                case WheelType.WHEEL:
+                    break;
+                case WheelType.TRACK:
+                    trackMovementController.Move(moveDirection, lookDirection);
+                    break;
+            }
+        }
+        
     }
 
     //void FixedUpdate()
