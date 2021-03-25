@@ -54,7 +54,7 @@ public class BlockInfo
         new BlockInfo("track_block",
             new BlockShape(new List<XY>(){ new XY(-1, 0), new XY(0, 0), new XY(1, 0) },
             new List<XY>(){ new XY(-1, -1), new XY(0, -1), new XY(1, -1), new XY(-1, 1), new XY(0, 1), new XY(1, 1) }),
-            1, WheelType.HOVER),
+            1, WheelType.TRACK),
     };
 
     public static void LoadBlockTypePrefabs()

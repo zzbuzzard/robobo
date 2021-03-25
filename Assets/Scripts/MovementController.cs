@@ -12,7 +12,7 @@ public abstract class MovementController
         this.parent = parent;
     }
 
-    public abstract void UpdateWheels(List<XY> newList);
+    public abstract void UpdateWheels(List<XY> newList, List<int> rotation);
     public abstract void Move(Vector2 moveDirection, Vector2 lookDirection);
 
     protected Vector2 XYToLocal(XY pos)

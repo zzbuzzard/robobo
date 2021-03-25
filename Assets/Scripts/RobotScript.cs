@@ -12,7 +12,9 @@ public class RobotScript : MonoBehaviour
 
     // Map WheelType.HOVER -> List of positions, etc.
     public IDictionary<WheelType, List<XY>> wheelMap;
+
     HoverMovementController hoverMovementController;
+    TrackMovementController trackMovementController;
 
     public List<GameObject> children { get; private set; }
     private BlockGraph blockGraph;
@@ -28,6 +30,7 @@ public class RobotScript : MonoBehaviour
         transform.DetachChildren();
 
         hoverMovementController = new HoverMovementController(this);
+        trackMovementController = new TrackMovementController(this);
 
         // Load in each block
         foreach (XY pos in robot.blockTypes.Keys)
@@ -113,6 +116,7 @@ public class RobotScript : MonoBehaviour
         // Copy paste from robot
         mrig = GetComponent<Rigidbody2D>();
         hoverMovementController = new HoverMovementController(this);
+        trackMovementController = new TrackMovementController(this);
 
         centerXY = robot.center;
 
@@ -199,7 +203,21 @@ public class RobotScript : MonoBehaviour
             return;
         }
 
-        hoverMovementController.UpdateWheels(wheelMap[WheelType.HOVER]);
+        hoverMovementController.UpdateWheels(wheelMap[WheelType.HOVER], ScuffedRotFromRotation(wheelMap[WheelType.HOVER]));
+        trackMovementController.UpdateWheels(wheelMap[WheelType.TRACK], ScuffedRotFromRotation(wheelMap[WheelType.TRACK]));
+    }
+
+    // Okk, not even that scuffed
+    private List<int> ScuffedRotFromRotation(List<XY> blocks)
+    {
+        List<int> ans = new List<int>();
+        foreach (XY xy in blocks)
+        {
+            Block b = blockDict[xy];
+            int r = Mathf.RoundToInt(b.transform.localRotation.eulerAngles.z / 90.0f);
+            ans.Add(r);
+        }
+        return ans;
     }
 
     // World move + World look
@@ -207,6 +225,7 @@ public class RobotScript : MonoBehaviour
     {
         // TODO: Pick the right one depending on a variable
         hoverMovementController.Move(moveDirection, lookDirection);
+        trackMovementController.Move(moveDirection, lookDirection);
     }
 
     //void FixedUpdate()

@@ -43,7 +43,7 @@ public class HoverMovementController : MovementController
     {
     }
 
-    public override void UpdateWheels(List<XY> newList)
+    public override void UpdateWheels(List<XY> newList, List<int> rotation)
     {
         wheels = newList;
         LoadStats(); 
@@ -52,6 +52,8 @@ public class HoverMovementController : MovementController
 
     public override void Move(Vector2 moveDirection, Vector2 lookDirection)
     {
+        return;
+
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
         float cancel = ApplyMovement(moveDirection);
