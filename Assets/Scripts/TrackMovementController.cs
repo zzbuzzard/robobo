@@ -15,7 +15,7 @@ public class TrackMovementController : MovementController
     private float SMOA;
 
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
-    public float moveForce = 500;
+    public float moveForce = 1500;
     public float turnForce = 10000.0f; // eek this is a bit high
 
     public TrackMovementController(RobotScript parent) : base(parent)
@@ -46,7 +46,7 @@ public class TrackMovementController : MovementController
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
 
-        Vector2 forward = parent.transform.forward;
+        Vector2 forward = new Vector2(0, 1);
 
         // If one is empty, we only move in forward direction
         if (H.Count * V.Count == 0)

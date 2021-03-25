@@ -18,7 +18,7 @@ public class GameController : MonoBehaviour
         GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
         playerObj.GetComponent<RobotScript>().LoadRobot(chosenRobot);
 
-        SpawnEnemy(chosenRobot);
+        //SpawnEnemy(chosenRobot);
     }
 
     private void SpawnEnemy(Robot r)
