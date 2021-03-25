@@ -13,7 +13,7 @@ public abstract class MovementController
     }
 
     public abstract void UpdateWheels(List<Block> newList);
-    public abstract void Move(Vector2 moveDirection, Vector2 lookDirection);
+    public abstract void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking);
 
     protected Vector2 XYToLocal(XY pos)
     {

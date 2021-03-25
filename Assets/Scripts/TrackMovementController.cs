@@ -44,7 +44,7 @@ public class TrackMovementController : MovementController
         LoadStats(); 
     }
 
-    public override void Move(Vector2 moveDirection, Vector2 lookDirection)
+    public override void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking)
     {
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
@@ -68,16 +68,19 @@ public class TrackMovementController : MovementController
         // TODO: maxMovePower should depend on direction; take x and y components, add vectors for max from each
         parent.mrig.AddRelativeForce(moveDirection * maxMovePower);
 
-        float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
-        if (ang < 0) ang += 1;
+        if (isLooking)
+        {
+            float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
+            if (ang < 0) ang += 1;
 
-        float curAng = parent.transform.rotation.eulerAngles.z / 360.0f - front;
-        if (curAng < 0) curAng += 1;
+            float curAng = parent.transform.rotation.eulerAngles.z / 360.0f - front;
+            if (curAng < 0) curAng += 1;
 
-        float turn = GetRotation(curAng, ang, parent.mrig);
-        turn = CalculateTorque(turn);
+            float turn = GetRotation(curAng, ang, parent.mrig);
+            turn = CalculateTorque(turn);
 
-        parent.mrig.AddTorque(turn);
+            parent.mrig.AddTorque(turn);
+        }
     }
 
     private float CalculateTorque(float angle)

@@ -338,6 +338,7 @@ MonoBehaviour:
   parentPrefab: {fileID: 7852141175142452171, guid: 70b7d9a31c37b464484ab48fd58e1575, type: 3}
   blockPrefab: {fileID: 7852141175142452171, guid: 90cd7b707978d7241b5ff5f984900949, type: 3}
   createButton: {fileID: 1845913436}
+  dragCamera: {fileID: 2011353483}
 --- !u!1 &1845913436
 GameObject:
   m_ObjectHideFlags: 0

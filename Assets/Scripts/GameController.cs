@@ -9,6 +9,8 @@ public class GameController : MonoBehaviour
     public GameObject player;
     public GameObject enemy;
 
+    public FixedJoystick left, right;
+
     // Load the game
     private void Awake()
     {
@@ -18,15 +20,20 @@ public class GameController : MonoBehaviour
         GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
         playerObj.GetComponent<RobotScript>().LoadRobot(chosenRobot);
 
-        //SpawnEnemy(chosenRobot);
+        playerObj.GetComponent<PlayerScript>().moveJoystick = left;
+        playerObj.GetComponent<PlayerScript>().turnJoystick = right;
+
+        StartCoroutine(SpawnEnemies());
     }
 
-    private void SpawnEnemy(Robot r)
+    private GameObject SpawnEnemy(Robot r)
     {
         float angle = Random.Range(0.0f, Mathf.PI * 2);
 
         GameObject enemyObj = Instantiate(enemy, 15.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), Quaternion.identity);
         enemyObj.GetComponent<RobotScript>().LoadRobot(r);
+
+        return enemyObj;
     }
 
     private void Update()
@@ -38,6 +45,28 @@ public class GameController : MonoBehaviour
             Robot r = Robot.GenerateRandomRobot(blockz, weaponz);
 
             SpawnEnemy(r);
+        }
+    }
+
+    IEnumerator SpawnEnemies()
+    {
+        float blockz = 4;
+        float weaponz = 2;
+
+        while (true)
+        {
+            Robot r = null;
+            if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
+            else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
+            GameObject obj = SpawnEnemy(r);
+
+            blockz += 0.5f;
+            weaponz += 0.35f;
+
+            while (obj != null && obj.transform.childCount > 0)
+            {
+                yield return new WaitForSeconds(5.0f);
+            }
         }
     }
 }

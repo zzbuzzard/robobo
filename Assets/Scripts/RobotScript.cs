@@ -236,11 +236,16 @@ public class RobotScript : MonoBehaviour
         }
         return ans;
     }
-    
+
+
+    public void Move(Vector2 moveDir)
+    {
+        Move(moveDir, Vector2.zero, false);
+    }
 
     // World move + World look
     // World move must be a vector with magnitude at most 1
-    public void Move(Vector2 moveDirection, Vector2 lookDirection)
+    public void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking = true)
     {
         if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
 
@@ -249,12 +254,12 @@ public class RobotScript : MonoBehaviour
             switch (currentWheelType)
             {
                 case WheelType.HOVER:
-                    hoverMovementController.Move(moveDirection, lookDirection);
+                    hoverMovementController.Move(moveDirection, lookDirection, isLooking);
                     break;
                 case WheelType.WHEEL:
                     break;
                 case WheelType.TRACK:
-                    trackMovementController.Move(moveDirection, lookDirection);
+                    trackMovementController.Move(moveDirection, lookDirection, isLooking);
                     break;
             }
         }
