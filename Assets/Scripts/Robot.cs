@@ -147,9 +147,18 @@ public class Robot
         return new Robot(map, map2);
     }
 
+    private static string GetRobotDir()
+    {
+        string path = Application.persistentDataPath + "/Robots";
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+        return path;
+    }
+
     public static void SaveRobotToFile(Robot robot, string name)
     {
-        string path = Application.persistentDataPath + "/" + name + ".robot";
+        string path = GetRobotDir() + "/" + name + ".robot";
+
         FileStream file;
 
         if (File.Exists(path)) file = File.OpenWrite(path);
@@ -179,14 +188,15 @@ public class Robot
         file.Close();
     }
 
-    public static Robot LoadRobotFromFile(string name)
+    public static Robot LoadRobotFromName(string name)
     {
-        string path = Application.persistentDataPath + "/" + name + ".robot";
+        string path = GetRobotDir() + "/" + name + ".robot";
         FileStream file;
 
         if (!File.Exists(path))
         {
             Debug.LogError("File didn't exist! Robot name " + name);
+            return null;
         }
 
         file = File.OpenRead(path);
@@ -214,5 +224,24 @@ public class Robot
         file.Close();
 
         return new Robot(blockTypes, rotations);
+    }
+
+    public static IDictionary<string, Robot> LoadAllRobots()
+    {
+        IDictionary<string, Robot> dict = new Dictionary<string, Robot>();
+        string path = GetRobotDir();
+        foreach (string robopath in Directory.GetFiles(path))
+        {
+            if (!robopath.EndsWith(".robot")) continue;
+
+            string p = robopath.Substring(path.Length + 1); // +1 for the /
+            p = p.Substring(0, p.Length - 6); // .robot = 6 chars
+
+            Debug.Log(path + " -> " + p);
+
+            dict[p] = LoadRobotFromName(p);
+        }
+
+        return dict;
     }
 }
