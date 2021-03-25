@@ -21,13 +21,10 @@ public class TrackBlockScript : MovementBlock
         controller = transform.parent.GetComponent<RobotScript>();
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
-        if (mrig == null) {
-            mrig = GetComponent<Rigidbody2D>();
-            return;
-                }
+        if (parent == null || parent.currentWheelType != WheelType.TRACK) return;
+
         float mass = mrig.mass;
         Vector2 vel = mrig.GetPointVelocity(transform.position);
         int num_tracks = controller.NumTypes(BlockType.TRACK);

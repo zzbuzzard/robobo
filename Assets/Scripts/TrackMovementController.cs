@@ -15,8 +15,8 @@ public class TrackMovementController : MovementController
     private float SMOA;
 
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
-    public float moveForce = 1500;
-    public float turnForce = 10000.0f; // eek this is a bit high
+    public float moveForce = 1500.0f;
+    public float turnForce = 3500.0f;
 
     public TrackMovementController(RobotScript parent) : base(parent)
     {
@@ -38,7 +38,6 @@ public class TrackMovementController : MovementController
         }
 
         LoadStats(); 
-        LoadTurnOneUnit();
     }
 
     public override void Move(Vector2 moveDirection, Vector2 lookDirection)
@@ -46,13 +45,12 @@ public class TrackMovementController : MovementController
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
 
-        Vector2 forward = new Vector2(0, 1);
-
         // If one is empty, we only move in forward direction
+        Vector2 forward = new Vector2(0, 1);
         if (H.Count * V.Count == 0)
             moveDirection = Vector2.Dot(forward, moveDirection) * forward.normalized;
 
-        float cancel = ApplyMovement(moveDirection);
+        ApplyMovement(moveDirection);
 
         float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
         if (ang < 0) ang += 1;
@@ -77,38 +75,18 @@ public class TrackMovementController : MovementController
         else turn = b;
 
         turn = CalculateTorque(turn);
-
-        ApplyTorque(turn - cancel);
+        ApplyTorque(turn);
     }
 
     private void ApplyTorque(float f)
     {
         parent.mrig.AddTorque(f);
-
-        //for (int i = 0; i < wheels.Count; i++)
-        //{
-        //    Vector2 localPos = XYToLocal(wheels[i]);
-        //    ApplyForce(turnOneUnit[i] * f, localPos);
-        //}
     }
 
     // F being a local force
-    private float ApplyMovement(Vector2 f)
+    private void ApplyMovement(Vector2 f)
     {
         parent.mrig.AddRelativeForce(f * moveForce);
-        return 0.0f;
-
-        //f *= moveForce;
-
-        //float moment = 0;
-        //for (int i = 0; i < wheels.Count; i++)
-        //{
-        //    Vector2 localPos = XYToLocal(wheels[i]);
-        //    ApplyForce(f, localPos);
-        //    Vector2 comToPos = localPos - parent.mrig.centerOfMass;
-        //    moment += Vector3.Cross(comToPos, f).z;
-        //}
-        //return moment;
     }
 
     private float CalculateTorque(float angle)
@@ -134,46 +112,5 @@ public class TrackMovementController : MovementController
             SMOA += r.density * Mathf.Pow((this_com - com).magnitude, 2.0f);
             // smoa += r.mass * Mathf.Pow((r.worldCenterOfMass - COM).magnitude, 2.0f);
         }
-    }
-
-    private void LoadTurnOneUnit()
-    {
-        //int N = wheels.Count;
-        //if (N == 0) return;
-
-        //turnOneUnit = new Vector2[N];
-
-        //Vector2 totForce = Vector2.zero;
-        //Vector2 com = parent.mrig.centerOfMass;
-
-        //for (int i = 0; i < N - 1; i++)
-        //{
-        //    Vector2 localPos = XYToLocal(wheels[i]);
-        //    Vector2 comToPos = localPos - com;
-        //    Vector2 rotated = Vector2.Perpendicular(comToPos);
-        //    turnOneUnit[i] = rotated;
-        //    totForce += turnOneUnit[i];
-        //}
-
-        //float moment = 0;
-        //turnOneUnit[N - 1] = -totForce;
-        //for (int i = 0; i < N; i++)
-        //{
-        //    Vector2 localPos = XYToLocal(wheels[i]);
-        //    Vector2 comToPos = localPos - com;
-        //    moment += Vector3.Cross(comToPos, turnOneUnit[i]).z;
-        //}
-
-        //// TODO: ... should probs do something about this?
-        //if (moment == 0)
-        //{
-        //    Debug.LogWarning("CAN'T TURN");
-        //    return;
-        //}
-
-        //for (int i = 0; i < N; i++)
-        //{
-        //    turnOneUnit[i] *= 1.0f / moment;
-        //}
     }
 }
