@@ -22,6 +22,10 @@ public class TrackBlockScript : Block
     // Update is called once per frame
     void Update()
     {
+        if (mrig == null) {
+            mrig = GetComponent<Rigidbody2D>();
+            return;
+                }
         float mass = mrig.mass;
         Vector2 vel = mrig.GetPointVelocity(transform.position);
         
