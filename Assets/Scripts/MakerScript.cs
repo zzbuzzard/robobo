@@ -9,17 +9,13 @@ using XY = UnityEngine.Vector2Int;
 
 // Script to manage the making of a robot
 
-// UI:
-//  - Blocks where you can place
-//  - Click at bottom to select the thing you want
-//  - Then click a block, click again to rotate
-
 // TODO:
-//  - Allow for NxM blocks
 //  - Drag and drop: auto snaps to grid, including auto snapping rotation to nearest boi
 
 public class MakerScript : MonoBehaviour
 {
+    public static string robotName = "default";
+
     // Maps a button ID to the block type it represents
     static IDictionary<int, BlockType> buttonToBlock = new Dictionary<int, BlockType>()
     {
@@ -48,12 +44,6 @@ public class MakerScript : MonoBehaviour
     public TextMeshProUGUI errorText;
     public Button goButton;
 
-    // errors: if any are true, then it's invalid
-    //public bool noControl { get; private set; }
-    //public bool tooManyControl { get; private set; }
-    //public bool disconnected { get; private set; }
-    //public bool overlaps { get; private set; }
-
     private void GenerateSquares()
     {
         blockGraph = new BlockGraph();
@@ -79,6 +69,10 @@ public class MakerScript : MonoBehaviour
     {
         GenerateSquares();
         CheckIssues();
+
+        Robot edit = Robot.LoadRobotFromName(robotName);
+        if (edit != null)
+            LoadRobot(edit);
     }
 
     //private void MakeSquare(XY pos)
@@ -273,19 +267,21 @@ public class MakerScript : MonoBehaviour
         CheckIssues();
     }
 
-    // TODO: Better save/load system
-    public void LoadClicked()
-    {
-        Robot r = Robot.LoadRobotFromName("default");
-        if (r != null)
-            LoadRobot(r);
+    //public void LoadClicked()
+    //{
+    //    Robot r = Robot.LoadRobotFromName(robotName);
+    //    if (r != null)
+    //        LoadRobot(r);
+    //}
 
-        Robot.LoadAllRobots();
+    public void BackClicked()
+    {
+        SceneManager.LoadScene("SelectRobot");
     }
 
     public void SaveClicked()
     {
         Robot r = GetRobot();
-        Robot.SaveRobotToFile(r, "default");
+        Robot.SaveRobotToFile(r, robotName);
     }
 }

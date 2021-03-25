@@ -237,8 +237,6 @@ public class Robot
             string p = robopath.Substring(path.Length + 1); // +1 for the /
             p = p.Substring(0, p.Length - 6); // .robot = 6 chars
 
-            Debug.Log(path + " -> " + p);
-
             dict[p] = LoadRobotFromName(p);
         }
 

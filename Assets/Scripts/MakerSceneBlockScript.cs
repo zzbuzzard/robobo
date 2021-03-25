@@ -8,7 +8,7 @@ public class MakerSceneBlockScript : MonoBehaviour
 {
     private BlockType currentBlock = BlockType.NONE;
     private int rotate = 0;
-    private SpriteRenderer rend;
+    public SpriteRenderer rend;
 
     public float baseSize = 2.0f;
     public Sprite emptySprite;
@@ -70,15 +70,14 @@ public class MakerSceneBlockScript : MonoBehaviour
         }
         else
         {
-            transform.localScale = Vector3.one * baseSize * 0.9f;
+            transform.localScale = Vector3.one * baseSize;
             rend.sprite = BlockInfo.blockInfos[(int)currentBlock].showSprite;
             rend.sortingOrder = 1;
         }
     }
 
-    private void Start()
+    private void Awake()
     {
-        rend = GetComponent<SpriteRenderer>();
         ClearBlock();
         SetTransform();
     }

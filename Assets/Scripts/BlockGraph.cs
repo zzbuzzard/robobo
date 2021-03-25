@@ -5,16 +5,8 @@ using UnityEngine;
 
 using XY = UnityEngine.Vector2Int;
 
-// TODO:
-//  + IsConnected
-//  + HasOverlaps
-//  + ControlCount
-//  + Disconnect(x, y)
-//  + AddBlock(x, y, r, t)
-//  - 
-
 // Summary:
-// Stores blocks
+// Stores blocks in a graph, allowing for adjacency lookups, connectedness queries, etc.
 
 public class BlockGraph
 {
