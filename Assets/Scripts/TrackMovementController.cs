@@ -24,17 +24,20 @@ public class TrackMovementController : MovementController
         V = new List<XY>();
     }
 
-    public override void UpdateWheels(List<XY> newList, List<int> rotation)
+    public override void UpdateWheels(List<Block> newList)
     {
         H.Clear();
         V.Clear();
 
         for (int i=0; i<newList.Count; i++)
         {
-            if (rotation[i] % 2 == 0)
-                H.Add(newList[i]);
+            int rotation = Mathf.RoundToInt(newList[i].transform.localRotation.eulerAngles.z / 90.0f);
+            XY pos = new XY(newList[i].x, newList[i].y);
+
+            if (rotation % 2 == 0)
+                H.Add(pos);
             else
-                V.Add(newList[i]);
+                V.Add(pos);
         }
 
         LoadStats(); 

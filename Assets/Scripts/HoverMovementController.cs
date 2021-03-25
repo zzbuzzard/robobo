@@ -30,7 +30,7 @@ public class HoverMovementController : MovementController
     private float front = 0.75f;
 
     private Vector2[] turnOneUnit; // Forces required to turn a unit about COM
-    private List<XY> wheels;
+    private List<Block> wheels;
 
     //private float MASS;
     private float SMOA;
@@ -43,7 +43,7 @@ public class HoverMovementController : MovementController
     {
     }
 
-    public override void UpdateWheels(List<XY> newList, List<int> rotation)
+    public override void UpdateWheels(List<Block> newList)
     {
         wheels = newList;
         LoadStats(); 
@@ -87,7 +87,7 @@ public class HoverMovementController : MovementController
     {
         for (int i = 0; i < wheels.Count; i++)
         {
-            Vector2 localPos = XYToLocal(wheels[i]);
+            Vector2 localPos = wheels[i].transform.localPosition;
             ApplyForce(turnOneUnit[i] * f, localPos);
         }
     }
@@ -100,7 +100,7 @@ public class HoverMovementController : MovementController
         float moment = 0;
         for (int i = 0; i < wheels.Count; i++)
         {
-            Vector2 localPos = XYToLocal(wheels[i]);
+            Vector2 localPos = wheels[i].transform.localPosition;
             ApplyForce(f, localPos);
             Vector2 comToPos = localPos - parent.mrig.centerOfMass;
             moment += Vector3.Cross(comToPos, f).z;
@@ -145,7 +145,7 @@ public class HoverMovementController : MovementController
 
         for (int i = 0; i < N - 1; i++)
         {
-            Vector2 localPos = XYToLocal(wheels[i]);
+            Vector2 localPos = wheels[i].transform.localPosition;
             Vector2 comToPos = localPos - com;
             Vector2 rotated = Vector2.Perpendicular(comToPos);
             turnOneUnit[i] = rotated;
@@ -156,7 +156,7 @@ public class HoverMovementController : MovementController
         turnOneUnit[N - 1] = -totForce;
         for (int i = 0; i < N; i++)
         {
-            Vector2 localPos = XYToLocal(wheels[i]);
+            Vector2 localPos = wheels[i].transform.localPosition;
             Vector2 comToPos = localPos - com;
             moment += Vector3.Cross(comToPos, turnOneUnit[i]).z;
         }

@@ -215,22 +215,20 @@ public class RobotScript : MonoBehaviour
             }
         }
 
-        hoverMovementController.UpdateWheels(wheelMap[WheelType.HOVER], ScuffedRotFromRotation(wheelMap[WheelType.HOVER]));
-        trackMovementController.UpdateWheels(wheelMap[WheelType.TRACK], ScuffedRotFromRotation(wheelMap[WheelType.TRACK]));
+        hoverMovementController.UpdateWheels(GetBlocksFromXYs(wheelMap[WheelType.HOVER]));
+        trackMovementController.UpdateWheels(GetBlocksFromXYs(wheelMap[WheelType.TRACK]));
     }
 
-    // Okk, not even that scuffed
-    private List<int> ScuffedRotFromRotation(List<XY> blocks)
+    private List<Block> GetBlocksFromXYs(List<XY> xys)
     {
-        List<int> ans = new List<int>();
-        foreach (XY xy in blocks)
+        List<Block> ans = new List<Block>();
+        foreach (XY xy in xys)
         {
-            Block b = blockDict[xy];
-            int r = Mathf.RoundToInt(b.transform.localRotation.eulerAngles.z / 90.0f);
-            ans.Add(r);
+            ans.Add(blockDict[xy]);
         }
         return ans;
     }
+    
 
     // World move + World look
     // World move must be a vector with magnitude at most 1
