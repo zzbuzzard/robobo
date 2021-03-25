@@ -14,7 +14,7 @@ public class TrackMovementController : MovementController
     //private float MASS;
     private float SMOA;
 
-    private float maxWheelPower = 750.0f;
+    private float maxWheelPower = 1000.0f;
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
 
     private float maxMovePower = 0.0f, maxTurnPower = 0.0f;
