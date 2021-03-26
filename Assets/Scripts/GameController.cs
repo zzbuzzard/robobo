@@ -23,6 +23,8 @@ public class GameController : MonoBehaviour
         playerObj.GetComponent<PlayerScript>().moveJoystick = left;
         playerObj.GetComponent<PlayerScript>().turnJoystick = right;
 
+        Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(playerObj);
+        
         StartCoroutine(SpawnEnemies());
     }
 
@@ -56,8 +58,11 @@ public class GameController : MonoBehaviour
         while (true)
         {
             Robot r = null;
-            if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
-            else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
+            //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
+            //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
+
+            r = Controller.playerRobot;
+
             GameObject obj = SpawnEnemy(r);
 
             blockz += 0.5f;
@@ -65,7 +70,7 @@ public class GameController : MonoBehaviour
 
             while (obj != null && obj.transform.childCount > 0)
             {
-                yield return new WaitForSeconds(5.0f);
+                yield return new WaitForSeconds(10.0f);
             }
         }
     }
