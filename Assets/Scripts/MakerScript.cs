@@ -9,17 +9,25 @@ using XY = UnityEngine.Vector2Int;
 
 // Script to manage the making of a robot
 
-// UI:
-//  - Blocks where you can place
-//  - Click at bottom to select the thing you want
-//  - Then click a block, click again to rotate
-
 // TODO:
-//  - Allow for NxM blocks
 //  - Drag and drop: auto snaps to grid, including auto snapping rotation to nearest boi
 
 public class MakerScript : MonoBehaviour
 {
+    public static string RobotName { get; private set; } = "default";
+    private static Robot unsavedRobot = null;
+    public static void LoadSavedRobot(string name)
+    {
+        RobotName = name;
+        unsavedRobot = null;
+    }
+    public static void LoadUnsavedRobot(string name, Robot r)
+    {
+        RobotName = name;
+        unsavedRobot = r;
+    }
+
+
     // Maps a button ID to the block type it represents
     static IDictionary<int, BlockType> buttonToBlock = new Dictionary<int, BlockType>()
     {
@@ -48,12 +56,6 @@ public class MakerScript : MonoBehaviour
     public TextMeshProUGUI errorText;
     public Button goButton;
 
-    // errors: if any are true, then it's invalid
-    //public bool noControl { get; private set; }
-    //public bool tooManyControl { get; private set; }
-    //public bool disconnected { get; private set; }
-    //public bool overlaps { get; private set; }
-
     private void GenerateSquares()
     {
         blockGraph = new BlockGraph();
@@ -79,6 +81,22 @@ public class MakerScript : MonoBehaviour
     {
         GenerateSquares();
         CheckIssues();
+
+        // Back from testing - load unsaved robot
+        if (unsavedRobot != null)
+        {
+            LoadRobot(unsavedRobot);
+        }
+        else
+        {
+            // Loaded from screen, either new or not
+            Robot edit = Robot.LoadRobotFromName(RobotName);
+            if (edit != null)
+            {
+                LoadRobot(edit);
+            }
+        }
+
     }
 
     //private void MakeSquare(XY pos)
@@ -166,27 +184,32 @@ public class MakerScript : MonoBehaviour
 
         bool valid = true;
 
+        string err = "";
+
         if (!blockGraph.IsConnected())
         {
             valid = false;
-            // TODO: Error message
+            err += "Blocks don't connect\n";
         }
 
         if (blockGraph.NumberOfControlBlocks() != 1)
         {
             valid = false;
-            // TODO: Error message
+            if (blockGraph.NumberOfControlBlocks() == 0)
+                err += "Missing control block\n";
+            else
+                err += "Too many control blocks\n";
         }
 
         if (blockGraph.HasOverlaps())
         {
             valid = false;
-            // TODO: Error message
+            err += "Overlapping blocks\n";
         }
 
         if (!valid)
         {
-            errorText.SetText("Invalid robot, nerd");
+            errorText.SetText(err.Substring(0, err.Length - 1));
             goButton.interactable = false;
         }
         else
@@ -208,7 +231,7 @@ public class MakerScript : MonoBehaviour
 
     public void StartClicked()
     {
-        if (blockGraph==null || !blockGraph.IsValidRobot()) return;
+        if (blockGraph == null || !blockGraph.IsValidRobot()) return;
         Controller.playerRobot = GetRobot();
         SceneManager.LoadScene("ControlledScene");
     }
@@ -273,19 +296,21 @@ public class MakerScript : MonoBehaviour
         CheckIssues();
     }
 
-    // TODO: Better save/load system
-    public void LoadClicked()
-    {
-        Robot r = Robot.LoadRobotFromName("default");
-        if (r != null)
-            LoadRobot(r);
+    //public void LoadClicked()
+    //{
+    //    Robot r = Robot.LoadRobotFromName(robotName);
+    //    if (r != null)
+    //        LoadRobot(r);
+    //}
 
-        Robot.LoadAllRobots();
+    public void BackClicked()
+    {
+        SceneManager.LoadScene("SelectRobot");
     }
 
     public void SaveClicked()
     {
         Robot r = GetRobot();
-        Robot.SaveRobotToFile(r, "default");
+        Robot.SaveRobotToFile(r, RobotName);
     }
 }

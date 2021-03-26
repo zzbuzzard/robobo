@@ -49,7 +49,7 @@ public class TrackMovementController : MovementController
         LoadStats();
     }
 
-    public override void Move(Vector2 moveDirection, Vector2 lookDirection)
+    public override void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking)
     {
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
@@ -71,22 +71,27 @@ public class TrackMovementController : MovementController
 
         // Movement
         // TODO: maxMovePower should depend on direction; take x and y components, add vectors for max from each
-        parent.mrig.AddRelativeForce(moveDirection * maxMovePower);
+        parent.mrig.AddRelativeForce(moveDirection * movePowerMultiplier * WheelPower);
 
-        float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
-        if (ang < 0) ang += 1;
+        if (isLooking)
+        {
+            float ang = Vector2.SignedAngle(new Vector2(1, 0), lookDirection) / 360.0f;
+            if (ang < 0) ang += 1;
 
-        float curAng = parent.transform.rotation.eulerAngles.z / 360.0f - front;
-        if (curAng < 0) curAng += 1;
+            float curAng = parent.transform.rotation.eulerAngles.z / 360.0f - front;
+            if (curAng < 0) curAng += 1;
 
-        float turn = GetRotation(curAng, ang, parent.mrig);
-        turn = CalculateTorque(turn);
+            float turn = GetRotation(curAng, ang, parent.mrig);
+            turn = CalculateTorque(turn);
 
-        parent.mrig.AddTorque(turn);
+            parent.mrig.AddTorque(turn);
+        }
     }
 
     private float CalculateTorque(float angle)
     {
+        float maxTurnPower = turnPowerMultiplier * WheelPower;
+
         float c = dampConst * Mathf.Sqrt(SMOA * maxTurnPower);
         float dampingMoment = c * parent.mrig.angularVelocity * Mathf.Deg2Rad;
         float springMoment = angle * maxTurnPower;
@@ -107,26 +112,30 @@ public class TrackMovementController : MovementController
             // smoa += r.mass * Mathf.Pow((r.worldCenterOfMass - COM).magnitude, 2.0f);
         }
 
-        maxMovePower = maxWheelPower * (H.Count + V.Count);
-        maxTurnPower = 0.0f;
+        movePowerMultiplier = H.Count + V.Count;
+        turnPowerMultiplier = 0.0f;
 
-        Vector2 maxWheelForce = new Vector2(maxWheelPower, 0.0f);
+        Vector2 maxWheelForce = new Vector2(1.0f, 0.0f);
         foreach (XY xy in H)
         {
             Vector2 localPos = XYToLocal(xy);
             Vector2 comToPos = localPos - com;
 
-            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+            turnPowerMultiplier += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
         }
 
-        maxWheelForce = new Vector2(0.0f, maxWheelPower);
+        maxWheelForce = new Vector2(0.0f, 1.0f);
         foreach (XY xy in V)
         {
             Vector2 localPos = XYToLocal(xy);
             Vector2 comToPos = localPos - com;
 
-            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+            turnPowerMultiplier += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
         }
-        maxTurnPower *= 1.5f;
+
+        movePowerMultiplier *= baseWheelPower;
+        turnPowerMultiplier *= baseWheelPower;
+
+        turnPowerMultiplier *= 1.5f;
     }
 }

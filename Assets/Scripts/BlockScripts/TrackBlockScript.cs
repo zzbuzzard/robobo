@@ -33,7 +33,7 @@ public class TrackBlockScript : MovementBlock
 
         float mass = mrig.mass;
         Vector2 vel = mrig.GetPointVelocity(transform.position);
-        int num_tracks = controller.NumTypes(BlockType.TRACK);
+        int num_tracks = controller.NumWheels(WheelType.TRACK);
         float speed = Vector2.Dot(transform.right, vel);
         float across = Vector2.Dot(transform.up, vel);
         mrig.AddForceAtPosition(- transform.right * forward_friction * mass * speed/num_tracks, transform.position);
@@ -41,5 +41,11 @@ public class TrackBlockScript : MovementBlock
         //Debug.Log(transform.forward);
         //Debug.Log(vel);
         anim.SetFloat("Speed", speed * 0.25f);
+    }
+
+    protected override void HandleDeath()
+    {
+        base.HandleDeath();
+        anim.SetFloat("Speed", 0.0f);
     }
 }

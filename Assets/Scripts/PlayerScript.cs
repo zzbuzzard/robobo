@@ -12,6 +12,9 @@ public class PlayerScript : MonoBehaviour
     Rigidbody2D mrig;
     Vector2 movement;
     // Start is called before the first frame update
+
+    public FixedJoystick moveJoystick, turnJoystick;
+
     void Start()
     {
         mrig = GetComponent<Rigidbody2D>();
@@ -19,32 +22,42 @@ public class PlayerScript : MonoBehaviour
 
     void Update()
     {
-        movement = Vector2.zero;
-        if (Input.GetKey(KeyCode.A))
-            movement.x -= 1;
-        if (Input.GetKey(KeyCode.D))
-            movement.x += 1;
-        if (Input.GetKey(KeyCode.W))
-            movement.y += 1;
-        if (Input.GetKey(KeyCode.S))
-            movement.y -= 1;
+        if (SystemInfo.deviceType == DeviceType.Desktop)
+        {
+            movement = Vector2.zero;
+            if (Input.GetKey(KeyCode.A))
+                movement.x -= 1;
+            if (Input.GetKey(KeyCode.D))
+                movement.x += 1;
+            if (Input.GetKey(KeyCode.W))
+                movement.y += 1;
+            if (Input.GetKey(KeyCode.S))
+                movement.y -= 1;
 
-        if (Input.GetKeyDown(KeyCode.E))
-            mover.Use();
+            if (Input.GetKeyDown(KeyCode.E))
+                mover.Use();
+        }
     }
     void FixedUpdate()
     {
-        int c = transform.childCount;
-        if (c == 0)
+        if (SystemInfo.deviceType == DeviceType.Desktop)
         {
-            Destroy(gameObject);
-            return;
-        }
-        /////////////////////// Move:
-        Vector2 worldGoal = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        Vector2 comWorld = mrig.worldCenterOfMass;
+            Vector2 worldGoal = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            Vector2 comWorld = mrig.worldCenterOfMass;
 
-        mover.Move(movement, worldGoal - comWorld);
+            mover.Move(movement, worldGoal - comWorld);
+        }
+        else
+        {
+            if (turnJoystick.IsHeld)
+            {
+                mover.Move(moveJoystick.Direction, turnJoystick.Direction);
+            }
+            else
+            {
+                mover.Move(moveJoystick.Direction);
+            }
+        }
     }
 }
 

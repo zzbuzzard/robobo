@@ -12,6 +12,7 @@ public class RobotScript : MonoBehaviour
 
     // Map WheelType.HOVER -> List of positions, etc.
     public IDictionary<WheelType, List<XY>> wheelMap;
+    private IDictionary<WheelType, int> initialWheelCounts;
     public WheelType currentWheelType { get; private set; }
 
     HoverMovementController hoverMovementController;
@@ -23,6 +24,21 @@ public class RobotScript : MonoBehaviour
     private XY centerXY;
 
     public bool manual = false;
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    /////////////////////////////////       Utilities      /////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    
+    // Num wheels of given type
+    public int NumWheels(WheelType wheel)
+    {
+        return wheelMap[wheel].Count;
+    }
+
+    // Num blocks of given type
     public int NumTypes(BlockType block)
     {
         int n = 0;
@@ -32,7 +48,8 @@ public class RobotScript : MonoBehaviour
         }
         return n;
     }
-    // Load in gameobjects based on this Robot object
+
+    // Load in block gameobjects based on this Robot object
     public void LoadRobot(Robot robot)
     {
         mrig = GetComponent<Rigidbody2D>();
@@ -68,10 +85,52 @@ public class RobotScript : MonoBehaviour
             WheelType wheelType = BlockInfo.blockInfos[(int)type].wheelType;
             wheelMap[wheelType].Add(xy);
         }
+        initialWheelCounts = new Dictionary<WheelType, int>();
+        foreach (WheelType wheelType in BlockInfo.wheelTypes)
+        {
+            initialWheelCounts[wheelType] = wheelMap[wheelType].Count;
+        }
 
         BlocksChanged();
         InitialiseGraph(robot);
     }
+
+    // Position of control block in worldspace
+    public Vector2 GetControlPos()
+    {
+        return transform.TransformPoint(1.5f * (Vector2)centerXY);
+    }
+
+    // Removes a block, and detaches all those who are no longer connected
+    public void RemoveBlock(Block a)
+    {
+        XY pos = new XY(a.x, a.y);
+        blockGraph.RemoveAt(pos);
+
+        // Delete from wheels if it's a wheel
+        if (a.Wheel != WheelType.NONE)
+            wheelMap[a.Wheel].Remove(pos);
+
+        List<XY> deaths = blockGraph.RemoveAllUnreachable();
+        foreach (XY xy in deaths)
+        {
+            Block b = blockDict[xy];
+            b.Detach();
+
+            // Delete from wheels if wheel
+            if (b.Wheel != WheelType.NONE)
+                wheelMap[b.Wheel].Remove(new XY(b.x, b.y));
+        }
+        BlocksChanged();
+    }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    /////////////////////////////////     User control     /////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
 
     public void Use()
     {
@@ -85,18 +144,64 @@ public class RobotScript : MonoBehaviour
         }
     }
 
-    // Ah, isn't that beautiful
-    void InitialiseGraph(Robot robot) {
+    // Move with no turn applied
+    public void Move(Vector2 moveDir)
+    {
+        Move(moveDir, Vector2.zero, false);
+    }
+
+    // Moves the robot in direction moveDirection, and faces towards lookDirection (world coords)
+    public void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking = true)
+    {
+        if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
+
+        if (currentWheelType != WheelType.NONE)
+        {
+            switch (currentWheelType)
+            {
+                case WheelType.HOVER:
+                    hoverMovementController.Move(moveDirection, lookDirection, isLooking);
+                    break;
+                case WheelType.WHEEL:
+                    break;
+                case WheelType.TRACK:
+                    trackMovementController.Move(moveDirection, lookDirection, isLooking);
+                    break;
+            }
+        }
+
+    }
+
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    /////////////////////////////////  Internal functions  /////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+
+    private void Start()
+    {
+        if (manual)
+            ManualInitialisation();
+
+        // Otherwise, we wait for a LoadRobot call.
+    }
+
+    // Initialise BlockGraph based on Robot
+    private void InitialiseGraph(Robot robot)
+    {
         blockGraph = new BlockGraph(robot);
 
         // TODO: Remove this, it'll slow things down v slightly
-        if (!blockGraph.IsValidRobot()) {
+        if (!blockGraph.IsValidRobot())
+        {
             Debug.LogWarning(gameObject.name + "is an invalid robot!!!");
         }
     }
 
-    // Should only be used in testing - slightly dodgy
-    void ManualInitialisation() {
+    // Guess the Robot based on the present GameObjects - should be testing use only
+    private void ManualInitialisation() {
         IDictionary<XY, BlockType> blockTypes = new Dictionary<XY, BlockType>();
         IDictionary<XY, int> rotations = new Dictionary<XY, int>();
 
@@ -146,46 +251,7 @@ public class RobotScript : MonoBehaviour
         InitialiseGraph(robot);
     }
 
-    // Removes a block, and detaches all those who are no longer connected
-    public void RemoveBlock(Block a)
-    {
-        XY pos = new XY(a.x, a.y);
-        blockGraph.RemoveAt(pos);
-
-        // Delete from wheels if it's a wheel
-        if (a.Wheel != WheelType.NONE)
-            wheelMap[a.Wheel].Remove(pos);
-
-        List<XY> deaths = blockGraph.RemoveAllUnreachable();
-        foreach (XY xy in deaths)
-        {
-            Block b = blockDict[xy];
-            b.Detach();
-
-            // Delete from wheels if wheel
-            if (b.Wheel != WheelType.NONE)
-                wheelMap[b.Wheel].Remove(new XY(b.x, b.y));
-        }
-        BlocksChanged();
-    }
-
-    // World space
-    public Vector2 GetControlPos()
-    {
-        return transform.TransformPoint(1.5f * (Vector2)centerXY);
-    }
-
-    // PRIVATE FUNCTIONS:
-
-    void Start()
-    {
-        if (manual)
-            ManualInitialisation();
-
-        // Otherwise, we wait for a LoadRobot call.
-    }
-
-    // e.g. lost a wheel/block
+    // Must be called after any change, e.g. lost a wheel/block
     private void BlocksChanged()
     {
         blockDict = new Dictionary<XY, Block>();
@@ -225,8 +291,27 @@ public class RobotScript : MonoBehaviour
 
         hoverMovementController.UpdateWheels(GetBlocksFromXYs(wheelMap[WheelType.HOVER]));
         trackMovementController.UpdateWheels(GetBlocksFromXYs(wheelMap[WheelType.TRACK]));
+
+        // Power supplied to one wheel is total power / num wheels
+        float power = GetRobotPower();
+
+        hoverMovementController.WheelPower = power / initialWheelCounts[WheelType.HOVER];
+        trackMovementController.WheelPower = power / initialWheelCounts[WheelType.TRACK];
     }
 
+    private float GetRobotPower()
+    {
+        float power = 0.0f;
+        foreach (XY xy in blockDict.Keys)
+        {
+            BlockType type = blockDict[xy].Type;
+            if (type == BlockType.METAL) power += 1.0f;
+            if (type == BlockType.CONTROL) power += 2.0f;
+        }
+        return power;
+    }
+
+    // Return a list of Blocks at the positions given by the XYs
     private List<Block> GetBlocksFromXYs(List<XY> xys)
     {
         List<Block> ans = new List<Block>();
@@ -235,30 +320,6 @@ public class RobotScript : MonoBehaviour
             ans.Add(blockDict[xy]);
         }
         return ans;
-    }
-    
-
-    // World move + World look
-    // World move must be a vector with magnitude at most 1
-    public void Move(Vector2 moveDirection, Vector2 lookDirection)
-    {
-        if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
-
-        if (currentWheelType != WheelType.NONE)
-        {
-            switch (currentWheelType)
-            {
-                case WheelType.HOVER:
-                    hoverMovementController.Move(moveDirection, lookDirection);
-                    break;
-                case WheelType.WHEEL:
-                    break;
-                case WheelType.TRACK:
-                    trackMovementController.Move(moveDirection, lookDirection);
-                    break;
-            }
-        }
-        
     }
 
     //void FixedUpdate()

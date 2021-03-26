@@ -19,12 +19,9 @@ public class SpikeScript : WeaponBlock
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        // Must use collider to disambiguate child block and parent rigidbody
         Damageable d = collision.collider.transform.GetComponent<Damageable>();
-        if (d == null) return;
-        Block b = d.block;
-
-        // Don't do sparks if it's nobody or if it's part of the same parent
-        if (b == null || b.GetParent() == parent) return;
+        if (d == null || d.IsNull() || d.GetParent() == parent) return;
 
         // Current method: Apply force at avg contact position, opposite to avg normal
         //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
@@ -42,11 +39,7 @@ public class SpikeScript : WeaponBlock
 
         Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
 
-
         float increased_damage = damage * damage_mul * collision.relativeVelocity.magnitude;
-        //Debug.Log(increased_damage);
-        // TODO: Something better than fixed damage every time
-        // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
-        DealDamage(b, increased_damage);
+        DealDamage(d, increased_damage);
     }
 }

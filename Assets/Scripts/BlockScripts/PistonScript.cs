@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PistonScript : UsableWeaponBlock
+public class PistonScript : UsableWeaponBlock, ICollisionForwardParent
 {
     public override BlockType Type => BlockType.PISTON;
 
@@ -24,13 +24,23 @@ public class PistonScript : UsableWeaponBlock
         anim.Play();
     }
 
-    public void PistonHeadCollision(Collision2D collision)
+    public void ChildCollisionStay(Collision2D collision)
+    {
+    }
+
+    // (Piston head collision)
+    public void ChildCollision(Collision2D collision)
     {
         if (!anim.isPlaying) return;
+
+        // Not necessarily damageable - physics only
         Block b = collision.collider.transform.GetComponent<Block>();
 
         // Don't hit myself, but hit any other physics object
         if (b != null && b.GetParent() == parent) return;
+
+        // If it's not a physics object, return
+        if (collision.rigidbody == null) return;
 
         // Current method: Apply force at avg contact position, opposite to avg normal
         //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
@@ -47,4 +57,3 @@ public class PistonScript : UsableWeaponBlock
         collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
     }
 }
-

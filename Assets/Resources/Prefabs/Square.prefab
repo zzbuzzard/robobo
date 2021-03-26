@@ -96,7 +96,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 75f6846eb5dd3b94dbb5e75c938611dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rend: {fileID: 7852141175142452168}
+  baseSize: 2
   emptySprite: {fileID: 21300000, guid: b13d06fb5b7478149ac21c95de33f722, type: 3}
+  pos: {x: 0, y: 0}
   maker: {fileID: 0}
 --- !u!61 &4507744032386885695
 BoxCollider2D:
