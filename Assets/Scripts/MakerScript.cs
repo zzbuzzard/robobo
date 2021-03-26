@@ -14,7 +14,19 @@ using XY = UnityEngine.Vector2Int;
 
 public class MakerScript : MonoBehaviour
 {
-    public static string robotName = "default";
+    public static string RobotName { get; private set; } = "default";
+    private static Robot unsavedRobot = null;
+    public static void LoadSavedRobot(string name)
+    {
+        RobotName = name;
+        unsavedRobot = null;
+    }
+    public static void LoadUnsavedRobot(string name, Robot r)
+    {
+        RobotName = name;
+        unsavedRobot = r;
+    }
+
 
     // Maps a button ID to the block type it represents
     static IDictionary<int, BlockType> buttonToBlock = new Dictionary<int, BlockType>()
@@ -70,9 +82,21 @@ public class MakerScript : MonoBehaviour
         GenerateSquares();
         CheckIssues();
 
-        Robot edit = Robot.LoadRobotFromName(robotName);
-        if (edit != null)
-            LoadRobot(edit);
+        // Back from testing - load unsaved robot
+        if (unsavedRobot != null)
+        {
+            LoadRobot(unsavedRobot);
+        }
+        else
+        {
+            // Loaded from screen, either new or not
+            Robot edit = Robot.LoadRobotFromName(RobotName);
+            if (edit != null)
+            {
+                LoadRobot(edit);
+            }
+        }
+
     }
 
     //private void MakeSquare(XY pos)
@@ -287,6 +311,6 @@ public class MakerScript : MonoBehaviour
     public void SaveClicked()
     {
         Robot r = GetRobot();
-        Robot.SaveRobotToFile(r, robotName);
+        Robot.SaveRobotToFile(r, RobotName);
     }
 }

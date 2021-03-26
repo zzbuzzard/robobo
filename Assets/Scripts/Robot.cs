@@ -147,6 +147,28 @@ public class Robot
         return new Robot(map, map2);
     }
 
+    public static Robot RandomFileRobot()
+    {
+        const int maxnum = 16;
+
+        int pick = Random.Range(0, maxnum + 1);
+        string path = Path.Combine("Robots", "robot" + pick);
+
+        //Debug.Log("Path: " + path);
+        TextAsset file = Resources.Load<TextAsset>(path);
+        Debug.Log(file);
+
+        byte[] byteArray = file.bytes;
+        MemoryStream stream = new MemoryStream(byteArray);
+        BinaryReader reader = new BinaryReader(stream);
+
+        Robot r = LoadRobotFromReader(reader);
+        reader.Close();
+        stream.Close();
+
+        return r;
+    }
+
     private static string GetRobotDir()
     {
         string path = Application.persistentDataPath + "/Robots";
@@ -188,32 +210,20 @@ public class Robot
         file.Close();
     }
 
-    public static Robot LoadRobotFromName(string name)
+    private static Robot LoadRobotFromReader(BinaryReader reader)
     {
-        string path = GetRobotDir() + "/" + name + ".robot";
-        FileStream file;
-
-        if (!File.Exists(path))
-        {
-            Debug.LogError("File didn't exist! Robot name " + name);
-            return null;
-        }
-
-        file = File.OpenRead(path);
-
         // FORMAT: number, [x, y, BlockType, name]
-        BinaryReader reader = new BinaryReader(file);
         Int32 count = reader.ReadInt32();
 
         IDictionary<XY, BlockType> blockTypes = new Dictionary<XY, BlockType>();
         IDictionary<XY, int> rotations = new Dictionary<XY, int>();
 
-        for (int i=0; i<count; i++)
+        for (int i = 0; i < count; i++)
         {
-            int x     = reader.ReadInt32();
-            int y     = reader.ReadInt32();
+            int x = reader.ReadInt32();
+            int y = reader.ReadInt32();
             int block = reader.ReadInt16();
-            int rot   = reader.ReadInt16();
+            int rot = reader.ReadInt16();
 
             XY pos = new XY(x, y);
             BlockType blockType = (BlockType)Enum.ToObject(typeof(BlockType), block);
@@ -221,9 +231,30 @@ public class Robot
             blockTypes[pos] = blockType;
             rotations[pos] = rot;
         }
-        file.Close();
 
         return new Robot(blockTypes, rotations);
+    }
+
+    public static Robot LoadRobotFromName(string name)
+    {
+        string path = GetRobotDir() + "/" + name + ".robot";
+        FileStream file;
+
+        // Expected behaviour- this happens when making a new robot
+        if (!File.Exists(path))
+        {
+            Debug.Log("File didn't exist for robot " + name);
+            return null;
+        }
+
+        file = File.OpenRead(path);
+
+        // FORMAT: number, [x, y, BlockType, name]
+        BinaryReader reader = new BinaryReader(file);
+        Robot r = LoadRobotFromReader(reader);
+        reader.Close();
+        file.Close();
+        return r;
     }
 
     public static IDictionary<string, Robot> LoadAllRobots()

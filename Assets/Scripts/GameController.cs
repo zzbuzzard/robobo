@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 // Game controller: 
 //  Controls the current game, e.g. by loading in the correct robots
@@ -61,7 +62,9 @@ public class GameController : MonoBehaviour
             //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
             //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
 
-            r = Controller.playerRobot;
+            //r = Controller.playerRobot;
+
+            r = Robot.RandomFileRobot();
 
             GameObject obj = SpawnEnemy(r);
 
@@ -73,5 +76,11 @@ public class GameController : MonoBehaviour
                 yield return new WaitForSeconds(10.0f);
             }
         }
+    }
+
+    public void BackPressed()
+    {
+        MakerScript.LoadUnsavedRobot(MakerScript.RobotName, Controller.playerRobot);
+        SceneManager.LoadScene("BuildScene");
     }
 }
