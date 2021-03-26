@@ -64,7 +64,7 @@ public abstract class Block : MonoBehaviour
         dead = true;
 
         // detach, but don't tell parent as we came from the parent
-        DestroyBlock();
+        HandleDeath();
         Destroy(this); // destroy this component
     }
 
@@ -77,19 +77,20 @@ public abstract class Block : MonoBehaviour
         dead = true;
 
         // detach and tell parent
-        DestroyBlock();
+        HandleDeath();
         parent.RemoveBlock(this); // Must be last, as this statement may delete this object
         Destroy(this); // destroy this component
     }
 
-    private void DestroyBlock()
+    // It's hard sometimes, I know
+    protected virtual void HandleDeath()
     {
-        // Just for fun, so it can be kicked about
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
         rig.drag = 5;
         rig.angularDrag = 1;
         rig.mass = density * 1.5f * 1.5f; // should be collider area, but that doesn't seem to be gettable
+        rig.velocity = parent.mrig.GetPointVelocity(transform.position);
 
         transform.SetParent(null);
     }

@@ -14,10 +14,13 @@ public class TrackMovementController : MovementController
     //private float MASS;
     private float SMOA;
 
-    private float maxWheelPower = 1000.0f;
+    public override float WheelPower { get; set; }
+    private const float baseWheelPower = 400.0f;
+
+    //private float maxWheelPower = 1000.0f;
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
 
-    private float maxMovePower = 0.0f, maxTurnPower = 0.0f;
+    private float movePowerMultiplier = 0.0f, turnPowerMultiplier = 0.0f;
 
     public TrackMovementController(RobotScript parent) : base(parent)
     {
@@ -66,7 +69,7 @@ public class TrackMovementController : MovementController
 
         // Movement
         // TODO: maxMovePower should depend on direction; take x and y components, add vectors for max from each
-        parent.mrig.AddRelativeForce(moveDirection * maxMovePower);
+        parent.mrig.AddRelativeForce(moveDirection * movePowerMultiplier * WheelPower);
 
         if (isLooking)
         {
@@ -85,6 +88,8 @@ public class TrackMovementController : MovementController
 
     private float CalculateTorque(float angle)
     {
+        float maxTurnPower = turnPowerMultiplier * WheelPower;
+
         float c = dampConst * Mathf.Sqrt(SMOA * maxTurnPower);
         float dampingMoment = c * parent.mrig.angularVelocity * Mathf.Deg2Rad;
         float springMoment = angle * maxTurnPower;
@@ -105,26 +110,30 @@ public class TrackMovementController : MovementController
             // smoa += r.mass * Mathf.Pow((r.worldCenterOfMass - COM).magnitude, 2.0f);
         }
 
-        maxMovePower = maxWheelPower * (H.Count + V.Count);
-        maxTurnPower = 0.0f;
+        movePowerMultiplier = H.Count + V.Count;
+        turnPowerMultiplier = 0.0f;
 
-        Vector2 maxWheelForce = new Vector2(maxWheelPower, 0.0f);
+        Vector2 maxWheelForce = new Vector2(1.0f, 0.0f);
         foreach (XY xy in H)
         {
             Vector2 localPos = XYToLocal(xy);
             Vector2 comToPos = localPos - com;
 
-            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+            turnPowerMultiplier += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
         }
 
-        maxWheelForce = new Vector2(0.0f, maxWheelPower);
+        maxWheelForce = new Vector2(0.0f, 1.0f);
         foreach (XY xy in V)
         {
             Vector2 localPos = XYToLocal(xy);
             Vector2 comToPos = localPos - com;
 
-            maxTurnPower += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
+            turnPowerMultiplier += Mathf.Abs(Vector3.Cross(comToPos, maxWheelForce).z);
         }
-        maxTurnPower *= 1.5f;
+
+        movePowerMultiplier *= baseWheelPower;
+        turnPowerMultiplier *= baseWheelPower;
+
+        turnPowerMultiplier *= 1.5f;
     }
 }

@@ -24,7 +24,6 @@ public class ChainsawBlockScript : UsableWeaponBlock
     {
         isRunning = !isRunning;
         anim.SetBool("IsRunning", isRunning);
-
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -36,6 +35,9 @@ public class ChainsawBlockScript : UsableWeaponBlock
 
         // Don't do sparks if it's nobody or if it's part of the same parent
         if (b == null || b.GetParent() == parent) return;
+
+        // If it's not a physics object, return
+        if (collision.rigidbody == null) return;
 
         // Current method: Apply force at avg contact position, opposite to avg normal
         //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
@@ -58,5 +60,12 @@ public class ChainsawBlockScript : UsableWeaponBlock
         // TODO: Something better than fixed damage every time
         // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
         DealDamage(b, damage);
+    }
+
+    protected override void HandleDeath()
+    {
+        base.HandleDeath();
+        isRunning = false;
+        anim.SetBool("IsRunning", false);
     }
 }

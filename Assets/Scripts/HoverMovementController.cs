@@ -12,10 +12,12 @@ public class HoverMovementController : MovementController
     
     private float SMOA;
 
-    private float maxWheelPower = 750.0f;
+    public override float WheelPower { get; set; }
+    private const float baseWheelPower = 500.0f;
+
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
 
-    private float maxMovePower = 0.0f, maxTurnPower = 0.0f;
+    private float movePowerMultiplier = 0.0f, turnPowerMultiplier = 0.0f;
 
     public HoverMovementController(RobotScript parent) : base(parent)
     {
@@ -33,7 +35,7 @@ public class HoverMovementController : MovementController
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
 
         // Movement
-        parent.mrig.AddRelativeForce(moveDirection * maxMovePower);
+        parent.mrig.AddRelativeForce(moveDirection * movePowerMultiplier * WheelPower);
 
         float turn = 0;
         if (isLooking)
@@ -55,12 +57,14 @@ public class HoverMovementController : MovementController
             Vector2 comToWheel = (Vector2)wheels[i].transform.localPosition - parent.mrig.centerOfMass;
             Vector2 perp = Vector2.Perpendicular(comToWheel);
 
-            ((HoverScript)wheels[i]).ShowForce(moveDirection * maxMovePower + perp.normalized * turn);
+            ((HoverScript)wheels[i]).ShowForce(moveDirection * movePowerMultiplier * WheelPower + perp.normalized * turn);
         }
     }
 
     private float CalculateTorque(float angle)
     {
+        float maxTurnPower = turnPowerMultiplier * WheelPower;
+
         float c = dampConst * Mathf.Sqrt(SMOA * maxTurnPower);
         float dampingMoment = c * parent.mrig.angularVelocity * Mathf.Deg2Rad;
         float springMoment = angle * maxTurnPower;
@@ -82,16 +86,20 @@ public class HoverMovementController : MovementController
         }
 
         // Calculate max move and turn power
-        maxMovePower = maxWheelPower * wheels.Count;
-        maxTurnPower = 0.0f;
+        movePowerMultiplier = wheels.Count;
+        turnPowerMultiplier = 0.0f;
         foreach (Block b in wheels)
         {
             Vector2 localPos = b.transform.localPosition;
             Vector2 comToPos = localPos - com;
 
-            maxTurnPower += comToPos.magnitude * maxWheelPower;
+            turnPowerMultiplier += comToPos.magnitude;
         }
-        maxTurnPower *= 1.5f;
+
+        movePowerMultiplier *= baseWheelPower;
+        turnPowerMultiplier *= baseWheelPower;
+
+        turnPowerMultiplier *= 1.25f;
     }
 }
 

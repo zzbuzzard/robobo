@@ -6,14 +6,15 @@ using XY = UnityEngine.Vector2Int;
 
 public abstract class MovementController
 {
+    public abstract void UpdateWheels(List<Block> newList);
+    public abstract void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking);
+    public abstract float WheelPower { get; set; }
+
     protected RobotScript parent;
     public MovementController(RobotScript parent)
     {
         this.parent = parent;
     }
-
-    public abstract void UpdateWheels(List<Block> newList);
-    public abstract void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking);
 
     protected Vector2 XYToLocal(XY pos)
     {
@@ -32,6 +33,7 @@ public abstract class MovementController
         parent.mrig.AddForceAtPosition(worldForce, worldPos);
         Debug.DrawLine(worldPos, worldPos + worldForce * 0.1f, Color.green);
     }
+
     protected void ApplyForceWorld(Vector2 worldForce, Vector2 worldPos)
     {
         parent.mrig.AddForceAtPosition(worldForce, worldPos);

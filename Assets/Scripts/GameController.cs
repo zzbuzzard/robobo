@@ -7,8 +7,13 @@ using UnityEngine.SceneManagement;
 //  Controls the current game, e.g. by loading in the correct robots
 public class GameController : MonoBehaviour
 {
-    public GameObject player;
-    public GameObject enemy;
+    public GameObject playerPrefab;
+    public GameObject enemyPrefab;
+
+    public Vector2 playerSpawn;
+    public Vector2 enemySpawn;
+
+    private GameObject player;
 
     public FixedJoystick left, right;
 
@@ -18,22 +23,23 @@ public class GameController : MonoBehaviour
         // Spawn player
         Robot chosenRobot = Controller.playerRobot;
 
-        GameObject playerObj = Instantiate(player, Vector2.zero, Quaternion.identity);
-        playerObj.GetComponent<RobotScript>().LoadRobot(chosenRobot);
+        player = Instantiate(playerPrefab, playerSpawn, Quaternion.identity);
+        player.GetComponent<RobotScript>().LoadRobot(chosenRobot);
 
-        playerObj.GetComponent<PlayerScript>().moveJoystick = left;
-        playerObj.GetComponent<PlayerScript>().turnJoystick = right;
+        player.GetComponent<PlayerScript>().moveJoystick = left;
+        player.GetComponent<PlayerScript>().turnJoystick = right;
 
-        Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(playerObj);
+        Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(player);
         
         StartCoroutine(SpawnEnemies());
     }
 
     private GameObject SpawnEnemy(Robot r)
     {
-        float angle = Random.Range(0.0f, Mathf.PI * 2);
+        //float angle = Random.Range(0.0f, Mathf.PI * 2);
+        // 15.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))
 
-        GameObject enemyObj = Instantiate(enemy, 15.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)), Quaternion.identity);
+        GameObject enemyObj = Instantiate(enemyPrefab, enemySpawn, Quaternion.identity);
         enemyObj.GetComponent<RobotScript>().LoadRobot(r);
 
         return enemyObj;
@@ -56,15 +62,18 @@ public class GameController : MonoBehaviour
         float blockz = 4;
         float weaponz = 2;
 
+        bool parity = true;
+
         while (true)
         {
             Robot r = null;
             //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
             //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
 
-            //r = Controller.playerRobot;
+            r = parity ? Controller.playerRobot : Robot.RandomFileRobot();
+            parity = !parity;
 
-            r = Robot.RandomFileRobot();
+            //r = Robot.RandomFileRobot();
 
             GameObject obj = SpawnEnemy(r);
 
@@ -82,5 +91,11 @@ public class GameController : MonoBehaviour
     {
         MakerScript.LoadUnsavedRobot(MakerScript.RobotName, Controller.playerRobot);
         SceneManager.LoadScene("BuildScene");
+    }
+    
+    public void PlayerUse()
+    {
+        if (player != null)
+            player.GetComponent<RobotScript>().Use();
     }
 }

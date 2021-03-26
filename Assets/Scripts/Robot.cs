@@ -153,10 +153,8 @@ public class Robot
 
         int pick = Random.Range(0, maxnum + 1);
         string path = Path.Combine("Robots", "robot" + pick);
-
-        //Debug.Log("Path: " + path);
+        
         TextAsset file = Resources.Load<TextAsset>(path);
-        Debug.Log(file);
 
         byte[] byteArray = file.bytes;
         MemoryStream stream = new MemoryStream(byteArray);
