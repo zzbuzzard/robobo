@@ -2,13 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PistonScript : UsableWeaponBlock
+public class PistonScript : UsableWeaponBlock, ICollisionForwardParent
 {
     public override BlockType Type => BlockType.PISTON;
 
     public float damage = 0;
     public Transform bone;
-    public float force = 10000f;
+    public float force;
     private Animation anim;
 
     protected override void Start()
@@ -23,9 +23,16 @@ public class PistonScript : UsableWeaponBlock
         anim.Play();
     }
 
-    public void PistonHeadCollision(Collision2D collision)
+    public void ChildCollisionStay(Collision2D collision)
+    {
+    }
+
+    // (Piston head collision)
+    public void ChildCollision(Collision2D collision)
     {
         if (!anim.isPlaying) return;
+
+        // Not necessarily damageable - physics only
         Block b = collision.collider.transform.GetComponent<Block>();
 
         // Don't hit myself, but hit any other physics object

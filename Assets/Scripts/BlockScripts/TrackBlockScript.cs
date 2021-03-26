@@ -36,4 +36,10 @@ public class TrackBlockScript : MovementBlock
         //Debug.Log(vel);
         anim.SetFloat("Speed", speed * 0.25f);
     }
+
+    protected override void HandleDeath()
+    {
+        base.HandleDeath();
+        anim.SetFloat("Speed", 0.0f);
+    }
 }

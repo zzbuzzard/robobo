@@ -44,7 +44,7 @@ MonoBehaviour:
   y: 0
   damage: 0
   bone: {fileID: 0}
-  force: 40000
+  force: 60000
 --- !u!111 &8547698959930579268
 Animation:
   m_ObjectHideFlags: 0
@@ -118,7 +118,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 45045f2d5cc92404eb172dbddaadf392, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  parentObject: {fileID: 391696055384023858}
+  parent: {fileID: 3978548364857575878}
 --- !u!114 &1866905250671725073
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -131,7 +131,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b27014e2a94ee14a8b84352bd555a32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  block: {fileID: 3978548364857575878, guid: 4b1d67dfdfbf94341849cd7f9fe6bcc8, type: 3}
+  block: {fileID: 3978548364857575878}
+  damageMultiplier: 0.35
 --- !u!1001 &3122927809793593035
 PrefabInstance:
   m_ObjectHideFlags: 0

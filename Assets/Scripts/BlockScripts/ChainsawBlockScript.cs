@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChainsawBlockScript : UsableWeaponBlock
+public class ChainsawBlockScript : UsableWeaponBlock, ICollisionForwardParent
 {
     public override BlockType Type => BlockType.CHAINSAW;
 
@@ -26,15 +26,26 @@ public class ChainsawBlockScript : UsableWeaponBlock
         anim.SetBool("IsRunning", isRunning);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    //private void OnCollisionEnter2D(Collision2D collision)
+    //{
+    //}
+
+    protected override void HandleDeath()
+    {
+        base.HandleDeath();
+        isRunning = false;
+        anim.SetBool("IsRunning", false);
+    }
+
+    // Handle collision here- the child is the blade.
+    public void ChildCollisionStay(Collision2D collision)
     {
         if (!isRunning) return;
-        if (collision.otherCollider != capsule) return;
+        //if (collision.otherCollider != capsule) return;
 
-        Block b = collision.collider.transform.GetComponent<Block>();
-
-        // Don't do sparks if it's nobody or if it's part of the same parent
-        if (b == null || b.GetParent() == parent) return;
+        // Must use collider to disambiguate child block and parent rigidbody
+        Damageable d = collision.collider.transform.GetComponent<Damageable>();
+        if (d == null || d.IsNull() || d.GetParent() == parent) return;
 
         // If it's not a physics object, return
         if (collision.rigidbody == null) return;
@@ -51,21 +62,20 @@ public class ChainsawBlockScript : UsableWeaponBlock
         avg_pos /= collision.contactCount;
         avg_normal /= collision.contactCount;
 
+        // Add force
         collision.rigidbody.AddForceAtPosition(Vector2.Perpendicular(-avg_normal.normalized) * force, avg_pos);
 
         Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
         Vector2 worldPos = transform.TransformPoint(avg_pos);
         Vector2 worldForce = transform.TransformDirection(Vector2.Perpendicular(-avg_normal.normalized) * force);
         Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
-        // TODO: Something better than fixed damage every time
-        // MUST BE AT END or if b dies we get NPE (i learnt the hard way)
-        DealDamage(b, damage);
+
+        // TODO: Better damage dealing?
+        DealDamage(d, damage * Time.fixedDeltaTime);
     }
 
-    protected override void HandleDeath()
+    public void ChildCollision(Collision2D collision)
     {
-        base.HandleDeath();
-        isRunning = false;
-        anim.SetBool("IsRunning", false);
+
     }
 }

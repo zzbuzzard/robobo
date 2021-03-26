@@ -36,6 +36,7 @@ public abstract class Block : MonoBehaviour
         return parent;
     }
 
+    // Damage should be done generally through Damageable.
     public virtual void TakeDamage(float damage)
     {
         hp -= damage;

@@ -15,7 +15,7 @@ public class TrackMovementController : MovementController
     private float SMOA;
 
     public override float WheelPower { get; set; }
-    private const float baseWheelPower = 400.0f;
+    private const float baseWheelPower = 500.0f;
 
     //private float maxWheelPower = 1000.0f;
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
