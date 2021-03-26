@@ -160,27 +160,32 @@ public class MakerScript : MonoBehaviour
 
         bool valid = true;
 
+        string err = "";
+
         if (!blockGraph.IsConnected())
         {
             valid = false;
-            // TODO: Error message
+            err += "Blocks don't connect\n";
         }
 
         if (blockGraph.NumberOfControlBlocks() != 1)
         {
             valid = false;
-            // TODO: Error message
+            if (blockGraph.NumberOfControlBlocks() == 0)
+                err += "Missing control block\n";
+            else
+                err += "Too many control blocks\n";
         }
 
         if (blockGraph.HasOverlaps())
         {
             valid = false;
-            // TODO: Error message
+            err += "Overlapping blocks\n";
         }
 
         if (!valid)
         {
-            errorText.SetText("Invalid robot, nerd");
+            errorText.SetText(err.Substring(0, err.Length - 1));
             goButton.interactable = false;
         }
         else
@@ -202,7 +207,7 @@ public class MakerScript : MonoBehaviour
 
     public void StartClicked()
     {
-        if (blockGraph==null || !blockGraph.IsValidRobot()) return;
+        if (blockGraph == null || !blockGraph.IsValidRobot()) return;
         Controller.playerRobot = GetRobot();
         SceneManager.LoadScene("ControlledScene");
     }
