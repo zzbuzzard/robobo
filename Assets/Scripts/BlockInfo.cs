@@ -14,6 +14,7 @@ public enum BlockType
     CHAINSAW,
     HOVER,
     TRACK,
+    THRUSTER,
 
     // Keep this one last
     NONE = -1,

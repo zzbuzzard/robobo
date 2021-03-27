@@ -78,8 +78,8 @@ MonoBehaviour:
   x: 0
   y: 0
   sparks: {fileID: 4635022592639975620, guid: bc8593bb20c8d05418be2d49c2fe796a, type: 3}
-  force: -30000
-  damage: 10
+  force: -300
+  damage: 50
 --- !u!1 &7888619561677819374
 GameObject:
   m_ObjectHideFlags: 0

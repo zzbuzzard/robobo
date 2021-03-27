@@ -14,6 +14,10 @@ public class TrackMovementController : MovementController
     //private float MASS;
     private float SMOA;
 
+    public override float WheelPower { get; set; }
+    private const float baseWheelPower = 500.0f;
+
+    private float movePowerMultiplier = 0.0f, turnPowerMultiplier = 0.0f;
 
     [SerializeField]
     private float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
