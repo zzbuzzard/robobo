@@ -12,6 +12,12 @@ public abstract class Block : MonoBehaviour
     public abstract BlockType Type { get; }
     public abstract WheelType Wheel { get; }
 
+
+    private Material MatDefault;
+    private Material MatWhite;
+    private SpriteRenderer sprit;
+
+
     [SerializeField]
     private float hp;
 
@@ -31,8 +37,16 @@ public abstract class Block : MonoBehaviour
         myCollider = GetComponent<Collider2D>();
         myCollider.density = density;
         parent = transform.parent.GetComponent<RobotScript>();
+        sprit = GetComponent<SpriteRenderer>();
+        MatDefault = sprit.material;
+        MatWhite = Resources.Load("Materials/WhiteFlash", typeof(Material)) as Material;
+
     }
 
+    private void ResetMaterial()
+    {
+        sprit.material = MatDefault;
+    }
     // I have no idea why this is necessary. C# sucks
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public RobotScript GetParent()
@@ -44,17 +58,19 @@ public abstract class Block : MonoBehaviour
     public virtual void TakeDamage(float damage)
     {
         hp -= damage;
+        ChangeHpDisplay();
         if (hp <= 0)
         {
             Die();
         }
-        ChangeHpDisplay();
+        
     }
 
     // TODO: Show cracks etc
     private void ChangeHpDisplay()
     {
-
+        sprit.material = MatWhite;
+        Invoke("ResetMaterial", 0.1f);
     }
 
     private bool dead = false;
@@ -83,6 +99,7 @@ public abstract class Block : MonoBehaviour
 
         // detach and tell parent
         HandleDeath();
+        sprit.material = MatDefault;
         parent.RemoveBlock(this); // Must be last, as this statement may delete this object
         Destroy(this); // destroy this component
     }

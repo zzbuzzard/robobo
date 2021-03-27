@@ -17,6 +17,7 @@ public class SpikeScript : WeaponBlock
     [SerializeField]
     private float damage_mul = 1;
 
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // Must use collider to disambiguate child block and parent rigidbody
