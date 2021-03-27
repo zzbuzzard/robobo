@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3330776072051076606}
   - component: {fileID: 3330776072051076605}
   - component: {fileID: 1955328881520909848}
+  - component: {fileID: 4073200030101606738}
   m_Layer: 0
   m_Name: base_block
   m_TagString: Untagged
@@ -97,3 +98,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   block: {fileID: 0}
   damageMultiplier: 1
+--- !u!114 &4073200030101606738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3330776072051076601}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 389bb9b21a5871c429e7aea95be74925, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

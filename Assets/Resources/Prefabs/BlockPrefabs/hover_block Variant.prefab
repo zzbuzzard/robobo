@@ -150,6 +150,10 @@ PrefabInstance:
       propertyPath: m_Color.r
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3330776072051076606, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
       propertyPath: m_RootOrder
       value: 0
@@ -194,7 +198,8 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3330776072051076605, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 2cbaafa246630d04a8d71429ef3b48f3, type: 3}
 --- !u!1 &4925876966229700835 stripped
 GameObject:

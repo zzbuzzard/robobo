@@ -12,11 +12,6 @@ public abstract class Block : MonoBehaviour
     public abstract BlockType Type { get; }
     public abstract WheelType Wheel { get; }
 
-    private SpriteRenderer[] childSprites;
-    private Material[] childMats;
-    private static Material matWhite;
-    //private SpriteRenderer sprit;
-
     [SerializeField]
     private float hp;
 
@@ -25,6 +20,7 @@ public abstract class Block : MonoBehaviour
 
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
     protected RobotScript parent; // the RobotScript of my parent
+    private FlashScript flashScript;
 
     public int x, y;
 
@@ -34,22 +30,9 @@ public abstract class Block : MonoBehaviour
     {
         maxHP = hp;
         myCollider = GetComponent<Collider2D>();
+        flashScript = GetComponent<FlashScript>();
         myCollider.density = density;
         parent = transform.parent.GetComponent<RobotScript>();
-
-        childSprites = GetComponentsInChildren<SpriteRenderer>();
-        childMats = new Material[childSprites.Length];
-        for (int i=0; i<childSprites.Length; i++)
-            childMats[i] = childSprites[i].material;
-
-        if (matWhite == null)
-            matWhite = Resources.Load<Material>("Materials/WhiteFlash");
-    }
-
-    private void ResetMaterial()
-    {
-        for (int i = 0; i < childSprites.Length; i++)
-            childSprites[i].material = childMats[i];
     }
 
     // I have no idea why this is necessary. C# sucks
@@ -74,10 +57,7 @@ public abstract class Block : MonoBehaviour
     // TODO: Show cracks etc
     private void ChangeHpDisplay()
     {
-        for (int i = 0; i < childSprites.Length; i++)
-            childSprites[i].material = matWhite;
-
-        Invoke("ResetMaterial", 0.1f);
+        flashScript.Flash();
     }
 
     private bool dead = false;
@@ -113,7 +93,7 @@ public abstract class Block : MonoBehaviour
     // It's hard sometimes, I know
     protected virtual void HandleDeath()
     {
-        ResetMaterial();
+        //ResetMaterial();
 
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
