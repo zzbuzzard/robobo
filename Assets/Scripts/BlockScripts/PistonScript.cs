@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PistonScript : UsableWeaponBlock, ICollisionForwardParent
+public class PistonScript : WeaponBlock, IUsableBlock, ICollisionForwardParent
 {
     public override BlockType Type => BlockType.PISTON;
 
@@ -19,7 +19,7 @@ public class PistonScript : UsableWeaponBlock, ICollisionForwardParent
         anim = GetComponentInChildren<Animation>();
     }
 
-    public override void Use()
+    public void Use()
     {
         anim.Play();
     }

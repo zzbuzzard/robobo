@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class UsableWeaponBlock : WeaponBlock
+public interface IUsableBlock
 {
-    public abstract void Use();
+    void Use();
 }

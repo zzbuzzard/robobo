@@ -136,7 +136,7 @@ public class RobotScript : MonoBehaviour
     {
         foreach (GameObject g in children)
         {
-            UsableWeaponBlock b = g.GetComponent<UsableWeaponBlock>();
+            IUsableBlock b = g.GetComponent<IUsableBlock>();
             if (b != null)
             {
                 b.Use();
@@ -245,6 +245,11 @@ public class RobotScript : MonoBehaviour
             BlockType type = robot.blockTypes[xy];
             WheelType wheelType = BlockInfo.blockInfos[(int)type].wheelType;
             wheelMap[wheelType].Add(xy);
+        }
+        initialWheelCounts = new Dictionary<WheelType, int>();
+        foreach (WheelType wheelType in BlockInfo.wheelTypes)
+        {
+            initialWheelCounts[wheelType] = wheelMap[wheelType].Count;
         }
 
         BlocksChanged();

@@ -56,6 +56,7 @@ public class BlockInfo
             new BlockShape(new List<XY>(){ new XY(-1, 0), new XY(0, 0), new XY(1, 0) },
             new List<XY>(){ new XY(-1, -1), new XY(0, -1), new XY(1, -1), new XY(-1, 1), new XY(0, 1), new XY(1, 1) }),
             1, WheelType.TRACK, "Tracks1"),
+        new BlockInfo("thrust_block", BlockShape.OneByOne(), 3, WheelType.NONE, "thrust"),
     };
 
     public static void LoadBlockTypePrefabs()

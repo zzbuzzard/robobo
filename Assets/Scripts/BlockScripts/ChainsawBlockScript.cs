@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChainsawBlockScript : UsableWeaponBlock, ICollisionForwardParent
+public class ChainsawBlockScript : WeaponBlock, IUsableBlock, ICollisionForwardParent
 {
     public override BlockType Type => BlockType.CHAINSAW;
 
@@ -27,15 +27,11 @@ public class ChainsawBlockScript : UsableWeaponBlock, ICollisionForwardParent
         anim = GetComponent<Animator>();
     }
 
-    public override void Use()
+    public void Use()
     {
         isRunning = !isRunning;
         anim.SetBool("IsRunning", isRunning);
     }
-
-    //private void OnCollisionEnter2D(Collision2D collision)
-    //{
-    //}
 
     protected override void HandleDeath()
     {

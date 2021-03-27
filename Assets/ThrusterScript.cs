@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThrusterScript : UsableWeaponBlock
+public class ThrusterScript : StaticBlock, IUsableBlock
 {
     [SerializeField]
     private float force;
@@ -23,7 +23,7 @@ public class ThrusterScript : UsableWeaponBlock
         anim = GetComponent<Animator>();
         mrig = transform.parent.GetComponent<Rigidbody2D>();
     }
-    public override void Use()
+    public void Use()
     {
         StartCoroutine(WaitUse());
     }
