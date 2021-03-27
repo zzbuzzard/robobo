@@ -37,7 +37,8 @@ public class MakerScript : MonoBehaviour
         { 3, BlockType.PISTON },
         { 4, BlockType.CHAINSAW },
         { 5, BlockType.HOVER },
-        { 6, BlockType.TRACK }
+        { 6, BlockType.TRACK },
+        { 7, BlockType.THRUSTER }
     };
 
     BlockType currentBlock = BlockType.METAL;

@@ -827,6 +827,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: piston_block Variant (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 391696055384023858, guid: 4b1d67dfdfbf94341849cd7f9fe6bcc8, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 391696055384023861, guid: 4b1d67dfdfbf94341849cd7f9fe6bcc8, type: 3}
       propertyPath: m_RootOrder
       value: 9

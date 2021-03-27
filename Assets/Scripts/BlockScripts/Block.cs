@@ -12,11 +12,10 @@ public abstract class Block : MonoBehaviour
     public abstract BlockType Type { get; }
     public abstract WheelType Wheel { get; }
 
-
-    private Material MatDefault;
-    private Material MatWhite;
-    private SpriteRenderer sprit;
-
+    private SpriteRenderer[] childSprites;
+    private Material[] childMats;
+    private static Material matWhite;
+    //private SpriteRenderer sprit;
 
     [SerializeField]
     private float hp;
@@ -37,16 +36,22 @@ public abstract class Block : MonoBehaviour
         myCollider = GetComponent<Collider2D>();
         myCollider.density = density;
         parent = transform.parent.GetComponent<RobotScript>();
-        sprit = GetComponent<SpriteRenderer>();
-        MatDefault = sprit.material;
-        MatWhite = Resources.Load("Materials/WhiteFlash", typeof(Material)) as Material;
 
+        childSprites = GetComponentsInChildren<SpriteRenderer>();
+        childMats = new Material[childSprites.Length];
+        for (int i=0; i<childSprites.Length; i++)
+            childMats[i] = childSprites[i].material;
+
+        if (matWhite == null)
+            matWhite = Resources.Load<Material>("Materials/WhiteFlash");
     }
 
     private void ResetMaterial()
     {
-        sprit.material = MatDefault;
+        for (int i = 0; i < childSprites.Length; i++)
+            childSprites[i].material = childMats[i];
     }
+
     // I have no idea why this is necessary. C# sucks
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public RobotScript GetParent()
@@ -69,7 +74,9 @@ public abstract class Block : MonoBehaviour
     // TODO: Show cracks etc
     private void ChangeHpDisplay()
     {
-        sprit.material = MatWhite;
+        for (int i = 0; i < childSprites.Length; i++)
+            childSprites[i].material = matWhite;
+
         Invoke("ResetMaterial", 0.1f);
     }
 
@@ -99,7 +106,6 @@ public abstract class Block : MonoBehaviour
 
         // detach and tell parent
         HandleDeath();
-        sprit.material = MatDefault;
         parent.RemoveBlock(this); // Must be last, as this statement may delete this object
         Destroy(this); // destroy this component
     }
@@ -107,6 +113,8 @@ public abstract class Block : MonoBehaviour
     // It's hard sometimes, I know
     protected virtual void HandleDeath()
     {
+        ResetMaterial();
+
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;
         rig.drag = 5;
