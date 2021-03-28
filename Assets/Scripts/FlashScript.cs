@@ -8,6 +8,8 @@ public class FlashScript : MonoBehaviour
     private Material[] childMats;
     private static Material matWhite;
 
+    private Coroutine currentCoroutine;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -27,6 +29,7 @@ public class FlashScript : MonoBehaviour
         {
             childSprites[i].material = childMats[i];
         }
+        currentCoroutine = null;
     }
 
     public void Flash()
@@ -38,6 +41,14 @@ public class FlashScript : MonoBehaviour
             childSprites[i].material = matWhite;
         }
 
-        Invoke("ResetMaterial", 0.2f);
+        if (currentCoroutine != null)
+            StopCoroutine(currentCoroutine);
+        currentCoroutine = StartCoroutine(ResetTimer());
+    }
+
+    IEnumerator ResetTimer()
+    {
+        yield return new WaitForSeconds(0.15f);
+        ResetMaterial();
     }
 }
