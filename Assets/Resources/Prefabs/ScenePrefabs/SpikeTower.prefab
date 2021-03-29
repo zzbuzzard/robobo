@@ -155,7 +155,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9a06041f04b98841adeb1a733db07d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sparks: {fileID: 4635022592639975620, guid: bc8593bb20c8d05418be2d49c2fe796a, type: 3}
   force: 5000
-  damage: 10
-  damage_mul: 1
+  damage: 5
+  damage_mul: 0.5

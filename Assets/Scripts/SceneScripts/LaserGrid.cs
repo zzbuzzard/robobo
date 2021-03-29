@@ -4,11 +4,9 @@ using UnityEngine;
 
 public class LaserGrid : MonoBehaviour
 {
-
-    [SerializeField]
-    private GameObject sparks;
     [SerializeField]
     private float damage = 10f;
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
         // Must use collider to disambiguate child block and parent rigidbody
@@ -27,7 +25,7 @@ public class LaserGrid : MonoBehaviour
         avg_pos /= collision.contactCount;
         avg_normal /= collision.contactCount;
 
-        Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
+        SparkScript.CreateSparks(avg_pos, damage);
 
         DealDamage(d, damage);
     }

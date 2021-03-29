@@ -22,11 +22,11 @@ public class TrackMovementController : MovementController
     [SerializeField]
     private float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
 
-    [SerializeField]
-    private float moveForce = 1500.0f;
+    //[SerializeField]
+    //private float moveForce = 1500.0f;
 
-    [SerializeField]
-    private float turnForce = 3500.0f;
+    //[SerializeField]
+    //private float turnForce = 3500.0f;
 
     public TrackMovementController(RobotScript parent) : base(parent)
     {

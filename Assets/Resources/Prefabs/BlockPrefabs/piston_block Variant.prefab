@@ -43,8 +43,7 @@ MonoBehaviour:
   x: 0
   y: 0
   damage: 0
-  bone: {fileID: 0}
-  force: 60000
+  force: 80000
 --- !u!111 &8547698959930579268
 Animation:
   m_ObjectHideFlags: 0

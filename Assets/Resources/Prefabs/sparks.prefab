@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4635022592639975618}
   - component: {fileID: 4635022592639975619}
   - component: {fileID: 6253081627916692034}
+  - component: {fileID: 6513831781051102658}
   m_Layer: 0
   m_Name: sparks
   m_TagString: Untagged
@@ -222,8 +223,8 @@ ParticleSystem:
         m_RotationOrder: 4
     startColor:
       serializedVersion: 2
-      minMaxState: 0
-      minColor: {r: 1, g: 1, b: 1, a: 1}
+      minMaxState: 2
+      minColor: {r: 1, g: 0.36715755, b: 0, a: 1}
       maxColor: {r: 0.8962264, g: 0.8284551, b: 0, a: 1}
       maxGradient:
         serializedVersion: 2
@@ -4874,6 +4875,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0d8984443c65f94d83853fc18318c04, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  particles: {fileID: 4635022592639975618}
+--- !u!114 &6513831781051102658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4635022592639975620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6bff6fdd25456834aab290dab2bd703f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   particles: {fileID: 4635022592639975618}

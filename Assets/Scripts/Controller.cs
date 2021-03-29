@@ -13,5 +13,6 @@ public class Controller
     public static void Initialise()
     {
         BlockInfo.LoadBlockTypePrefabs();
+        SparkScript.sparkPrefab = Resources.Load<GameObject>("Prefabs/sparks");
     }
 }

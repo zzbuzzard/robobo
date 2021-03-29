@@ -6,9 +6,6 @@ public class ChainsawBlockScript : WeaponBlock, IUsableBlock, ICollisionForwardP
 {
     public override BlockType Type => BlockType.CHAINSAW;
 
-    [SerializeField]
-    private GameObject sparks;
-
     private CapsuleCollider2D capsule;
 
     [SerializeField]
@@ -68,13 +65,16 @@ public class ChainsawBlockScript : WeaponBlock, IUsableBlock, ICollisionForwardP
         // Add force
         collision.rigidbody.AddForceAtPosition(Vector2.Perpendicular(-avg_normal.normalized) * force, avg_pos);
 
-        Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
+        float dealDamage = damage * Time.fixedDeltaTime;
+
+        SparkScript.CreateSparks(avg_pos, dealDamage);
+
         Vector2 worldPos = transform.TransformPoint(avg_pos);
         Vector2 worldForce = transform.TransformDirection(Vector2.Perpendicular(-avg_normal.normalized) * force);
         Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
 
         // TODO: Better damage dealing?
-        DealDamage(d, damage * Time.fixedDeltaTime);
+        DealDamage(d, dealDamage);
     }
 
     public void ChildCollision(Collision2D collision)

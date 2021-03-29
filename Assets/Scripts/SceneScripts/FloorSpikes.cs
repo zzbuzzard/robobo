@@ -5,9 +5,6 @@ using UnityEngine;
 public class FloorSpikes : MonoBehaviour
 {
     [SerializeField]
-    private GameObject sparks;
-
-    [SerializeField]
     private float force = 5000.0f;
 
     [SerializeField]
@@ -36,9 +33,8 @@ public class FloorSpikes : MonoBehaviour
 
         collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
 
-        Instantiate(sparks, (Vector3)avg_pos + new Vector3(0, 0, -1), Quaternion.identity);
-
         float increased_damage = damage * damage_mul * collision.relativeVelocity.magnitude;
+        SparkScript.CreateSparks(avg_pos, increased_damage);
         DealDamage(d, increased_damage);
     }
 
