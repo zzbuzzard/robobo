@@ -8,7 +8,7 @@ public class ThrusterScript : StaticBlock, IUsableBlock
     private float force;
 
     [SerializeField]
-    private float OnTime;
+    private float onTime;
     public override BlockType Type => BlockType.THRUSTER;
 
     private bool isThrusting = false;
@@ -32,7 +32,7 @@ public class ThrusterScript : StaticBlock, IUsableBlock
     {
         isThrusting = true;
         anim.SetBool("isThrusting", isThrusting);
-        yield return new WaitForSeconds(OnTime);
+        yield return new WaitForSeconds(onTime);
         isThrusting = false;
         anim.SetBool("isThrusting", isThrusting);
     }

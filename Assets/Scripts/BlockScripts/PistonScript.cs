@@ -42,18 +42,6 @@ public class PistonScript : WeaponBlock, IUsableBlock, ICollisionForwardParent
         // If it's not a physics object, return
         if (collision.rigidbody == null) return;
 
-        // Current method: Apply force at avg contact position, opposite to avg normal
-        //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
-        Vector2 avg_pos = Vector2.zero;
-        Vector2 avg_normal = Vector2.zero;
-        for (int i = 0; i < collision.contactCount; i++)
-        {
-            avg_normal += collision.GetContact(i).normal;
-            avg_pos += collision.GetContact(i).point;
-        }
-        avg_pos /= collision.contactCount;
-        avg_normal /= collision.contactCount;
-
-        collision.rigidbody.AddForceAtPosition(-avg_normal.normalized * force, avg_pos);
+        WeaponBlock.StandardForce(collision, force);
     }
 }

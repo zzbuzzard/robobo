@@ -50,31 +50,8 @@ public class ChainsawBlockScript : WeaponBlock, IUsableBlock, ICollisionForwardP
         // If it's not a physics object, return
         if (collision.rigidbody == null) return;
 
-        // Current method: Apply force at avg contact position, opposite to avg normal
-        //  It's ok, but could do with a variable force using e.g. Contact.normalImpulse or whatever
-        Vector2 avg_pos = Vector2.zero;
-        Vector2 avg_normal = Vector2.zero;
-        for (int i = 0; i < collision.contactCount; i++)
-        {
-            avg_normal += collision.GetContact(i).normal;
-            avg_pos += collision.GetContact(i).point;
-        }
-        avg_pos /= collision.contactCount;
-        avg_normal /= collision.contactCount;
-
-        // Add force
-        collision.rigidbody.AddForceAtPosition(Vector2.Perpendicular(-avg_normal.normalized) * force, avg_pos);
-
-        float dealDamage = damage * Time.fixedDeltaTime;
-
-        SparkScript.CreateSparks(avg_pos, dealDamage);
-
-        Vector2 worldPos = transform.TransformPoint(avg_pos);
-        Vector2 worldForce = transform.TransformDirection(Vector2.Perpendicular(-avg_normal.normalized) * force);
-        Debug.DrawLine(worldPos, worldPos + worldForce * 0.01f);
-
-        // TODO: Better damage dealing?
-        DealDamage(d, dealDamage);
+        WeaponBlock.FixedDamage(collision, d, damage * Time.fixedDeltaTime, this);
+        WeaponBlock.ChainsawForce(collision, force, transform);
     }
 
     public void ChildCollision(Collision2D collision)
