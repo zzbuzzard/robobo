@@ -22,12 +22,14 @@ public class CollisionForwarder : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        ((ICollisionForwardParent)parent).ChildCollision(collision);
+        if (parent != null && !parent.IsDead())
+            ((ICollisionForwardParent)parent).ChildCollision(collision);
         //parentPiston.PistonHeadCollision(collision);
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        ((ICollisionForwardParent)parent).ChildCollisionStay(collision);
+        if (parent != null && !parent.IsDead())
+            ((ICollisionForwardParent)parent).ChildCollisionStay(collision);
     }
 }

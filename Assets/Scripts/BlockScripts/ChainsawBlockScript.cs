@@ -56,6 +56,5 @@ public class ChainsawBlockScript : WeaponBlock, IUsableBlock, ICollisionForwardP
 
     public void ChildCollision(Collision2D collision)
     {
-
     }
 }

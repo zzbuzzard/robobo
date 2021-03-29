@@ -62,7 +62,7 @@ MonoBehaviour:
   x: 0
   y: 0
   force: 10000
-  OnTime: 0.5
+  onTime: 0.5
 --- !u!1001 &9132450964095020149
 PrefabInstance:
   m_ObjectHideFlags: 0
