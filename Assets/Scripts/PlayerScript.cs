@@ -13,7 +13,7 @@ public class PlayerScript : MonoBehaviour
     Vector2 movement;
     // Start is called before the first frame update
 
-    private bool normalMovementMode = false;
+    private bool normalMovementMode = true;
 
     public FixedJoystick moveJoystick, turnJoystick;
 
@@ -52,8 +52,7 @@ public class PlayerScript : MonoBehaviour
     }
     void FixedUpdate()
     {
-        // TODO: Remove && false
-        if (SystemInfo.deviceType == DeviceType.Desktop && false)
+        if (SystemInfo.deviceType == DeviceType.Desktop)
         {
             Vector2 worldGoal = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 comWorld = mrig.worldCenterOfMass;
@@ -89,22 +88,8 @@ public class PlayerScript : MonoBehaviour
         if (turnJoystick.IsHeld)
         {
             float angleChange = -Mathf.PI * turnJoystick.Horizontal * 0.9f;
-
-            //Vector2 dir = turnJoystick.Direction;
-            //Vector2 c1 = dir;
-            //Vector2 c2 = new Vector2(Mathf.Cos(mrig.rotation * Mathf.Deg2Rad), Mathf.Sin(mrig.rotation * Mathf.Deg2Rad));
-
-            //Vector2 x = new Vector2(c1.x * c2.x - c1.y * c2.y, c1.x * c2.y + c1.y * c2.x);
-
             float cAng = mrig.rotation * Mathf.Deg2Rad - front * Mathf.PI * 2;
-
-            //Debug.Log("Angle " + cAng + " changing by " + angleChange);
-
             Vector2 x = new Vector2(Mathf.Cos(cAng + angleChange), Mathf.Sin(cAng + angleChange));
-
-            //Debug.Log(c2 + " and " + c1 + " -> " + x);
-            //Debug.DrawLine(mrig.centerOfMass, mrig.centerOfMass + x.normalized * 100.0f);
-
             mover.Move(moveJoystick.Direction, x);
         }
         else

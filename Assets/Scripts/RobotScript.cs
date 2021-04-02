@@ -300,20 +300,22 @@ public class RobotScript : MonoBehaviour
         // Power supplied to one wheel is total power / num wheels
         float power = GetRobotPower();
 
-        hoverMovementController.WheelPower = power / initialWheelCounts[WheelType.HOVER];
-        trackMovementController.WheelPower = power / initialWheelCounts[WheelType.TRACK];
+        hoverMovementController.WheelPower = 3.0f; // power / initialWheelCounts[WheelType.HOVER];
+        trackMovementController.WheelPower = 3.0f; // power / initialWheelCounts[WheelType.TRACK];
     }
 
     private float GetRobotPower()
     {
-        float power = 0.0f;
-        foreach (XY xy in blockDict.Keys)
-        {
-            BlockType type = blockDict[xy].Type;
-            if (type == BlockType.METAL) power += 1.0f;
-            if (type == BlockType.CONTROL) power += 2.0f;
-        }
-        return power;
+        return 10.0f;
+
+        //float power = 0.0f;
+        //foreach (XY xy in blockDict.Keys)
+        //{
+        //    BlockType type = blockDict[xy].Type;
+        //    if (type == BlockType.METAL) power += 1.0f;
+        //    if (type == BlockType.CONTROL) power += 2.0f;
+        //}
+        //return power;
     }
 
     // Return a list of Blocks at the positions given by the XYs
