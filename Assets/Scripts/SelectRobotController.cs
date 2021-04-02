@@ -83,6 +83,8 @@ public class SelectRobotController : MonoBehaviour
     {
         if (dragCamera.LastDragDist() >= dragBound) return;
 
+        PlayerPrefs.SetString("PREF_ROBOT", names[id]);
+
         MakerScript.LoadSavedRobot(names[id]);
         SceneManager.LoadScene("BuildScene");
     }
@@ -93,5 +95,10 @@ public class SelectRobotController : MonoBehaviour
 
         MakerScript.LoadSavedRobot("robot" + newName);
         SceneManager.LoadScene("BuildScene");
+    }
+
+    public void BackClicked()
+    {
+        SceneManager.LoadScene("MainScene");
     }
 }

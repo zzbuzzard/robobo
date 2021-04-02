@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/MainScene.unity
+    guid: b7790b59dfb11d348827241020572e94
+  - enabled: 1
     path: Assets/Scenes/SelectRobot.unity
     guid: 45be9ce43aa11284c83df671c6863865
   - enabled: 1
@@ -14,4 +17,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ControlledScene.unity
     guid: e3aee0be39f477949bfe973c69facacb
+  - enabled: 1
+    path: Assets/Scenes/OnlineScene.unity
+    guid: d4cfd7020ac18b547ad4d1aca12e97b4
   m_configObjects: {}

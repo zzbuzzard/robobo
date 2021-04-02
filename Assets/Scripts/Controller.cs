@@ -14,5 +14,7 @@ public class Controller
     {
         BlockInfo.LoadBlockTypePrefabs();
         SparkScript.sparkPrefab = Resources.Load<GameObject>("Prefabs/sparks");
+
+        playerRobot = Robot.LoadRobotFromName(PlayerPrefs.GetString("PREF_ROBOT", "default"));
     }
 }
