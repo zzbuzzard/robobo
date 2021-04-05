@@ -5,7 +5,7 @@ using UnityEngine;
 public class LaserGrid : Hazard
 {
     [SerializeField]
-    private float damage = 10f;
+    private float damage;
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
@@ -13,6 +13,6 @@ public class LaserGrid : Hazard
         Damageable d = collision.collider.transform.GetComponent<Damageable>();
         if (d == null || d.IsNull()) return;
 
-        WeaponBlock.FixedDamage(collision, d, damage, this);
+        WeaponBlock.SpeedDamage(collision, d, damage, this);
     }
 }
