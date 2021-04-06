@@ -1,0 +1,36 @@
+Game state:
+ - Rigidbody info:
+   -> Position
+   -> Velocity
+   -> Angular velocity
+ - HP of all blocks; must be exactly right
+ - Which blocks are dead; must be exactly right
+
+Client input package:
+ - Movement direction
+ - Turn direction
+ - Use weapons (just bool for now)
+ - IsTurning bool
+
+
+Server logic:
+1) Process all client inputs when they arrive via [Command].
+   -> By queueing them to happen on the next FixedUpdate
+
+2) Every fixed update, loop through all players and apply queued moves
+   -> If the queue is empty, apply the most recent input
+   -> If the queue is growing large, take the average direction
+
+3) Send out a GameState package to all clients
+
+
+Client logic:
+1) Every frame, send off the GameState, and store it
+
+2) Receive GameState server packages at random times
+   -> Compare it to our state at this time.
+   -> If it is significantly different, restore the physics state at that time and Physics.Simulate() it all
+
+
+
+
