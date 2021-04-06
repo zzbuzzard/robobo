@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 //  Controls the current game, e.g. by loading in the correct robots
 public class GameController : MonoBehaviour
 {
+    public bool isOnline = false;
+
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
 
@@ -20,18 +22,26 @@ public class GameController : MonoBehaviour
     // Load the game
     private void Awake()
     {
-        // Spawn player
-        Robot chosenRobot = Controller.playerRobot;
+        if (!isOnline)
+        {
+            // Spawn player
+            Robot chosenRobot = Controller.playerRobot;
+            GameObject p = Instantiate(playerPrefab, playerSpawn, Quaternion.identity);
+            SetPlayer(p);
+            player.GetComponent<RobotScript>().LoadRobot(chosenRobot);
 
-        player = Instantiate(playerPrefab, playerSpawn, Quaternion.identity);
-        player.GetComponent<RobotScript>().LoadRobot(chosenRobot);
+            StartCoroutine(SpawnEnemies());
+        }
+    }
+
+    public void SetPlayer(GameObject p)
+    {
+        player = p;
 
         player.GetComponent<PlayerScript>().moveJoystick = left;
         player.GetComponent<PlayerScript>().turnJoystick = right;
 
         Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(player);
-        
-        StartCoroutine(SpawnEnemies());
     }
 
     private GameObject SpawnEnemy(Robot r)

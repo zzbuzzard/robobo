@@ -29,7 +29,8 @@ public class TrackBlockScript : MovementBlock
 
     void FixedUpdate()
     {
-        if (parent == null || parent.currentWheelType != WheelType.TRACK) return;
+        if (parent == null || GetParent().currentWheelType != WheelType.TRACK) return;
+
 
         float mass = mrig.mass;
         Vector2 vel = mrig.GetPointVelocity(transform.position);

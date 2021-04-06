@@ -271,4 +271,58 @@ public class Robot
 
         return dict;
     }
+
+    public struct SerializedRobot
+    {
+        public Int16[] xs, ys, blockTypes, rots;
+    }
+
+    // Takes a robot, returns it in a form that Mirror is happy to transmit
+    public static SerializedRobot SerializeRobot(Robot r)
+    {
+        SerializedRobot s;
+
+        int N = r.blockTypes.Count;
+        s.xs = new Int16[N];
+        s.ys = new Int16[N];
+        s.blockTypes = new Int16[N];
+        s.rots = new Int16[N];
+
+        int i = 0;
+        foreach (XY xy in r.blockTypes.Keys)
+        {
+            Int16 x = (Int16)xy.x;
+            Int16 y = (Int16)xy.y;
+            Int16 block = (Int16)r.blockTypes[xy];
+            Int16 rot = (Int16)r.rotations[xy];
+
+            s.xs[i] = x;
+            s.ys[i] = y;
+            s.blockTypes[i] = block;
+            s.rots[i] = rot;
+
+            i++;
+        }
+
+        return s;
+    }
+
+    // Takes a serialized robot and returns a robot
+    public static Robot DeserializeRobot(SerializedRobot r)
+    {
+        IDictionary<XY, BlockType> blockTypes = new Dictionary<XY, BlockType>();
+        IDictionary<XY, int> rotations = new Dictionary<XY, int>();
+
+        // TODO: Check for errors; may have been fucked with or lost during transmission
+        for (int i=0; i<r.xs.Length; i++)
+        {
+            XY xy = new XY(r.xs[i], r.ys[i]);
+            BlockType b = (BlockType)r.blockTypes[i];
+
+            blockTypes[xy] = b;
+            rotations[xy] = r.rots[i];
+        }
+
+        return new Robot(blockTypes, rotations);
+    }
 }

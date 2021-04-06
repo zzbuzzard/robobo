@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 226611041753659997}
   - component: {fileID: 226611041753659986}
   - component: {fileID: -4421761963774473404}
+  - component: {fileID: 9023547877287383688}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -66,12 +67,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ab78ecd0a76759408c6d9ea5ad6a49b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wheelPositions:
-  - {x: -1.5, y: 0}
-  - {x: 1.5, y: 0}
-  dampConst: 0.5
-  moveForce: 500
-  turnForce: 10000
+  syncMode: 0
+  syncInterval: 0.1
+  manual: 0
 --- !u!114 &-4421761963774473404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -85,3 +83,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mover: {fileID: 226611041753659986}
+--- !u!114 &9023547877287383688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226611041753659987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b91ecbcc199f4492b9a91e820070131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneId: 0
+  serverOnly: 0
+  visible: 0
+  m_AssetId: 
+  hasSpawned: 0

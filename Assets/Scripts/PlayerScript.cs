@@ -24,7 +24,7 @@ public class PlayerScript : MonoBehaviour
         // TODO: Better system
         if (normalMovementMode)
         {
-            turnJoystick.AxisOptions = AxisOptions.Both;
+            //turnJoystick.AxisOptions = AxisOptions.Both;
         }
         else
         {

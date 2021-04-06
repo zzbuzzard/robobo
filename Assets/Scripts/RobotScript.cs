@@ -1,11 +1,12 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
 using XY = UnityEngine.Vector2Int;
 
+
 [RequireComponent(typeof(Rigidbody2D))]
-public class RobotScript : MonoBehaviour
+public class RobotScript : NetworkBehaviour
 {
     // Wheel positions in integer, relative, local coords
     public Rigidbody2D mrig { get; private set; }
@@ -68,9 +69,10 @@ public class RobotScript : MonoBehaviour
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
             GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f) + (Vector2)transform.position, angle, transform);
+            NetworkServer.Spawn(obj, connectionToClient);
+
             Block block = obj.GetComponent<Block>();
-            block.x = pos.x;
-            block.y = pos.y;
+            block.ServerInit(gameObject, pos.x, pos.y);
         }
 
         centerXY = robot.center;
@@ -94,6 +96,39 @@ public class RobotScript : MonoBehaviour
         BlocksChanged();
         InitialiseGraph(robot);
     }
+
+    // Loads from gameobjects which are already spawned
+    public void LoadRobotClient(Robot robot)
+    {
+        mrig = GetComponent<Rigidbody2D>();
+
+        hoverMovementController = new HoverMovementController(this);
+        trackMovementController = new TrackMovementController(this);
+        
+        centerXY = robot.center;
+
+        // Put wheels into categories and give to controllers
+        wheelMap = new Dictionary<WheelType, List<XY>>();
+        foreach (WheelType wheelType in BlockInfo.wheelTypes)
+        {
+            wheelMap[wheelType] = new List<XY>();
+        }
+        foreach (XY xy in robot.wheels)
+        {
+            BlockType type = robot.blockTypes[xy];
+            WheelType wheelType = BlockInfo.blockInfos[(int)type].wheelType;
+            wheelMap[wheelType].Add(xy);
+        }
+        initialWheelCounts = new Dictionary<WheelType, int>();
+        foreach (WheelType wheelType in BlockInfo.wheelTypes)
+        {
+            initialWheelCounts[wheelType] = wheelMap[wheelType].Count;
+        }
+
+        BlocksChanged();
+        InitialiseGraph(robot);
+    }
+
 
     // Position of control block in worldspace
     public Vector2 GetControlPos()
@@ -153,6 +188,13 @@ public class RobotScript : MonoBehaviour
     // Moves the robot in direction moveDirection, and faces towards lookDirection (world coords)
     public void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking = true)
     {
+        // Client: Move locally (client prediction) and ask the server to move us in the same way
+        if (!isServer && isLocalPlayer)
+        {
+            MoveServer(moveDirection, lookDirection, isLooking);
+            return;
+        }
+
         if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
 
         if (currentWheelType != WheelType.NONE)
@@ -169,7 +211,12 @@ public class RobotScript : MonoBehaviour
                     break;
             }
         }
+    }
 
+    [Command]
+    private void MoveServer(Vector2 moveDirection, Vector2 lookDirection, bool isLooking)
+    {
+        Move(moveDirection, lookDirection, isLooking);
     }
 
 

@@ -1,30 +1,68 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Mirror;
 
 // A script class, but it's abstract so can never be used
 // Its purpose is to define base behaviour for all blocks
 
 // Enforce blocks have a collider
 [RequireComponent(typeof(Collider2D))]
-public abstract class Block : MonoBehaviour
+public abstract class Block : NetworkBehaviour
 {
-    public abstract BlockType Type { get; }
-    public abstract WheelType Wheel { get; }
-
+    // Things that change at runtime:
     [SerializeField]
     private float hp;
+    public int x, y;
+    private bool dead = false;
+    protected GameObject parent; // the RobotScript of my parent
+
+    private bool initialisedByServer = false;
+
+    // Things that are fixed:
+    public abstract BlockType Type { get; }
+    public abstract WheelType Wheel { get; }
 
     [SerializeField]
     private float density;
 
     protected Collider2D myCollider; // base class for box collider, polygon collider, etc.
-    protected RobotScript parent; // the RobotScript of my parent
     private FlashScript flashScript;
 
-    public int x, y;
-
     private float maxHP;
+
+    public void ServerInit(GameObject parentObj, int x, int y)
+    {
+        if (!isServer)
+        {
+            Debug.LogWarning("Block.ServerInit called by a client!");
+            return;
+        }
+        Debug.Log("Server calling init on block");
+
+        parent = parentObj;
+        transform.SetParent(parentObj.transform);
+        this.x = x;
+        this.y = y;
+        initialisedByServer = true;
+
+        UpdateClients(parentObj, x, y);
+    }
+
+    [ClientRpc]
+    void UpdateClients(GameObject parentObj, int x, int y)
+    {
+        parent = parentObj;
+        transform.SetParent(parentObj.transform);
+        this.x = x;
+        this.y = y;
+        initialisedByServer = true;
+    }
+
+    public bool IsInitialisedByServer()
+    {
+        return initialisedByServer;
+    }
 
     protected virtual void Start()
     {
@@ -32,14 +70,13 @@ public abstract class Block : MonoBehaviour
         myCollider = GetComponent<Collider2D>();
         flashScript = GetComponent<FlashScript>();
         myCollider.density = density;
-        parent = transform.parent.GetComponent<RobotScript>();
     }
 
     // I have no idea why this is necessary. C# sucks
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public RobotScript GetParent()
     {
-        return parent;
+        return parent.GetComponent<RobotScript>();
     }
 
     // Damage should be done generally through Damageable.
@@ -59,8 +96,6 @@ public abstract class Block : MonoBehaviour
     {
         flashScript.Flash();
     }
-
-    private bool dead = false;
 
     public bool IsDead() { return dead; }
 
@@ -86,7 +121,7 @@ public abstract class Block : MonoBehaviour
 
         // detach and tell parent
         HandleDeath();
-        parent.RemoveBlock(this); // Must be last, as this statement may delete this object
+        GetParent().RemoveBlock(this); // Must be last, as this statement may delete this object
         Destroy(this); // destroy this component
     }
 
@@ -100,7 +135,7 @@ public abstract class Block : MonoBehaviour
         rig.drag = 5;
         rig.angularDrag = 1;
         rig.mass = density * 1.5f * 1.5f; // should be collider area, but that doesn't seem to be gettable
-        rig.velocity = parent.mrig.GetPointVelocity(transform.position);
+        rig.velocity = GetParent().mrig.GetPointVelocity(transform.position);
 
         transform.SetParent(null);
     }
