@@ -8,19 +8,27 @@ using Mirror;
 // 3) Blocks use SyncVar to set their x, y etc.
 // 4) Check all blocks each step - wait til all x, y are initialised.
 // 5) Once all initialised, enable RobotScript and PlayerScript
-// 6) 
 public class PlayerOnline : NetworkBehaviour
 {
-    private Robot myRobot;
+    [SyncVar]
+    public int myID = -1;
+
+    public Robot myRobot { get; private set; }
 
     // Called when the player is spawned in, on the client
     // Purpose: send our robot to the server
     public override void OnStartLocalPlayer()
     {
+        base.OnStartLocalPlayer();
+        Debug.Log("OnStartLocalPlayer running");
+
         GameObject.Find("GameController").GetComponent<GameController>().SetPlayer(gameObject);
+        GameObject.Find("OnlineController").GetComponent<OnlineGameControl>().SetPlayer(gameObject);
 
         // Ask server to please spawn our robot
         CmdSpawnPlayerRobot(Robot.SerializeRobot(Controller.playerRobot));
+
+        //StartCoroutine(RefreshLatency());
     }
 
     // Runs on server
@@ -28,10 +36,10 @@ public class PlayerOnline : NetworkBehaviour
     private void CmdSpawnPlayerRobot(Robot.SerializedRobot sr)
     {
         // TODO: Check not cheating
-        Robot r = Robot.DeserializeRobot(sr);
+        myRobot = Robot.DeserializeRobot(sr);
 
-        // This method also spawns onto clients
-        GetComponent<RobotScript>().LoadRobot(r);
+        // This method also spawns blocks onto clients, but further intialisation is needed
+        GetComponent<RobotScript>().LoadRobot(myRobot);
 
         ClientSetRobot(sr);
     }
@@ -42,15 +50,24 @@ public class PlayerOnline : NetworkBehaviour
         myRobot = Robot.DeserializeRobot(sr);
     }
 
+    // Called on a client who is late
+    [TargetRpc]
+    public void LateLoad(NetworkConnection conn, Robot.SerializedRobot sr)
+    {
+        myRobot = Robot.DeserializeRobot(sr);
+    }
+
+    // Until isReady, we loop and wait for our blocks to spawn.
     private bool isReady = false;
     private void Update()
     {
         if (isReady) return;
+        if (myID == -1) return;
         if (myRobot == null) return;
         if (transform.childCount != myRobot.blockTypes.Count) return; // Not all spawned yet
 
         bool works = true;
-        for (int i=0; i<transform.childCount; i++)
+        for (int i = 0; i < transform.childCount; i++)
         {
             Block b = transform.GetChild(i).GetComponent<Block>();
             if (!b.IsInitialisedByServer())
@@ -62,12 +79,60 @@ public class PlayerOnline : NetworkBehaviour
 
         if (works)
         {
-            isReady = true;
-
             GetComponent<RobotScript>().LoadRobotClient(myRobot);
             GetComponent<RobotScript>().enabled = true;
             if (isLocalPlayer)
                 GetComponent<PlayerScript>().enabled = true;
+
+            Debug.Log("Spawned player " + myID + " is now ready");
+            isReady = true;
         }
     }
+
+
+    /*
+    Deprecated latency test thing. Note: It didn't work that well locally, and the first one was always 10x higher than the rest.
+
+    // Latency, in fixed update frames
+    public static int twoL { get; set; } = 5;
+
+    private int l;
+    private bool testingL=false;
+
+    public void UpdateLatency()
+    {
+        l = 0;
+        testingL = true;
+
+        CmdLatencyTest();
+    }
+
+    [Command]
+    private void CmdLatencyTest()
+    {
+        LatencyTestResturned();
+    }
+
+    [TargetRpc]
+    private void LatencyTestResturned()
+    {
+        testingL = false;
+        twoL = 1 + l;
+        Debug.Log("Latency rt is about " + twoL + " frames");
+    }
+
+    private void FixedUpdate()
+    {
+        if (testingL) l++;
+    }
+
+    IEnumerator RefreshLatency()
+    {
+        while (connectionToServer != null)
+        {
+            UpdateLatency();
+            yield return new WaitForSeconds(5.0f);
+        }
+    }
+    */
 }

@@ -10,14 +10,18 @@ using Mirror;
 [RequireComponent(typeof(Collider2D))]
 public abstract class Block : NetworkBehaviour
 {
-    // Things that change at runtime:
-    [SerializeField]
-    private float hp;
-    public int x, y;
+    // Things that are set at runtime:
     private bool dead = false;
-    protected GameObject parent; // the RobotScript of my parent
+    [SyncVar]
+    public int x, y;
 
-    private bool initialisedByServer = false;
+    [SyncVar(hook = nameof(SetParent))]
+    protected GameObject parent;
+
+    [SyncVar, SerializeField]
+    private float hp;
+
+    //private bool initialisedByServer = false;
 
     // Things that are fixed:
     public abstract BlockType Type { get; }
@@ -31,37 +35,40 @@ public abstract class Block : NetworkBehaviour
 
     private float maxHP;
 
-    public void ServerInit(GameObject parentObj, int x, int y)
+    //[Server]
+    //public void ServerInit(GameObject parentObj, int x, int y)
+    //{
+    //    parent = parentObj;
+    //    transform.SetParent(parentObj.transform);
+    //    this.x = x;
+    //    this.y = y;
+    //    initialisedByServer = true;
+
+    //    UpdateClients(parentObj, x, y);
+    //}
+
+    //[ClientRpc]
+    //void UpdateClients(GameObject parentObj, int x, int y)
+    //{
+    //    parent = parentObj;
+    //    transform.SetParent(parentObj.transform);
+    //    this.x = x;
+    //    this.y = y;
+    //    initialisedByServer = true;
+    //}
+
+    public void SetParent(GameObject oldVar, GameObject newVar)
     {
-        if (!isServer)
-        {
-            Debug.LogWarning("Block.ServerInit called by a client!");
-            return;
-        }
-        Debug.Log("Server calling init on block");
+        Debug.Log("Setting parent!");
 
-        parent = parentObj;
-        transform.SetParent(parentObj.transform);
-        this.x = x;
-        this.y = y;
-        initialisedByServer = true;
-
-        UpdateClients(parentObj, x, y);
-    }
-
-    [ClientRpc]
-    void UpdateClients(GameObject parentObj, int x, int y)
-    {
-        parent = parentObj;
-        transform.SetParent(parentObj.transform);
-        this.x = x;
-        this.y = y;
-        initialisedByServer = true;
+        parent = newVar;
+        transform.SetParent(newVar.transform);
+        GetComponent<Collider2D>().density = density;
     }
 
     public bool IsInitialisedByServer()
     {
-        return initialisedByServer;
+        return parent != null;
     }
 
     protected virtual void Start()
@@ -69,7 +76,6 @@ public abstract class Block : NetworkBehaviour
         maxHP = hp;
         myCollider = GetComponent<Collider2D>();
         flashScript = GetComponent<FlashScript>();
-        myCollider.density = density;
     }
 
     // I have no idea why this is necessary. C# sucks
@@ -128,7 +134,11 @@ public abstract class Block : NetworkBehaviour
     // It's hard sometimes, I know
     protected virtual void HandleDeath()
     {
-        //ResetMaterial();
+        // Disable colliders, to simplify online
+        foreach (Collider2D col in GetComponentsInChildren<Collider2D>())
+        {
+            col.enabled = false;
+        }
 
         Rigidbody2D rig = gameObject.AddComponent<Rigidbody2D>();
         rig.gravityScale = 0.0f;

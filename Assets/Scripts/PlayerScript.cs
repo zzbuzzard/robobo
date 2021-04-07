@@ -6,13 +6,14 @@ using XY = System.Tuple<int, int>;
 
 public class PlayerScript : MonoBehaviour
 {
+    Vector2 movement;
+    public bool useNextFrame = false;
+
     // Front angle
     private float front = 0.75f;
     public RobotScript mover;
     Rigidbody2D mrig;
-    Vector2 movement;
-    // Start is called before the first frame update
-
+    
     private bool normalMovementMode = true;
 
     public FixedJoystick moveJoystick, turnJoystick;
@@ -47,54 +48,53 @@ public class PlayerScript : MonoBehaviour
                 movement.y -= 1;
 
             if (Input.GetKeyDown(KeyCode.E))
-                mover.Use();
+                useNextFrame = true;
         }
     }
+
     void FixedUpdate()
+    {
+        //mover.Move(GetMove(), GetTurn());
+        //if (useNextFrame)
+        //{
+        //    useNextFrame = false;
+        //    mover.Use();
+        //}
+
+        useNextFrame = false;
+    }
+
+    public Vector2 GetMove()
+    {
+        if (SystemInfo.deviceType == DeviceType.Desktop)
+        {
+            return movement;
+        }
+
+        return moveJoystick.Direction;
+    }
+
+    public Vector2 GetTurn()
     {
         if (SystemInfo.deviceType == DeviceType.Desktop)
         {
             Vector2 worldGoal = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             Vector2 comWorld = mrig.worldCenterOfMass;
 
-            mover.Move(movement, worldGoal - comWorld);
+            return worldGoal - comWorld;
+        }
+
+        if (!turnJoystick.IsHeld) return Vector2.zero;
+
+        if (normalMovementMode)
+        {
+            return turnJoystick.Direction;
         }
         else
-        {
-            // TODO: Better system
-            if (normalMovementMode)
-                JoystickMoveNormal();
-            else
-                JoystickMoveTurn();
-        }
-    }
-
-    // The original system
-    void JoystickMoveNormal()
-    {
-        if (turnJoystick.IsHeld)
-        {
-            mover.Move(moveJoystick.Direction, turnJoystick.Direction);
-        }
-        else
-        {
-            mover.Move(moveJoystick.Direction);
-        }
-    }
-
-    // Right is turn, local
-    void JoystickMoveTurn()
-    {
-        if (turnJoystick.IsHeld)
         {
             float angleChange = -Mathf.PI * turnJoystick.Horizontal * 0.9f;
             float cAng = mrig.rotation * Mathf.Deg2Rad - front * Mathf.PI * 2;
-            Vector2 x = new Vector2(Mathf.Cos(cAng + angleChange), Mathf.Sin(cAng + angleChange));
-            mover.Move(moveJoystick.Direction, x);
-        }
-        else
-        {
-            mover.Move(moveJoystick.Direction);
+            return new Vector2(Mathf.Cos(cAng + angleChange), Mathf.Sin(cAng + angleChange));
         }
     }
 }
@@ -122,4 +122,4 @@ public class PlayerScript : MonoBehaviour
         float turn;
         if (Mathf.Abs(a) < Mathf.Abs(b)) turn = a;
         else turn = b;
-       */
+*/

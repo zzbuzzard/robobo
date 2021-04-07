@@ -22,7 +22,8 @@ public class RobotScript : NetworkBehaviour
     public List<GameObject> children { get; private set; }
     private BlockGraph blockGraph;
     private IDictionary<XY, Block> blockDict;
-    private XY centerXY;
+    //private XY centerXY;
+    private GameObject centerObj;
 
     public bool manual = false;
 
@@ -68,14 +69,14 @@ public class RobotScript : NetworkBehaviour
             float zrot = robot.rotations[pos] * 90.0f;
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
-            GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f) + (Vector2)transform.position, angle, transform);
+            GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f) + (Vector2)transform.position, angle);
             NetworkServer.Spawn(obj, connectionToClient);
 
             Block block = obj.GetComponent<Block>();
-            block.ServerInit(gameObject, pos.x, pos.y);
+            block.x = pos.x;
+            block.y = pos.y;
+            block.SetParent(null, gameObject);
         }
-
-        centerXY = robot.center;
 
         // Put wheels into categories and give to controllers
         wheelMap = new Dictionary<WheelType, List<XY>>();
@@ -105,8 +106,6 @@ public class RobotScript : NetworkBehaviour
         hoverMovementController = new HoverMovementController(this);
         trackMovementController = new TrackMovementController(this);
         
-        centerXY = robot.center;
-
         // Put wheels into categories and give to controllers
         wheelMap = new Dictionary<WheelType, List<XY>>();
         foreach (WheelType wheelType in BlockInfo.wheelTypes)
@@ -133,7 +132,9 @@ public class RobotScript : NetworkBehaviour
     // Position of control block in worldspace
     public Vector2 GetControlPos()
     {
-        return transform.TransformPoint(1.5f * (Vector2)centerXY);
+        if (centerObj == null) return transform.position;
+        return centerObj.transform.position;
+        //return transform.TransformPoint(1.5f * (Vector2)centerXY);
     }
 
     // Removes a block, and detaches all those who are no longer connected
@@ -188,12 +189,7 @@ public class RobotScript : NetworkBehaviour
     // Moves the robot in direction moveDirection, and faces towards lookDirection (world coords)
     public void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking = true)
     {
-        // Client: Move locally (client prediction) and ask the server to move us in the same way
-        if (!isServer && isLocalPlayer)
-        {
-            MoveServer(moveDirection, lookDirection, isLooking);
-            return;
-        }
+        if (lookDirection == Vector2.zero) isLooking = false;
 
         if (moveDirection.magnitude > 1.0f) moveDirection = moveDirection.normalized;
 
@@ -212,13 +208,6 @@ public class RobotScript : NetworkBehaviour
             }
         }
     }
-
-    [Command]
-    private void MoveServer(Vector2 moveDirection, Vector2 lookDirection, bool isLooking)
-    {
-        Move(moveDirection, lookDirection, isLooking);
-    }
-
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -279,8 +268,6 @@ public class RobotScript : NetworkBehaviour
         hoverMovementController = new HoverMovementController(this);
         trackMovementController = new TrackMovementController(this);
 
-        centerXY = robot.center;
-
         // Put wheels into categories and give to controllers
         wheelMap = new Dictionary<WheelType, List<XY>>();
         foreach (WheelType wheelType in BlockInfo.wheelTypes)
@@ -308,6 +295,7 @@ public class RobotScript : NetworkBehaviour
     {
         blockDict = new Dictionary<XY, Block>();
         children = new List<GameObject>();
+        centerObj = null;
 
         // Load children and blockDict
         int c = transform.childCount;
@@ -319,6 +307,11 @@ public class RobotScript : NetworkBehaviour
             {
                 children.Add(g);
                 blockDict[new XY(b.x, b.y)] = b;
+
+                if (b.Type == BlockType.CONTROL)
+                {
+                    centerObj = g;
+                }
             }
         }
 

@@ -106,6 +106,6 @@ public class GameController : MonoBehaviour
     public void PlayerUse()
     {
         if (player != null)
-            player.GetComponent<RobotScript>().Use();
+            player.GetComponent<PlayerScript>().useNextFrame = true;
     }
 }

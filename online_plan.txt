@@ -24,6 +24,7 @@ Server logic:
 3) Send out a GameState package to all clients
 
 
+
 Client logic:
 1) Every frame, send off the GameState, and store it
 
