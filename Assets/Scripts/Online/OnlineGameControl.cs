@@ -50,6 +50,7 @@ class GameState
                 return true;
             }
 
+            // TODO: Account for 360 degree difference (359 and 0: not sig dif)
             if (Mathf.Abs(a.rotations[i] - b.rotations[i]) > rotDif)
             {
                 Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
@@ -110,7 +111,7 @@ public class OnlineGameControl : NetworkBehaviour
 
     private void Awake()
     {
-        Physics.autoSimulation = false;
+        Physics2D.simulationMode = SimulationMode2D.Script;
 
         // TODO: Split into server/client
         // NOTE: Can't use isServer at this point, as it doesn't know yet. Need a public bool or something.
@@ -336,8 +337,7 @@ public class OnlineGameControl : NetworkBehaviour
             r.angularVelocity = s.rigAngVel[i];
             r.velocity = s.rigVel[i];
             r.rotation = s.rotations[i];
-
-            g.transform.position += (Vector3)(s.rigPos[i] - r.worldCenterOfMass);
+            r.position += s.rigPos[i] - r.worldCenterOfMass;
         }
     }
 
@@ -360,10 +360,10 @@ public class OnlineGameControl : NetworkBehaviour
         }
         else
         {
-            Debug.LogWarning("No input package for frame " + frameOn + "...?");
+            Debug.Log("No input package for frame " + frameOn);
         }
-        // Note: Physics runs after FixedUpdate in the usual loop
-        Physics.Simulate(Time.fixedDeltaTime);
+
+        Physics2D.Simulate(Time.fixedDeltaTime);
         pastGameStates.Enqueue(GetCurrentState());
     }
 
@@ -413,6 +413,7 @@ public class OnlineGameControl : NetworkBehaviour
     {
         Debug.Log("Client: Starting game");
 
+        // TODO: No
         frameOn = -5;
         gameRunning = true;
     }
@@ -426,6 +427,23 @@ public class OnlineGameControl : NetworkBehaviour
         // May not be in there, but that's fine (it just returns false)
         pastInputs.Remove(lastServerFrame - 1);
     }
+    
+    //[Client]
+    //private void DebugSimulateFromStart()
+    //{
+    //    if (pastGameStates.Count == 0) return;
+    //    // Re-simulate it all.
+    //    int realFrame = frameOn;
+
+    //    LoadGameState(pastGameStates.Dequeue());
+
+    //    Debug.Log("Test simulating " + frameOn + " -> " + realFrame);
+
+    //    while (frameOn < realFrame)
+    //    {
+    //        SimulateFrame();
+    //    }
+    //}
 
     [Client]
     private void CheckPastState()
@@ -440,13 +458,14 @@ public class OnlineGameControl : NetworkBehaviour
             return;
         }
 
-        // We need to get more ahead!
+        // We need to get more ahead! Server should be telling us this...
         if (waitingState.frameID > frameOn)
         {
             Debug.Log("Server is ahead! Frameon: " + frameOn + ", waiting state frame: " + waitingState.frameID);
             return;
         }
 
+        // Move through game states until we find the one for the waitingState
         while (pastGameStates.Count > 0 && GetQueueStart() != waitingState.frameID)
         {
             pastGameStates.Dequeue();
@@ -470,104 +489,12 @@ public class OnlineGameControl : NetworkBehaviour
             int realFrame = frameOn;
 
             LoadGameState(waitingState);
-            pastGameStates.Clear();
-
-            pastGameStates.Enqueue(waitingState);
 
             while (frameOn < realFrame)
             {
                 SimulateFrame();
             }
         }
-
-        // TODO: Delete the old ropey code below
-
-        //Debug.DrawLine(mState.rigPos[0], waitingState.rigPos[0]);
-
-        //int aheadBy = frameOn - waitingState.frameID;
-
-        //// Need to be more ahead: TRAVEL FORWARDS IN TIME
-        //if (aheadBy < PlayerOnline.twoL)
-        //{
-        //    Debug.Log("Not ahead enough - skipping frames");
-        //    Debug.Log(frameOn + " -> " + (waitingState.frameID + PlayerOnline.twoL));
-        //    while (frameOn - waitingState.frameID < PlayerOnline.twoL)
-        //    {
-        //        SimulateFrame();
-        //    }
-        //}
-        //else
-        //{
-        //    // Need to be less ahead: TRAVEL BACK IN TIME
-        //    if (aheadBy > PlayerOnline.twoL)
-        //    {
-        //        Debug.Log("Too ahead- we're ahead by " + aheadBy);
-
-        //        int goalFrame = waitingState.frameID + PlayerOnline.twoL;
-
-        //        // We don't have the data
-        //        if (goalFrame < GetQueueStart())
-        //        {
-        //            Debug.LogError("Can't travel back in time, not in history :(");
-        //            return;
-        //        }
-        //        else
-        //        {
-        //            // TODO: Load old stuff, clear the rest
-        //            // Note: Queue should probly be a deque then
-        //        }
-        //        //frameOn = goalFrame;
-        //    }
-        //}
-
-        //// History goes from last received time to now
-        //if (waitingState.frameID < GetQueueStart())
-        //{
-        //    Debug.LogError("Discarding frame, not in history: " + waitingState.frameID + ", history starts at " + GetQueueStart());
-        //    return;
-        //}
-
-        //// Should never happen, as twoL > 0
-        //if (waitingState.frameID > frameOn)
-        //{
-        //    Debug.LogError("Server is ahead of us!");
-        //    return;
-        //}
-
-        //// Remove states til we can use this one
-        //while (pastGameStates.Count > 0 && waitingState.frameID > GetQueueStart())
-        //{
-        //    pastGameStates.Dequeue();
-        //}
-
-        //// This happens when we're not far ahead enough, or something.
-        //if (pastGameStates.Count == 0)
-        //{
-        //    Debug.Log("Queue empty?");
-        //    //Debug.Log("Increasing L artificially");
-        //    //PlayerOnline.L++;
-        //    return;
-        //}
-
-        //// Now, state.frameID = queueFrameStart
-        //GameState mState = pastGameStates.Dequeue();
-
-        //if (GameState.IsSignificantlyDifferent(mState, waitingState))
-        //{
-        //    Debug.Log("Significantly different: at time " + waitingState.frameID + " to frameOn " + frameOn);
-
-        //    int myID = mPlayer.GetComponent<PlayerOnline>().myID;
-
-        //    int currentFrame = frameOn;
-
-        //    // REVERT STATE:
-        //    LoadGameState(waitingState);
-        //    while (frameOn < currentFrame) {
-        //        // TODO: Input buffer and stuff
-        //        SimulateFrame();
-        //    }
-        //}
-
     }
 
 
@@ -643,7 +570,7 @@ public class OnlineGameControl : NetworkBehaviour
 
             ProcessInputs();
 
-            Physics.Simulate(Time.fixedDeltaTime);
+            Physics2D.Simulate(Time.fixedDeltaTime);
 
             GameState s = GetCurrentState();
 
@@ -680,7 +607,7 @@ public class OnlineGameControl : NetworkBehaviour
                 }
             }
 
-            Physics.Simulate(Time.fixedDeltaTime);
+            Physics2D.Simulate(Time.fixedDeltaTime);
 
             GameState s = GetCurrentState();
             pastGameStates.Enqueue(s);

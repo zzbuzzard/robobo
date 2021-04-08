@@ -31,6 +31,7 @@ public class HoverMovementController : MovementController
 
     public override void Move(Vector2 moveDirection, Vector2 lookDirection, bool isLooking)
     {
+        // TODO: Should this just be AddForce?
         // WORLD -> LOCAL
         moveDirection = parent.transform.InverseTransformDirection(moveDirection);
 
