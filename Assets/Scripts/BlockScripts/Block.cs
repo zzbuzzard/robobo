@@ -88,13 +88,16 @@ public abstract class Block : NetworkBehaviour
     // Damage should be done generally through Damageable.
     public virtual void TakeDamage(float damage)
     {
-        hp -= damage;
-        ChangeHpDisplay();
-        if (hp <= 0)
+        if (isServer)
         {
-            Die();
+            hp -= damage;
+            if (hp <= 0)
+            {
+                ServerDie();
+            }
         }
-        
+
+        ChangeHpDisplay();
     }
 
     // TODO: Show cracks etc
@@ -115,6 +118,20 @@ public abstract class Block : NetworkBehaviour
         // detach, but don't tell parent as we came from the parent
         HandleDeath();
         Destroy(this); // destroy this component
+    }
+
+    [Server]
+    private void ServerDie()
+    {
+        Die();
+
+        ClientDie();
+    }
+
+    [ClientRpc]
+    private void ClientDie()
+    {
+        Die();
     }
 
     // TODO: Some kinda particle effect?
