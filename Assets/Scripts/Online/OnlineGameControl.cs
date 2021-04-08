@@ -187,6 +187,7 @@ public class OnlineGameControl : NetworkBehaviour
                 int nextInputTime = pair.Value.Peek().inputFrame;
 
                 // We haven't reached the frame for the next input yet
+                // WAIT: I don't think this actually ever happens
                 if (nextInputTime > frameOn)
                 {
                     use = lastPlayerInput[id];
@@ -255,6 +256,16 @@ public class OnlineGameControl : NetworkBehaviour
     [Server]
     private void SpeedUpSlowDown()
     {
+        foreach (int id in playerSpeedUpValues.Keys)
+        {
+            Debug.Log("Speed up slow down: Queue size for " + id + " is " + queuedPlayerInputs[id].Count);
+
+            // If they're not being told to speed up (so they're not super laggy)
+            // Then tell them to slow down
+            if (playerSpeedUpValues[id] <= 0.01f && queuedPlayerInputs[id].Count > 5)
+                playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2 - 1.0f;
+        }
+
         foreach (var pair in playerSpeedUpValues)
         {
             int id = pair.Key;
