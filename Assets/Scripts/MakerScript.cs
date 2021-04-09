@@ -27,20 +27,6 @@ public class MakerScript : MonoBehaviour
         unsavedRobot = r;
     }
 
-
-    // Maps a button ID to the block type it represents
-    static IDictionary<int, BlockType> buttonToBlock = new Dictionary<int, BlockType>()
-    {
-        { 0, BlockType.CONTROL },
-        { 1, BlockType.METAL },
-        { 2, BlockType.SPIKE },
-        { 3, BlockType.PISTON },
-        { 4, BlockType.CHAINSAW },
-        { 5, BlockType.HOVER },
-        { 6, BlockType.TRACK },
-        { 7, BlockType.THRUSTER }
-    };
-
     BlockType currentBlock = BlockType.METAL;
     //private IDictionary<XY, MakerSceneBlockScript> squares;
 
@@ -220,14 +206,9 @@ public class MakerScript : MonoBehaviour
         }
     }
 
-    public void ButtonClicked(int button)
+    public void ButtonClicked(BlockType block)
     {
-        if (!buttonToBlock.ContainsKey(button))
-        {
-            Debug.LogError("Button " + button + " has no associated block");
-            return;
-        }
-        currentBlock = buttonToBlock[button];
+        currentBlock = block;
     }
 
     public void StartClicked()
