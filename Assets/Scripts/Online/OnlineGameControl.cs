@@ -71,7 +71,7 @@ struct InputPkg
 {
     // turn is Vector2.zero if no turn
     public Vector2 move, turn;
-    public bool useWeapon;
+    //public bool useWeapon;
     public int inputFrame;
 
     public static InputPkg AveragePkg(InputPkg a, InputPkg b)
@@ -88,7 +88,7 @@ struct InputPkg
         a.move = (a.move + b.move) / 2;
 
         // 3) Average useWeapon (use if either do)
-        a.useWeapon |= b.useWeapon;
+        //a.useWeapon |= b.useWeapon;
 
         a.inputFrame = (a.inputFrame + b.inputFrame) / 2;
         return a;
@@ -98,7 +98,7 @@ struct InputPkg
     {
         const float threshold = 0.01f;
 
-        if (a.useWeapon != b.useWeapon) return true;
+        //if (a.useWeapon != b.useWeapon) return true;
         if (Mathf.Abs(a.move.x - b.move.x) > threshold) return true;
         if (Mathf.Abs(a.move.y - b.move.y) > threshold) return true;
         if (Mathf.Abs(a.turn.x - b.turn.x) > threshold) return true;
@@ -109,7 +109,7 @@ struct InputPkg
     public override string ToString()
     {
         string s = "Frame " + inputFrame + ": " + "Move " + move + ", turn " + turn;
-        if (useWeapon) s += " (USE)";
+        //if (useWeapon) s += " (USE)";
         return s;
     }
 }
@@ -603,8 +603,8 @@ public class OnlineGameControl : NetworkBehaviour
         RobotScript robot = obj.GetComponent<RobotScript>();
         robot.Move(pkg.move, pkg.turn);
 
-        if (pkg.useWeapon)
-            robot.Use();
+        //if (pkg.useWeapon)
+        //    robot.Use();
     }
 
     private void FixedUpdate()
@@ -643,8 +643,11 @@ public class OnlineGameControl : NetworkBehaviour
                 InputPkg pkg;
                 pkg.move = ps.GetMove();
                 pkg.turn = ps.GetTurn();
-                pkg.useWeapon = ps.useNextFrame;
+                //pkg.useWeapon = ps.useNextFrame;
                 pkg.inputFrame = frameOn;
+
+                if (ps.useNextFrame)
+                    mPlayer.GetComponent<RobotScript>().LocalUse();
 
                 pastInputs[frameOn] = pkg;
 
