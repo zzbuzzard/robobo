@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
+using System.Linq;
 
 class GameState
 {
@@ -62,6 +63,10 @@ class GameState
     }
 }
 
+// TODO:
+// Consider removing inputFrame from here,
+//  and storing it instead in a dictionary on the server
+//  (slower than a buffer, surely? could use buffer as a dict?)
 struct InputPkg
 {
     // turn is Vector2.zero if no turn
@@ -88,6 +93,25 @@ struct InputPkg
         a.inputFrame = (a.inputFrame + b.inputFrame) / 2;
         return a;
     }
+
+    public static bool IsInputPkgDifferent(InputPkg a, InputPkg b)
+    {
+        const float threshold = 0.01f;
+
+        if (a.useWeapon != b.useWeapon) return true;
+        if (Mathf.Abs(a.move.x - b.move.x) > threshold) return true;
+        if (Mathf.Abs(a.move.y - b.move.y) > threshold) return true;
+        if (Mathf.Abs(a.turn.x - b.turn.x) > threshold) return true;
+        if (Mathf.Abs(a.turn.y - b.turn.y) > threshold) return true;
+        return false;
+    }
+
+    public override string ToString()
+    {
+        string s = "Frame " + inputFrame + ": " + "Move " + move + ", turn " + turn;
+        if (useWeapon) s += " (USE)";
+        return s;
+    }
 }
 
 
@@ -102,10 +126,12 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
 
+    SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
+        
     // TODO: Swap this queue for a buffer of fixed size for speed. Profile it.
     IDictionary<int, float> playerSpeedUpValues;
     IDictionary<int, Queue<InputPkg>> queuedPlayerInputs;
-    IDictionary<int, InputPkg> lastPlayerInput;
+    //IDictionary<int, InputPkg> lastPlayerInput;
     const int queueSizeThreshold = 5; // Beyond this size, we do two at once
     private int nextID = 0;
 
@@ -118,7 +144,6 @@ public class OnlineGameControl : NetworkBehaviour
 
         players = new Dictionary<int, GameObject>();
         queuedPlayerInputs = new Dictionary<int, Queue<InputPkg>>();
-        lastPlayerInput = new Dictionary<int, InputPkg>();
         playerSpeedUpValues = new Dictionary<int, float>();
         pastGameStates = new Queue<GameState>();
         pastInputs = new Dictionary<int, InputPkg>();
@@ -138,7 +163,8 @@ public class OnlineGameControl : NetworkBehaviour
         player.GetComponent<PlayerOnline>().myID = nextID;
         players[nextID] = player;
         queuedPlayerInputs[nextID] = new Queue<InputPkg>();
-        lastPlayerInput[nextID] = default;
+        //lastPlayerInput[nextID] = default;
+        lastPlayerInputDict.Add(nextID, default);
         playerSpeedUpValues[nextID] = 0.0f;
 
         // (includes conn)
@@ -177,7 +203,7 @@ public class OnlineGameControl : NetworkBehaviour
             // No queued moves ... they should speed up so we have a backlog
             if (pair.Value.Count == 0)
             {
-                use = lastPlayerInput[id];
+                use = lastPlayerInputDict[id];
 
                 // SPEED UP
                 playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
@@ -190,7 +216,7 @@ public class OnlineGameControl : NetworkBehaviour
                 // WAIT: I don't think this actually ever happens
                 if (nextInputTime > frameOn)
                 {
-                    use = lastPlayerInput[id];
+                    use = lastPlayerInputDict[id];
 
                     // SLOW DOWN
                     playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f - 1.0f;
@@ -236,7 +262,9 @@ public class OnlineGameControl : NetworkBehaviour
             //    + (pair.Value.Count > 0 ? "\n(Queue starts at " + pair.Value.Peek().inputFrame + ")" : "")
             //    );
 
-            lastPlayerInput[id] = use;
+            // This reduces the number of calls
+            if (InputPkg.IsInputPkgDifferent(use, lastPlayerInputDict[id]))
+                lastPlayerInputDict[id] = use;
 
             // Apply this package
             ApplyInputPackage(players[id], use);
@@ -256,13 +284,14 @@ public class OnlineGameControl : NetworkBehaviour
     [Server]
     private void SpeedUpSlowDown()
     {
-        foreach (int id in playerSpeedUpValues.Keys)
+        // TODO: Kinda workaround slow ToList() call
+        foreach (int id in playerSpeedUpValues.Keys.ToList())
         {
             Debug.Log("Speed up slow down: Queue size for " + id + " is " + queuedPlayerInputs[id].Count);
 
             // If they're not being told to speed up (so they're not super laggy)
             // Then tell them to slow down
-            if (playerSpeedUpValues[id] <= 0.01f && queuedPlayerInputs[id].Count > 5)
+            if (playerSpeedUpValues[id] <= 0.01f && queuedPlayerInputs[id].Count >= 5)
                 playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2 - 1.0f;
         }
 
@@ -297,6 +326,8 @@ public class OnlineGameControl : NetworkBehaviour
     IDictionary<int, InputPkg> pastInputs; // MY past inputs
     Queue<GameState> pastGameStates; // the *client* gamestates 
     private GameObject mPlayer;
+
+    public static bool isResimulating = false;
 
     private GameState waitingState;
     private int lastServerFrame = 0; // the frame number last received from the server
@@ -362,8 +393,7 @@ public class OnlineGameControl : NetworkBehaviour
     [Client]
     private void SimulateFrame()
     {
-        // TODO: Call FixedUpdate and stuff?
-        // TODO: Simulate other players? Apply bullshit input packages to em?
+        // TODO: Track fixed update... and other fixed update...
         frameOn++;
         if (pastInputs.ContainsKey(frameOn))
         {
@@ -372,6 +402,17 @@ public class OnlineGameControl : NetworkBehaviour
         else
         {
             Debug.Log("No input package for frame " + frameOn);
+        }
+
+        // Apply past inputs to all other players!
+        int mid = mPlayer.GetComponent<PlayerOnline>().myID;
+        foreach (int id in lastPlayerInputDict.Keys)
+        {
+            if (id != mid)
+            {
+                //Debug.Log("Past input: " + lastPlayerInputDict[id].ToString());
+                //ApplyInputPackage(players[id], lastPlayerInputDict[id]);
+            }
         }
 
         Physics2D.Simulate(Time.fixedDeltaTime);
@@ -493,8 +534,9 @@ public class OnlineGameControl : NetworkBehaviour
         if (GameState.IsSignificantlyDifferent(mState, waitingState))
         {
             Debug.Log("SIGNIFICANTLY DIFFERENT: Frame " + mState.frameID
-                +"\nSimulating " + mState.frameID + " -> " + frameOn
-                );
+                +"\nSimulating " + mState.frameID + " -> " + frameOn);
+
+            isResimulating = true;
 
             // Re-simulate it all.
             int realFrame = frameOn;
@@ -505,6 +547,8 @@ public class OnlineGameControl : NetworkBehaviour
             {
                 SimulateFrame();
             }
+
+            isResimulating = false;
         }
     }
 

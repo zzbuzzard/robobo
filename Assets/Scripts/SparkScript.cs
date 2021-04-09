@@ -7,6 +7,8 @@ public class SparkScript : MonoBehaviour
     public static GameObject sparkPrefab;
     public static void CreateSparks(Vector2 position, float damage)
     {
+        if (OnlineGameControl.isResimulating) return;
+
         GameObject sparkObj = Instantiate(sparkPrefab, (Vector3)position + new Vector3(0, 0, -1), Quaternion.identity);
         sparkObj.GetComponent<SparkScript>().SetIntensity(damage);
     }

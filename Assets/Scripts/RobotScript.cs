@@ -170,6 +170,9 @@ public class RobotScript : NetworkBehaviour
 
     public void Use()
     {
+        if (isServer)
+            ClientUse();
+
         foreach (GameObject g in children)
         {
             IUsableBlock b = g.GetComponent<IUsableBlock>();
@@ -178,6 +181,13 @@ public class RobotScript : NetworkBehaviour
                 b.Use();
             }
         }
+    }
+
+    [ClientRpc]
+    private void ClientUse()
+    {
+        if (isLocalPlayer) return;
+        Use();
     }
 
     // Move with no turn applied
