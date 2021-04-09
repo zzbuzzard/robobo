@@ -99,8 +99,18 @@ public class GameController : MonoBehaviour
 
     public void BackPressed()
     {
-        MakerScript.LoadUnsavedRobot(MakerScript.RobotName, Controller.playerRobot);
-        SceneManager.LoadScene("BuildScene");
+        if (isOnline)
+        {
+            NetMan m = GameObject.Find("NetworkManager").GetComponent<NetMan>();
+            m.StopServer();
+            m.StopClient();
+            SceneManager.LoadScene("MainScene");
+        }
+        else
+        {
+            MakerScript.LoadUnsavedRobot(MakerScript.RobotName, Controller.playerRobot);
+            SceneManager.LoadScene("BuildScene");
+        }
     }
     
     public void PlayerUse()

@@ -81392,7 +81392,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 104325332}
         m_TargetAssemblyTypeName: GameController, Assembly-CSharp
         m_MethodName: BackPressed
         m_Mode: 1
@@ -81732,6 +81732,7 @@ GameObject:
   - component: {fileID: 1272380602}
   - component: {fileID: 1272380601}
   - component: {fileID: 1272380600}
+  - component: {fileID: 1272380603}
   m_Layer: 5
   m_Name: UseButton
   m_TagString: Untagged
@@ -81775,7 +81776,7 @@ MonoBehaviour:
     callback:
       m_PersistentCalls:
         m_Calls:
-        - m_Target: {fileID: 0}
+        - m_Target: {fileID: 104325332}
           m_TargetAssemblyTypeName: GameController, Assembly-CSharp
           m_MethodName: PlayerUse
           m_Mode: 1
@@ -81825,6 +81826,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272380598}
   m_CullTransparentMesh: 1
+--- !u!114 &1272380603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1272380598}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 32a76486339094b4da38f65cab6d1fd8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1324716118
 GameObject:
   m_ObjectHideFlags: 0
