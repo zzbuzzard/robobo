@@ -7,18 +7,30 @@ public class NetMan : NetworkManager
 {
     public OnlineGameControl onlinegameControl;
 
-    private bool first = true;
+    private int connNum = 0;
+    private readonly static Vector2[] starts = new Vector2[]{
+        new Vector2(-10.0f, 10.0f),
+        new Vector2(10.0f, -10.0f),
+        new Vector2(-10.0f, -10.0f),
+        new Vector2(10.0f, 10.0f),
+        new Vector2(0.0f, 0.0f)
+    };
+
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
-        Debug.Log("Server add player");
+        // TODO: Prevent excess players joining a match
+        //       Or mid-game joins
 
-        GameObject obj = Instantiate(playerPrefab, new Vector2(10.0f, 10.0f)*(first?1:-1), Quaternion.identity);
-        first = false;
+        Debug.Log("Server adding a new player");
+
+        GameObject obj = Instantiate(playerPrefab, starts[connNum % starts.Length], Quaternion.identity);
         NetworkServer.AddPlayerForConnection(conn, obj);
 
         onlinegameControl.AddPlayer(obj, conn);
-    }
 
+        connNum += 1;
+    }
+    
     public override void OnClientConnect(NetworkConnection conn)
     {
         base.OnClientConnect(conn);

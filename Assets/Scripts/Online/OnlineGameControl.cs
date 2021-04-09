@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 using System.Linq;
+using TMPro;
 
 class GameState
 {
@@ -126,12 +127,12 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
 
-    SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
+    //SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
         
     // TODO: Swap this queue for a buffer of fixed size for speed. Profile it.
     IDictionary<int, float> playerSpeedUpValues;
     IDictionary<int, Queue<InputPkg>> queuedPlayerInputs;
-    //IDictionary<int, InputPkg> lastPlayerInput;
+    IDictionary<int, InputPkg> lastPlayerInput;
     const int queueSizeThreshold = 5; // Beyond this size, we do two at once
     private int nextID = 0;
 
@@ -147,6 +148,7 @@ public class OnlineGameControl : NetworkBehaviour
         playerSpeedUpValues = new Dictionary<int, float>();
         pastGameStates = new Queue<GameState>();
         pastInputs = new Dictionary<int, InputPkg>();
+        lastPlayerInput = new Dictionary<int, InputPkg>();
     }
 
     [Server]
@@ -163,14 +165,65 @@ public class OnlineGameControl : NetworkBehaviour
         player.GetComponent<PlayerOnline>().myID = nextID;
         players[nextID] = player;
         queuedPlayerInputs[nextID] = new Queue<InputPkg>();
-        //lastPlayerInput[nextID] = default;
-        lastPlayerInputDict.Add(nextID, default);
+        lastPlayerInput[nextID] = default;
+        //lastPlayerInputDict.Add(nextID, default);
         playerSpeedUpValues[nextID] = 0.0f;
 
-        // (includes conn)
+        // Tell all pre-existing clients, as well as the new client, to add this player
         ClientAddPlayer(nextID, player);
 
         nextID++;
+    }
+    
+    // Called when a player DCs or dies
+    [Server]
+    public void RemovePlayer(int id)
+    {
+        if (players.ContainsKey(id))
+        {
+            GameObject player = players[id];
+            players.Remove(id);
+
+            if (player != null)
+            {
+                Destroy(player);
+            }
+
+            lastPlayerInput.Remove(id);
+            queuedPlayerInputs.Remove(id);
+            playerSpeedUpValues.Remove(id);
+        }
+
+        ClientRemovePlayer(id);
+
+        CheckWin();
+    }
+
+    // Check for deleted GameObjects - these will have DCed, or been killed.
+    [Server]
+    private void RemoveDead()
+    {
+        // ToList() - may be modified during iter
+        foreach (var pair in players.ToList())
+        {
+            if (pair.Value == null)
+                RemovePlayer(pair.Key);
+        }
+    }
+
+    [Server]
+    private void CheckWin()
+    {
+        if (players.Count == 1)
+        {
+            int winID = players.Keys.ToList()[0];
+
+            gameRunning = false;
+            Debug.Log("PLAYER " + winID + " HAS WON");
+
+            // Broadcast to all clients that the game is over, won by winID
+            ClientEndGame(winID);
+        }
     }
 
     // TODO: Call this somewhere better [plan]
@@ -203,7 +256,7 @@ public class OnlineGameControl : NetworkBehaviour
             // No queued moves ... they should speed up so we have a backlog
             if (pair.Value.Count == 0)
             {
-                use = lastPlayerInputDict[id];
+                use = lastPlayerInput[id];
 
                 // SPEED UP
                 playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
@@ -216,7 +269,7 @@ public class OnlineGameControl : NetworkBehaviour
                 // WAIT: I don't think this actually ever happens
                 if (nextInputTime > frameOn)
                 {
-                    use = lastPlayerInputDict[id];
+                    use = lastPlayerInput[id];
 
                     // SLOW DOWN
                     playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f - 1.0f;
@@ -262,9 +315,10 @@ public class OnlineGameControl : NetworkBehaviour
             //    + (pair.Value.Count > 0 ? "\n(Queue starts at " + pair.Value.Peek().inputFrame + ")" : "")
             //    );
 
+            lastPlayerInput[id] = use;
             // This reduces the number of calls
-            if (InputPkg.IsInputPkgDifferent(use, lastPlayerInputDict[id]))
-                lastPlayerInputDict[id] = use;
+            //if (InputPkg.IsInputPkgDifferent(use, lastPlayerInputDict[id]))
+            //    lastPlayerInputDict[id] = use;
 
             // Apply this package
             ApplyInputPackage(players[id], use);
@@ -275,9 +329,14 @@ public class OnlineGameControl : NetworkBehaviour
     [Command(requiresAuthority = false)]
     private void ServerReceiveInput(int myID, InputPkg clientInput)
     {
+        if (!gameRunning) return;
+        if (!players.ContainsKey(myID)) return;
+
         // TODO: Ensure they actually arrive in order!
         //  (Note: They seem to)
-        // TODO: Ensure the frame hasn't been fucked with by hackaz
+        // TODO: Ensure the frame ID hasn't been fucked with
+        //   -> This won't play to their advantage really, just should move the frame check from ProcessInputs to here
+        //      This will prevent a queue building up of frames which we're just gonna discard anyway
         queuedPlayerInputs[myID].Enqueue(clientInput);
     }
 
@@ -323,6 +382,7 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////      Client only     /////////////////////////////////
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
+    public TextMeshProUGUI winText;
     IDictionary<int, InputPkg> pastInputs; // MY past inputs
     Queue<GameState> pastGameStates; // the *client* gamestates 
     private GameObject mPlayer;
@@ -405,15 +465,15 @@ public class OnlineGameControl : NetworkBehaviour
         }
 
         // Apply past inputs to all other players!
-        int mid = mPlayer.GetComponent<PlayerOnline>().myID;
-        foreach (int id in lastPlayerInputDict.Keys)
-        {
-            if (id != mid)
-            {
-                //Debug.Log("Past input: " + lastPlayerInputDict[id].ToString());
-                //ApplyInputPackage(players[id], lastPlayerInputDict[id]);
-            }
-        }
+        //int mid = mPlayer.GetComponent<PlayerOnline>().myID;
+        //foreach (int id in lastPlayerInputDict.Keys)
+        //{
+        //    if (id != mid)
+        //    {
+        //        //Debug.Log("Past input: " + lastPlayerInputDict[id].ToString());
+        //        //ApplyInputPackage(players[id], lastPlayerInputDict[id]);
+        //    }
+        //}
 
         Physics2D.Simulate(Time.fixedDeltaTime);
         pastGameStates.Enqueue(GetCurrentState());
@@ -447,6 +507,13 @@ public class OnlineGameControl : NetworkBehaviour
         players[playerID] = player;
     }
 
+    [ClientRpc]
+    private void ClientRemovePlayer(int playerID)
+    {
+        Debug.Log("Client removing player " + playerID);
+        players.Remove(playerID);
+    }
+
     // Adding players who joined before me
     [TargetRpc]
     private void LateClientAddPlayer(NetworkConnection conn, int playerID, GameObject player)
@@ -465,9 +532,28 @@ public class OnlineGameControl : NetworkBehaviour
     {
         Debug.Log("Client: Starting game");
 
-        // TODO: No
-        frameOn = -5;
+        frameOn = 0;
         gameRunning = true;
+    }
+
+    [ClientRpc]
+    public void ClientEndGame(int winner)
+    {
+        Debug.Log("Game ends: Winner was ID " + winner);
+
+        winText.gameObject.SetActive(true);
+
+        if (mPlayer == null || mPlayer.GetComponent<PlayerOnline>().myID != winner)
+        {
+            winText.color = Color.red;
+            winText.SetText("YOU LOSE");
+        }
+        else
+        {
+            winText.color = Color.green;
+            winText.SetText("YOU WINNNN");
+        }
+        gameRunning = false;
     }
 
     [ClientRpc]
@@ -560,6 +646,7 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
     IDictionary<int, GameObject> players;
+
     private bool gameRunning = false;
     int frameOn = 0;
         
@@ -622,6 +709,8 @@ public class OnlineGameControl : NetworkBehaviour
         if (isServer)
         {
             frameOn++;
+
+            RemoveDead();
 
             ProcessInputs();
 

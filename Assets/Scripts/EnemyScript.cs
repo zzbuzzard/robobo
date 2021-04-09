@@ -34,7 +34,8 @@ public class EnemyScript : MonoBehaviour
         {
             if (useTimer <= 0.0f)
             {
-                mover.Use();
+                // TODO: Should really be server only? I guess?
+                mover.LocalUse();
                 useTimer = 1.0f;
             }
         }
