@@ -5,6 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class MainSceneScript : MonoBehaviour
 {
+    private void Awake()
+    {
+        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
+    }
+
     public void RobotsClicked()
     {
         SceneManager.LoadScene("SelectRobot");
