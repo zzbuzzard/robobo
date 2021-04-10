@@ -67,12 +67,14 @@ public class MakerSceneBlockScript : MonoBehaviour
             transform.localScale = Vector3.one * baseSize * 0.9f;
             rend.sprite = emptySprite;
             rend.sortingOrder = 0;
+            rend.color = Color.black;
         }
         else
         {
             transform.localScale = Vector3.one * baseSize;
             rend.sprite = BlockInfo.blockInfos[(int)currentBlock].showSprite;
             rend.sortingOrder = 1;
+            rend.color = Color.white;
         }
     }
 

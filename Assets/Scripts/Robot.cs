@@ -16,6 +16,8 @@ public class Robot
     public XY center;
     public List<XY> wheels;
 
+    public readonly int cost;
+
     // Takes a map of (position) to a tuple (block type, rotation)
     //  (rotation is an int, 0..3)
     // Then the XY of the center, followed by the wheel positions
@@ -25,12 +27,15 @@ public class Robot
         this.rotations = rotations;
 
         wheels = new List<XY>();
+        cost = 0;
 
         int c = 0;
         foreach (XY xy in blockTypes.Keys)
         {
             BlockType type = blockTypes[xy];
-            
+
+            cost += BlockInfo.blockInfos[(int)type].cost;
+
             // Check if control
             if (type == BlockType.CONTROL)
             {

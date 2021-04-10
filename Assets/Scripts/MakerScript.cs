@@ -27,21 +27,20 @@ public class MakerScript : MonoBehaviour
         unsavedRobot = r;
     }
 
-    BlockType currentBlock = BlockType.METAL;
-    //private IDictionary<XY, MakerSceneBlockScript> squares;
-
+    BuildBlockButton currentButton;
+    
     static int squareWidth = 10;
     static int squareHeight = 10;
     MakerSceneBlockScript[,] positions; // 2D array
 
-    //XY[,] posOccupiedBy;
-    //private static XY nullXY = new XY(-1, -1);
+    public TextMeshProUGUI moneyText;
+    private int spent;
 
     BlockGraph blockGraph;
 
     public GameObject squareObj;
     public TextMeshProUGUI errorText;
-    public Button goButton;
+    public Button goButton, saveButton;
 
     private void GenerateSquares()
     {
@@ -53,7 +52,7 @@ public class MakerScript : MonoBehaviour
         {
             for (int j=0; j<squareHeight; j++)
             {
-                GameObject obj = Instantiate(squareObj, new Vector2(i - squareWidth / 2.0f, j - squareHeight / 2.0f), Quaternion.identity);
+                GameObject obj = Instantiate(squareObj, new Vector2(i - squareWidth / 2.0f + 0.5f, j - squareHeight / 2.0f + 0.5f), Quaternion.identity);
                 MakerSceneBlockScript square = obj.GetComponent<MakerSceneBlockScript>();
                 square.pos = new XY(i, j);
                 square.maker = this;
@@ -62,6 +61,23 @@ public class MakerScript : MonoBehaviour
                 //posOccupiedBy[i, j] = nullXY;
             }
         }
+    }
+
+    private void UpdateSpent()
+    {
+        spent = 0;
+        for (int i=0; i<squareWidth; i++)
+        {
+            for (int j=0; j<squareHeight; j++)
+            {
+                BlockType b = positions[i, j].GetBlock();
+                if (b != BlockType.NONE)
+                    spent += BlockInfo.blockInfos[(int)b].cost;
+            }
+        }
+
+        moneyText.text = "£" + (Controller.budget - spent);
+        moneyText.color = (spent <= Controller.budget ? Color.black : Color.red);
     }
 
     void Start()
@@ -83,31 +99,7 @@ public class MakerScript : MonoBehaviour
                 LoadRobot(edit);
             }
         }
-
     }
-
-    //private void MakeSquare(XY pos)
-    //{
-    //    if (squares.ContainsKey(pos))
-    //    {
-    //        Debug.LogWarning("Trying to create a square at a position which is occupied");
-    //        return;
-    //    }
-
-    //    squares[pos] = square;
-    //}
-
-    //private void DelSquare(XY pos)
-    //{
-    //    if (!squares.ContainsKey(pos))
-    //    {
-    //        Debug.LogWarning("Trying to delete a square which didn't exist");
-    //        return;
-    //    }
-    //    MakerSceneBlockScript m = squares[pos];
-    //    Destroy(m.gameObject);
-    //    squares.Remove(pos);
-    //}
 
     public void SpaceClicked(MakerSceneBlockScript space)
     {
@@ -124,8 +116,12 @@ public class MakerScript : MonoBehaviour
                 return;
             }
 
-            space.SetBlock(currentBlock);
-            blockGraph.AddBlock(pos, 0, currentBlock);
+            // Check something is selected
+            if (currentButton != null)
+            {
+                space.SetBlock(currentButton.blockType);
+                blockGraph.AddBlock(pos, 0, currentButton.blockType);
+            }
         }
         else
         {
@@ -148,8 +144,11 @@ public class MakerScript : MonoBehaviour
         CheckIssues();
     }
 
+    // Must be called after any change to the blocks
     private void CheckIssues()
     {
+        UpdateSpent();
+
         for (int i = 0; i < squareWidth; i++)
         {
             for (int j = 0; j < squareHeight; j++)
@@ -172,6 +171,12 @@ public class MakerScript : MonoBehaviour
         bool valid = true;
 
         string err = "";
+
+        if (spent > Controller.budget)
+        {
+            valid = false;
+            err += "Too expensive\n";
+        }
 
         if (!blockGraph.IsConnected())
         {
@@ -198,17 +203,32 @@ public class MakerScript : MonoBehaviour
         {
             errorText.SetText(err.Substring(0, err.Length - 1));
             goButton.interactable = false;
+            saveButton.interactable = false;
         }
         else
         {
             errorText.SetText("");
             goButton.interactable = true;
+            saveButton.interactable = true;
         }
     }
 
-    public void ButtonClicked(BlockType block)
+    public void ButtonClicked(BuildBlockButton block)
     {
-        currentBlock = block;
+        if (currentButton != null)
+        {
+            currentButton.DeselectBlock();
+
+            // Deselect if u click the same one again
+            if (currentButton.blockType == block.blockType)
+            {
+                currentButton = null;
+                return;
+            }
+        }
+
+        currentButton = block;
+        currentButton.SelectBlock();
     }
 
     public void StartClicked()
@@ -277,13 +297,6 @@ public class MakerScript : MonoBehaviour
 
         CheckIssues();
     }
-
-    //public void LoadClicked()
-    //{
-    //    Robot r = Robot.LoadRobotFromName(robotName);
-    //    if (r != null)
-    //        LoadRobot(r);
-    //}
 
     public void BackClicked()
     {
