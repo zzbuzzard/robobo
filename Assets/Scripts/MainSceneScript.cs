@@ -17,6 +17,7 @@ public class MainSceneScript : MonoBehaviour
 
     public void OnlineClicked()
     {
+        Controller.isLocalGame = false;
         SceneManager.LoadScene("OnlineScene");
     }
 }

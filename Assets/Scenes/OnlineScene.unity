@@ -81097,7 +81097,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handleRange: 1
   deadZone: 0
-  axisOptions: 1
+  axisOptions: 0
   snapX: 0
   snapY: 0
   background: {fileID: 66384949}

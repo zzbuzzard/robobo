@@ -54,12 +54,18 @@ public class PlayerScript : MonoBehaviour
 
     void FixedUpdate()
     {
-        //mover.Move(GetMove(), GetTurn());
-        //if (useNextFrame)
-        //{
-        //    useNextFrame = false;
-        //    mover.Use();
-        //}
+#if UNITY_SERVER
+#else
+        if (Controller.isLocalGame)
+        {
+            mover.Move(GetMove(), GetTurn());
+            if (useNextFrame)
+            {
+                useNextFrame = false;
+                mover.Use();
+            }
+        }
+#endif
 
         useNextFrame = false;
     }
