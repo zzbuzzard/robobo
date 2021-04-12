@@ -392,6 +392,13 @@ public class OnlineGameControl : NetworkBehaviour
     private GameState waitingState;
     private int lastServerFrame = 0; // the frame number last received from the server
 
+    [Client]
+    private void EnableAllPlayerInterpolation()
+    {
+        foreach (GameObject player in players.Values)
+            player.GetComponent<InterpolateController>().Interpolate();
+    }
+
     [TargetRpc]
     private void SetSpeedMul(NetworkConnection conn, float m)
     {
@@ -404,6 +411,10 @@ public class OnlineGameControl : NetworkBehaviour
             if (Mathf.Abs(m) > 0.5f)
                 // Not perfect, as the currentServerFrame will be higher
                 count = 1 + Mathf.Abs(lastServerFrame - frameOn);
+
+            Debug.Log("Frame change: " + count);
+
+            EnableAllPlayerInterpolation();
 
             // Speed up
             if (m > 0)
@@ -621,6 +632,8 @@ public class OnlineGameControl : NetworkBehaviour
         {
             Debug.Log("SIGNIFICANTLY DIFFERENT: Frame " + mState.frameID
                 +"\nSimulating " + mState.frameID + " -> " + frameOn);
+
+            EnableAllPlayerInterpolation();
 
             isResimulating = true;
 

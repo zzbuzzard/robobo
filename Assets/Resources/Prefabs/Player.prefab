@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6670767035269341798}
   - component: {fileID: 675278787489770914}
   - component: {fileID: 4962222044215506527}
+  - component: {fileID: 851898012787969549}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -83,6 +84,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e4309b11eec9ec4e92bd43df5d7e4ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  useNextFrame: 0
   mover: {fileID: 226611041753659986}
   moveJoystick: {fileID: 0}
   turnJoystick: {fileID: 0}
@@ -117,3 +119,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   syncMode: 0
   syncInterval: 0.1
+  myID: -1
+--- !u!114 &851898012787969549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 226611041753659987}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 148f2def67ef9364fbd05b21e0f1e65d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

@@ -55,7 +55,9 @@ public abstract class Block : NetworkBehaviour
     {
         parent = newVar;
         transform.SetParent(newVar.transform);
-        GetComponent<Collider2D>().density = density;
+
+        foreach (Collider2D c in GetComponentsInChildren<Collider2D>())
+            c.density = density;
     }
 
     public bool IsInitialisedByServer()
