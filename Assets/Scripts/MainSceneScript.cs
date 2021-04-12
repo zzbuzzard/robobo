@@ -5,6 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class MainSceneScript : MonoBehaviour
 {
+
+#if UNITY_SERVER
+    public void Awake()
+    {
+        SceneManager.LoadScene("OnlineScene");
+    }
+#endif
     public void RobotsClicked()
     {
         SceneManager.LoadScene("SelectRobot");
