@@ -35,28 +35,28 @@ class GameState
                 (a.rigPos[i].y - b.rigPos[i].y) * (a.rigPos[i].y - b.rigPos[i].y);
             if (sqdist > posDif)
             {
-                Debug.Log("Position difference: " + Mathf.Sqrt(sqdist));
+                //Debug.Log("Position difference: " + Mathf.Sqrt(sqdist));
                 return true;
             }
 
             // TODO: Better system for checking velocity difference needed
             if (Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x) > velDif || Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y) > velDif)
             {
-                float p = Mathf.Max(Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x), Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y));
-                Debug.Log("Velocity difference: " + p);
+                //float p = Mathf.Max(Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x), Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y));
+                //Debug.Log("Velocity difference: " + p);
                 return true;
             }
 
             if (Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]) > angVelDif)
             {
-                Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
+                //Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
                 return true;
             }
 
             // TODO: Account for 360 degree difference (359 and 0: not sig dif)
             if (Mathf.Abs(a.rotations[i] - b.rotations[i]) > rotDif)
             {
-                Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
+                //Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
                 return true;
             }
         }
@@ -150,6 +150,11 @@ public class OnlineGameControl : NetworkBehaviour
         pastGameStates = new Queue<GameState>();
         pastInputs = new Dictionary<int, InputPkg>();
         lastPlayerInput = new Dictionary<int, InputPkg>();
+    }
+
+    private void Start()
+    {
+        StartCoroutine(ShowStats());
     }
 
     [Server]
@@ -418,6 +423,8 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////      Client only     /////////////////////////////////
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
+    ClientStats clientStats = default;
+
     public TextMeshProUGUI winText;
     IDictionary<int, InputPkg> pastInputs; // MY past inputs
     Queue<GameState> pastGameStates; // the *client* gamestates 
@@ -438,6 +445,8 @@ public class OnlineGameControl : NetworkBehaviour
     [TargetRpc]
     private void SetSpeedMul(NetworkConnection conn, float m)
     {
+        clientStats.countSpeedMultipliers++;
+
         if (Mathf.Abs(m) > 0.01f)
         {
             Debug.Log("Speed multiplier: " + m);
@@ -452,6 +461,9 @@ public class OnlineGameControl : NetworkBehaviour
             // Boost for when we're super ahead
             if (m < -0.5f)
                 count = Mathf.Max(frameOn - lastServerFrame, 2) - 1;
+
+            clientStats.countBadSpeedMultipliers++;
+            clientStats.sumBadSpeedMultipliers += m;
 
             EnableAllPlayerInterpolation();
 
@@ -505,6 +517,8 @@ public class OnlineGameControl : NetworkBehaviour
     [Client]
     private void SimulateFrame()
     {
+        clientStats.totalFramesResimulated++;
+
         // TODO: Track fixed update... and other fixed update...
         frameOn++;
         if (pastInputs.ContainsKey(frameOn))
@@ -534,6 +548,8 @@ public class OnlineGameControl : NetworkBehaviour
     [Client]
     private void ReverseTime()
     {
+        clientStats.totalFramesRewound++;
+
         // TODO: Prevent size going below 2 (from server packets, at least)
         if (pastGameStates.Count < 2)
         {
@@ -609,6 +625,9 @@ public class OnlineGameControl : NetworkBehaviour
     [ClientRpc]
     private void ClientReceiveState(GameState state)
     {
+        if (waitingState != null) clientStats.overwrittenServerFrames++;
+        clientStats.totalReceivedFrames++;
+
         waitingState = state;
         lastServerFrame = state.frameID;
 
@@ -667,10 +686,14 @@ public class OnlineGameControl : NetworkBehaviour
 
         GameState mState = pastGameStates.Dequeue();
 
+        clientStats.totalDifferenceChecks++;
         if (GameState.IsSignificantlyDifferent(mState, waitingState))
         {
-            Debug.Log("Significant difference on frame " + mState.frameID
-                +"\nClient resimulating " + mState.frameID + " -> " + frameOn);
+            clientStats.totalSignificantDifferences++;
+            clientStats.sumSignificantDifferenceSimulation += frameOn - mState.frameID;
+
+            //Debug.Log("Significant difference on frame " + mState.frameID
+            //    +"\nClient resimulating " + mState.frameID + " -> " + frameOn);
 
             EnableAllPlayerInterpolation();
 
@@ -812,6 +835,26 @@ public class OnlineGameControl : NetworkBehaviour
 
             CheckPastState();
             waitingState = null;
+
+            // Stats
+            clientStats.sumFPS += 1.0f / Time.deltaTime;
+            clientStats.countFPS++;
+
+            clientStats.sumHistoryGamestates += pastGameStates.Count;
+            clientStats.sumHistoryInputs += pastInputs.Count;
+            clientStats.countHistoryMeasure++;
+        }
+    }
+
+    IEnumerator ShowStats()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(10.0f);
+#if UNITY_SERVER
+#else
+            Debug.Log(clientStats.ToString());
+#endif
         }
     }
 }

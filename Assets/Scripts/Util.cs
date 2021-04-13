@@ -51,4 +51,9 @@ public static class Util
         b %= 360.0f;
         return Mathf.Min(Mathf.Abs(a - b), Mathf.Abs(a - b - 360));
     }
+
+    public static string Percentage(float a, int decimal_places = 1)
+    {
+        return (a * 100).ToString("n" + decimal_places) + "%";
+    }
 }

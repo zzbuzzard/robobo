@@ -94,8 +94,11 @@ public abstract class Block : NetworkBehaviour
                 ServerDie();
             }
         }
-
+        // Only clients display HP
+#if UNITY_SERVER
+#else
         ChangeHpDisplay();
+#endif
     }
 
     // TODO: Show cracks etc
