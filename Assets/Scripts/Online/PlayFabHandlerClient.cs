@@ -1,3 +1,5 @@
+#define LOCAL_TEST
+
 using System.Collections;
 using UnityEngine;
 
@@ -12,6 +14,14 @@ public class PlayFabHandlerClient : MonoBehaviour
     public NetMan netMan;
 
 #if UNITY_SERVER
+#else
+
+#if LOCAL_TEST
+    private void Start()
+    {
+        netMan.networkAddress = "localhost";
+        netMan.StartClient();
+    }
 #else
 
     private string ticketID;
@@ -183,5 +193,6 @@ public class PlayFabHandlerClient : MonoBehaviour
     {
         Debug.Log("Get match error: " + response.ToString());
     }
+#endif
 #endif
 }

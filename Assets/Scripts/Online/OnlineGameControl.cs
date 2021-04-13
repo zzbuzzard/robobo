@@ -247,15 +247,45 @@ public class OnlineGameControl : NetworkBehaviour
         ClientStartGame();
     }
 
+    const int slowDownThreshold = 10;
+
     // Apply inputs on server
     [Server]
     private void ProcessInputs()
     {
+        //Debug.Log("PROCESS INPUTS: FrameOn = " + frameOn);
+
+        // LOGIC:
+        //  - Get queued move for this frame and apply it
+        //  - Tell them to slow down / speed up based on the frame we last received compared to frameOn
         foreach (var pair in queuedPlayerInputs)
         {
             InputPkg use;
 
             int id = pair.Key;
+
+            //// Handle speedup / slowdown
+            //int lastInput = lastPlayerInput[id].inputFrame;
+
+            //// Slow down if too many frames ahead
+            //if (lastInput > frameOn + slowDownThreshold)
+            //    playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f - 1.0f;
+
+            //else
+            //{
+            //    // Speed up if we're not receiving them in time
+            //    if (lastInput < frameOn)
+            //        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
+
+            //    // Otherwise, the speed is just right - reduce the value
+            //    else
+            //        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f;
+            //}
+
+            //if (Mathf.Abs(playerSpeedUpValues[id]) > 0.5f)
+            //{
+            //    Debug.Log("Player " + id + " last input was at " + lastInput + ", queue size = " + queuedPlayerInputs[id].Count);
+            //}
 
             // TODO: Prevent queue becoming very large.
 
@@ -263,64 +293,43 @@ public class OnlineGameControl : NetworkBehaviour
             if (pair.Value.Count == 0)
             {
                 use = lastPlayerInput[id];
-
-                // SPEED UP
-                playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
             }
             else
             {
                 int nextInputTime = pair.Value.Peek().inputFrame;
 
                 // We haven't reached the frame for the next input yet
-                // WAIT: I don't think this actually ever happens
+                // Note: This *shouldn't* happen very often
                 if (nextInputTime > frameOn)
                 {
                     use = lastPlayerInput[id];
-
-                    // SLOW DOWN
-                    playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f - 1.0f;
                 }
-                else {
-                    // We should've applied it in the past!
+
+                else
+                {
+                    // We missed the chance to apply it - merge until we're up to date and apply average
                     if (nextInputTime < frameOn)
                     {
-                        if (pair.Value.Count > 1)
-                            use = InputPkg.AveragePkg(pair.Value.Dequeue(), pair.Value.Dequeue());
-                        else
-                            use = pair.Value.Dequeue();
-
-                        // SPEED UP
-                        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
+                        use = pair.Value.Dequeue();
+                        while (pair.Value.Count > 0 && pair.Value.Peek().inputFrame <= frameOn)
+                        {
+                            use = InputPkg.AveragePkg(use, pair.Value.Dequeue());
+                        }
                     }
 
                     // Perfect... They're equal
                     else
                     {
                         use = pair.Value.Dequeue();
-
-                        // THEY'RE FINE
-                        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f;
                     }
                 }
-
-                //// Too many queued moves, use 2
-                //if (pair.Value.Count >= queueSizeThreshold)
-                //{
-                //    Debug.LogWarning("Too many moves queued for player " + id + ": " + pair.Value.Count);
-                //    use = InputPkg.AveragePkg(pair.Value.Dequeue(), pair.Value.Dequeue());
-                //}
-                //// The right number, use one
-                //else
-                //{
-                //    use = pair.Value.Dequeue();
-                //}
             }
 
             //Debug.Log("MOVE " + use.inputFrame + " ON " + frameOn
             //    + "\n(Number of other queued moves: " + pair.Value.Count + ")"
             //    + (pair.Value.Count > 0 ? "\n(Queue starts at " + pair.Value.Peek().inputFrame + ")" : "")
             //    );
-
+            
             lastPlayerInput[id] = use;
             // This reduces the number of calls
             //if (InputPkg.IsInputPkgDifferent(use, lastPlayerInputDict[id]))
@@ -338,6 +347,26 @@ public class OnlineGameControl : NetworkBehaviour
         if (!gameRunning) return;
         if (!players.ContainsKey(myID)) return;
 
+        // First, we tell the client if they're too ahead or too behind or just right
+        // Too ahead if we *receive* it significantly after frameOn
+        if (clientInput.inputFrame > frameOn + slowDownThreshold)
+        {
+            playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f - 1.0f;
+        }
+        else
+        {
+            // Too behind if we *receive* it before frameOn
+            if (clientInput.inputFrame < frameOn)
+            {
+                playerSpeedUpValues[myID] = playerSpeedUpValues[myID]/2.0f + 1.0f;
+            }
+            // Otherwise, it's perfecto
+            else
+            {
+                playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f;
+            }
+        }
+
         // TODO: Ensure they actually arrive in order!
         //  (Note: They seem to)
         // TODO: Ensure the frame ID hasn't been fucked with
@@ -352,7 +381,7 @@ public class OnlineGameControl : NetworkBehaviour
         // TODO: Kinda workaround slow ToList() call
         foreach (int id in playerSpeedUpValues.Keys.ToList())
         {
-            Debug.Log("Speed up slow down: Queue size for " + id + " is " + queuedPlayerInputs[id].Count);
+            Debug.Log("Queue size for player " + id + " is " + queuedPlayerInputs[id].Count);
 
             // If they're not being told to speed up (so they're not super laggy)
             // Then tell them to slow down
@@ -418,21 +447,21 @@ public class OnlineGameControl : NetworkBehaviour
             // Boost for when we're super behind
             if (m > 0.5f)
                 // Not perfect, as the currentServerFrame will be higher
-                count = 1 + Mathf.Abs(lastServerFrame - frameOn);
-
-            Debug.Log("Frame change: " + count + "\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
+                count = 1 + Mathf.Max(lastServerFrame - frameOn, 0);
 
             EnableAllPlayerInterpolation();
 
             // Speed up
             if (m > 0)
             {
+                Debug.Log("Skipping " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
                 for (int i=0; i<count; i++)
                     SimulateFrame();
             }
             // Slow down
             else
             {
+                Debug.Log("Rewinding " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
                 for (int i=0; i<count; i++)
                     ReverseTime();
             }
@@ -516,8 +545,6 @@ public class OnlineGameControl : NetworkBehaviour
         pastGameStates.Clear();
         for (int i = 0; i <= arr.Length - 2; i++)
             pastGameStates.Enqueue(arr[i]);
-
-        frameOn--;
     }
 
     [ClientRpc]
@@ -669,7 +696,7 @@ public class OnlineGameControl : NetworkBehaviour
     IDictionary<int, GameObject> players;
 
     private bool gameRunning = false;
-    int frameOn = 0;
+    private int frameOn = 0;
 
     public int NumberOfPlayers()
     {

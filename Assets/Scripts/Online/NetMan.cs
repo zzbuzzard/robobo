@@ -1,3 +1,5 @@
+#define LOCAL_TEST
+
 // TODO: Try to move all PlayFab stuff out of here
 //  We don't really want to mix Mirror and PlayFab too much...
 using System;
@@ -12,8 +14,6 @@ using Mirror;
 
 public class NetMan : NetworkManager
 {
-    private Dictionary<NetworkConnection, int> connectionToID = new Dictionary<NetworkConnection, int>();
-
     public OnlineGameControl onlinegameControl;
 
 #if UNITY_SERVER
@@ -25,6 +25,26 @@ public class NetMan : NetworkManager
         new Vector2(10.0f, 10.0f),
         new Vector2(0.0f, 0.0f)
     };
+
+// NON-PLAYFAB STUFF:
+#if LOCAL_TEST
+    public override void Start()
+    {
+        Debug.Log("Local server starting");
+        StartServer();
+    }
+    public override void OnServerAddPlayer(NetworkConnection conn)
+    {
+        Debug.Log("Server adding a new player");
+        int connNum = onlinegameControl.NumberOfPlayers();
+        GameObject obj = Instantiate(playerPrefab, starts[connNum % starts.Length], Quaternion.identity);
+        NetworkServer.AddPlayerForConnection(conn, obj);
+        onlinegameControl.AddPlayer(obj, conn);
+    }
+
+// PLAYFAB STUFF:
+#else
+    private Dictionary<NetworkConnection, int> connectionToID = new Dictionary<NetworkConnection, int>();
 
     // TODO: I removed static - is this ok?
     private List<PlayFab.MultiplayerAgent.Model.ConnectedPlayer> players = new List<PlayFab.MultiplayerAgent.Model.ConnectedPlayer>();
@@ -122,8 +142,8 @@ public class NetMan : NetworkManager
         if (onlinegameControl.NumberOfPlayers() == 0)
             StartCoroutine(ShutdownCheck());
     }
-
-#endif
+#endif // end playfab stuff
+#endif // end server stuff
 
     public override void OnApplicationQuit()
     {
