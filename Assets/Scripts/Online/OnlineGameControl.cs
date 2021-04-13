@@ -35,27 +35,27 @@ class GameState
                 (a.rigPos[i].y - b.rigPos[i].y) * (a.rigPos[i].y - b.rigPos[i].y);
             if (sqdist > posDif)
             {
-                Debug.Log("Position difference");
+                //Debug.Log("Position difference");
                 return true;
             }
 
             // TODO: Better system for checking velocity difference needed
             if (Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x) > velDif || Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y) > velDif)
             {
-                Debug.Log("Velocity difference");
+                //Debug.Log("Velocity difference");
                 return true;
             }
 
             if (Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]) > angVelDif)
             {
-                Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
+                //Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
                 return true;
             }
 
             // TODO: Account for 360 degree difference (359 and 0: not sig dif)
             if (Mathf.Abs(a.rotations[i] - b.rotations[i]) > rotDif)
             {
-                Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
+                //Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
                 return true;
             }
         }
@@ -172,11 +172,13 @@ public class OnlineGameControl : NetworkBehaviour
         // Tell all pre-existing clients, as well as the new client, to add this player
         ClientAddPlayer(nextID, player);
 
-        
+        // TODO: Allow for non 1v1s
+        if (players.Count == 2)
+        {
+            ServerStartGame();
+        }
 
-        nextID++;
-
-        return nextID - 1;
+        return nextID++;
     }
     
     // Called when a player DCs or dies
@@ -410,13 +412,15 @@ public class OnlineGameControl : NetworkBehaviour
         {
             Debug.Log("Speed multiplier: " + m);
 
-            // How many frames to skip
+            // How many frames to skip 
             int count = 1;
-            if (Mathf.Abs(m) > 0.5f)
+
+            // Boost for when we're super behind
+            if (m > 0.5f)
                 // Not perfect, as the currentServerFrame will be higher
                 count = 1 + Mathf.Abs(lastServerFrame - frameOn);
 
-            Debug.Log("Frame change: " + count);
+            Debug.Log("Frame change: " + count + "\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
 
             EnableAllPlayerInterpolation();
 
@@ -634,8 +638,8 @@ public class OnlineGameControl : NetworkBehaviour
 
         if (GameState.IsSignificantlyDifferent(mState, waitingState))
         {
-            Debug.Log("SIGNIFICANTLY DIFFERENT: Frame " + mState.frameID
-                +"\nSimulating " + mState.frameID + " -> " + frameOn);
+            Debug.Log("Significant difference on frame " + mState.frameID
+                +"\nClient resimulating " + mState.frameID + " -> " + frameOn);
 
             EnableAllPlayerInterpolation();
 
@@ -666,6 +670,11 @@ public class OnlineGameControl : NetworkBehaviour
 
     private bool gameRunning = false;
     int frameOn = 0;
+
+    public int NumberOfPlayers()
+    {
+        return players.Count;
+    }
         
     private GameState GetCurrentState()
     {
@@ -714,13 +723,7 @@ public class OnlineGameControl : NetworkBehaviour
     private void FixedUpdate()
     {
         if (!gameRunning)
-        {
-            if (isServer && Input.GetKey(KeyCode.Space))
-            {
-                ServerStartGame();
-            }
             return;
-        }
 
         // Server: send state to everyone
         if (isServer)

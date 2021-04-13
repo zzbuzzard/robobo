@@ -10,7 +10,7 @@ public class InterpolateController : MonoBehaviour
     // (squared as distance measurement is squared - for speed)
     private float stopInterpolatingBoundary = 0.2f * 0.2f;
     private float rotationInterpolateBoundary = 5.0f;
-    private const float interpolateConst = 0.4f; // 1.0f means instant teleportation
+    private const float interpolateConst = 0.1f; // 1.0f means instant teleportation
 
     private bool interpolating = false;
 
@@ -46,7 +46,7 @@ public class InterpolateController : MonoBehaviour
             i.InterpolateOff();
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
         if (interpolating)
         {
