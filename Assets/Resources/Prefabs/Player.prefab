@@ -86,6 +86,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   useNextFrame: 0
   mover: {fileID: 226611041753659986}
+  mrig: {fileID: 226611041753659997}
   moveJoystick: {fileID: 0}
   turnJoystick: {fileID: 0}
 --- !u!114 &675278787489770914
@@ -132,3 +133,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 148f2def67ef9364fbd05b21e0f1e65d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mrig: {fileID: 226611041753659997}

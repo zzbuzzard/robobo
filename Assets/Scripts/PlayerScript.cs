@@ -12,7 +12,7 @@ public class PlayerScript : MonoBehaviour
     // Front angle
     private float front = 0.75f;
     public RobotScript mover;
-    Rigidbody2D mrig;
+    public Rigidbody2D mrig;
     
     private bool normalMovementMode = true;
 
@@ -20,8 +20,6 @@ public class PlayerScript : MonoBehaviour
 
     void Start()
     {
-        mrig = GetComponent<Rigidbody2D>();
-
         // TODO: Better system
         if (normalMovementMode)
         {

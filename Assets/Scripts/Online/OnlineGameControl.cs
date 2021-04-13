@@ -16,7 +16,7 @@ class GameState
 
     public static bool IsSignificantlyDifferent(GameState a, GameState b)
     {
-        const float velDif = 0.1f,
+        const float velDif = 1.0f,
                     angVelDif = 15.0f, // degrees per sec
                     posDif = 0.5f,
                     rotDif = 10.0f;     // degrees
@@ -35,27 +35,28 @@ class GameState
                 (a.rigPos[i].y - b.rigPos[i].y) * (a.rigPos[i].y - b.rigPos[i].y);
             if (sqdist > posDif)
             {
-                //Debug.Log("Position difference");
+                Debug.Log("Position difference: " + Mathf.Sqrt(sqdist));
                 return true;
             }
 
             // TODO: Better system for checking velocity difference needed
             if (Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x) > velDif || Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y) > velDif)
             {
-                //Debug.Log("Velocity difference");
+                float p = Mathf.Max(Mathf.Abs(a.rigVel[i].x - b.rigVel[i].x), Mathf.Abs(a.rigVel[i].y - b.rigVel[i].y));
+                Debug.Log("Velocity difference: " + p);
                 return true;
             }
 
             if (Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]) > angVelDif)
             {
-                //Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
+                Debug.Log("Angular velocity difference: diff is " + Mathf.Abs(a.rigAngVel[i] - b.rigAngVel[i]));
                 return true;
             }
 
             // TODO: Account for 360 degree difference (359 and 0: not sig dif)
             if (Mathf.Abs(a.rotations[i] - b.rotations[i]) > rotDif)
             {
-                //Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
+                Debug.Log("Rotation difference: diff is " + Mathf.Abs(a.rotations[i] - b.rotations[i]));
                 return true;
             }
         }
@@ -446,8 +447,11 @@ public class OnlineGameControl : NetworkBehaviour
 
             // Boost for when we're super behind
             if (m > 0.5f)
-                // Not perfect, as the currentServerFrame will be higher
                 count = 1 + Mathf.Max(lastServerFrame - frameOn, 0);
+
+            // Boost for when we're super ahead
+            if (m < -0.5f)
+                count = Mathf.Max(frameOn - lastServerFrame, 2) - 1;
 
             EnableAllPlayerInterpolation();
 

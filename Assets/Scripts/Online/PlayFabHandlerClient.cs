@@ -19,7 +19,8 @@ public class PlayFabHandlerClient : MonoBehaviour
 #if LOCAL_TEST
     private void Start()
     {
-        netMan.networkAddress = "localhost";
+        //netMan.networkAddress = "localhost";
+        netMan.networkAddress = "81.187.1.20";
         netMan.StartClient();
     }
 #else

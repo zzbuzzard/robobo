@@ -10,15 +10,11 @@ public class InterpolateController : MonoBehaviour
     // (squared as distance measurement is squared - for speed)
     private float stopInterpolatingBoundary = 0.2f * 0.2f;
     private float rotationInterpolateBoundary = 5.0f;
-    private const float interpolateConst = 0.1f; // 1.0f means instant teleportation
+    private const float interpolateConst = 0.25f; // 1.0f means instant teleportation
 
     private bool interpolating = false;
 
-    private Rigidbody2D mrig;
-    private void Awake()
-    {
-        mrig = GetComponent<Rigidbody2D>();
-    }
+    public Rigidbody2D mrig;
 
     public Vector2 GetCenter()
     {
@@ -46,7 +42,7 @@ public class InterpolateController : MonoBehaviour
             i.InterpolateOff();
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (interpolating)
         {
