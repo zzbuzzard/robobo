@@ -1,3 +1,4 @@
+#undef UNITY_SERVER
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -220,6 +221,10 @@ public class NetMan : NetworkManager
     private void OnGetMatch(GetMatchResult obj)
     {
         Debug.Log(obj.ServerDetails);
+        foreach(MatchmakingPlayerWithTeamAssignment a in obj.Members)
+        {
+            Debug.Log(a.Entity.Id);
+        }
         //NetworkClient.Connect(obj.ServerDetails.IPV4Address, obj.ServerDetails.Ports[0].Num);
         networkAddress = obj.ServerDetails.IPV4Address;
         
