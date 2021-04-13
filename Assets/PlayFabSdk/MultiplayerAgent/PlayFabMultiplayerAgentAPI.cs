@@ -70,6 +70,7 @@ namespace PlayFab
 
         public static void Start()
         {
+            
             string fileName = Environment.GetEnvironmentVariable(GsdkConfigFileEnvVarKey);
             if (!string.IsNullOrEmpty(fileName) && File.Exists(fileName))
             {
@@ -98,8 +99,8 @@ namespace PlayFab
 
             //Create an agent that can talk on the main-thread and pull on an interval.
             //This is a unity thing, need an object in the scene.
-
-            if(_agentView == null)
+            Debug.Log("Starting");
+            if (_agentView == null)
             {
                 _agentView = new GameObject("PlayFabAgentView");
                 _agentView.AddComponent<PlayFabMultiplayerAgentView>();

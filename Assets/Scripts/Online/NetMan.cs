@@ -6,6 +6,7 @@ using UnityEngine;
 using PlayFab.ClientModels;
 using PlayFab.MultiplayerModels;
 #endif
+
 using Mirror;
 using PlayFab;
 using System;
@@ -13,7 +14,7 @@ using PlayFab.MultiplayerAgent.Model;
 public class NetMan : NetworkManager
 {
     public OnlineGameControl onlinegameControl;
-    private Dictionary<NetworkConnection, int> connections;
+    private Dictionary<NetworkConnection, int> connections = new Dictionary<NetworkConnection, int>();
     public TelepathyTransport telepathyTransport;
 
 
@@ -37,12 +38,9 @@ public class NetMan : NetworkManager
 
     public override void Start()
     {
-        StartCoroutine(Startup());
-    }
-    private IEnumerator Startup()
-    {
-        yield return new WaitForSeconds(10.0f);
         Debug.Log("Starting Server");
+        //if (PlayFabMultiplayerAgentAPI == null) Debug.Log("null");
+        //if (PlayFab.PlayFabMultiplayerAgentAPI == null) Debug.Log("null");
         PlayFabMultiplayerAgentAPI.Start();
         Debug.Log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA \n\n\n\n\n\n\n\n\n\n\n\n\n");
         PlayFabMultiplayerAgentAPI.OnMaintenanceCallback += OnMaintenance;
@@ -51,6 +49,11 @@ public class NetMan : NetworkManager
         PlayFabMultiplayerAgentAPI.OnAgentErrorCallback += OnAgentError;
         StartCoroutine(ReadyForPlayers());
         StartCoroutine(ShutdownCheck());
+    }
+    private IEnumerator Startup()
+    {
+        yield return new WaitForSeconds(1.0f);
+        
     }
 
     private void OnAgentError(string error)
@@ -79,6 +82,7 @@ public class NetMan : NetworkManager
     {
         yield return new WaitForSeconds(.5f);
         PlayFabMultiplayerAgentAPI.ReadyForPlayers();
+        Debug.Log("Ready For Players!!!!!!!!");
     }
 
 #else
@@ -157,7 +161,10 @@ public class NetMan : NetworkManager
 
     private void OnMatchmakingTicketCreated(CreateMatchmakingTicketResult obj)
     {
+        
         ticketID = obj.TicketId;
+        Debug.Log("Ticket created");
+        Debug.Log(ticketID);
         co = CheckTicketStatus(ticketID);
         StartCoroutine(co);
     }
@@ -166,7 +173,8 @@ public class NetMan : NetworkManager
     {
         while (true)
         {
-            yield return new WaitForSeconds(6.0f);
+            Debug.Log("Checkin in with the gang...");
+            
             PlayFabMultiplayerAPI.GetMatchmakingTicket(
                 new GetMatchmakingTicketRequest
                 {
@@ -175,6 +183,8 @@ public class NetMan : NetworkManager
                 },
                 this.OnGetMatchmakingTicket,
                 this.OnMatchmakingError);
+            Debug.Log("Done Checkin in");
+            yield return new WaitForSeconds(6.0f);
         }
         
 
@@ -212,7 +222,22 @@ public class NetMan : NetworkManager
         Debug.Log(obj.ServerDetails);
         //NetworkClient.Connect(obj.ServerDetails.IPV4Address, obj.ServerDetails.Ports[0].Num);
         networkAddress = obj.ServerDetails.IPV4Address;
-        telepathyTransport.port = (ushort)obj.ServerDetails.Ports[0].Num;
+        
+        if(obj.ServerDetails.Ports != null)
+        {
+            Debug.Log(obj.ServerDetails.Ports.Count);
+            if (obj.ServerDetails.Ports.Count > 0)
+            {
+                foreach (Port a in obj.ServerDetails.Ports)
+                {
+                    Debug.Log(a.Name);
+                    Debug.Log(a.Num);
+                    GetComponent<kcp2k.KcpTransport>().Port = (ushort)a.Num;
+                }
+            }
+        }
+        
+        //telepathyTransport.port = (ushort)obj.ServerDetails.Ports[0].Num;
 
         StartClient();
     }

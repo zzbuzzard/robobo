@@ -21,6 +21,8 @@ public static class GUIDUtility
 			PlayerPrefsUtility.setString("guid", uniqueID);
 		}
 
+		Debug.Log(uniqueID);
+
 		return uniqueID;
 	}
 
