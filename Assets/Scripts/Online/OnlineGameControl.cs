@@ -152,7 +152,7 @@ public class OnlineGameControl : NetworkBehaviour
     }
 
     [Server]
-    public void AddPlayer(GameObject player, NetworkConnection conn)
+    public int AddPlayer(GameObject player, NetworkConnection conn)
     {
         // First, tell this player about the players who joined before it
         foreach (var pair in players)
@@ -172,7 +172,11 @@ public class OnlineGameControl : NetworkBehaviour
         // Tell all pre-existing clients, as well as the new client, to add this player
         ClientAddPlayer(nextID, player);
 
+        
+
         nextID++;
+
+        return nextID - 1;
     }
     
     // Called when a player DCs or dies

@@ -99,6 +99,7 @@ public abstract class Block : NetworkBehaviour
     }
 
     // TODO: Show cracks etc
+    [Client]
     private void ChangeHpDisplay()
     {
         flashScript.Flash();

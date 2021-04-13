@@ -5,10 +5,15 @@ using UnityEngine.SceneManagement;
 
 public class MainSceneScript : MonoBehaviour
 {
-    private void Awake()
+
+    public void Awake()
     {
         Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
+#if UNITY_SERVER
+        SceneManager.LoadScene("OnlineScene");
+#endif       
     }
+
 
     public void RobotsClicked()
     {
