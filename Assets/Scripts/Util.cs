@@ -42,4 +42,13 @@ public static class Util
         // 0 < f-x < 1
         return f - Mathf.Floor(f);
     }
+
+    // f(5, 360) = 5, etc.
+    public static float AngleDifDegree(float a, float b)
+    {
+        // TODO: Wtf does this even do
+        a %= 360.0f;
+        b %= 360.0f;
+        return Mathf.Min(Mathf.Abs(a - b), Mathf.Abs(a - b - 360));
+    }
 }

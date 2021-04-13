@@ -1,3 +1,4 @@
+using Mirror;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -20,15 +21,19 @@ public class GameController : MonoBehaviour
     public FixedJoystick left, right;
 
     // Load the game
-    private void Awake()
+    private void Start()
     {
         if (!isOnline)
         {
             // Spawn player
             Robot chosenRobot = Controller.playerRobot;
             GameObject p = Instantiate(playerPrefab, playerSpawn, Quaternion.identity);
+            p.GetComponent<RobotScript>().enabled = true;
+            p.GetComponent<PlayerScript>().enabled = true;
+            Destroy(p.GetComponent<PlayerOnline>());
             SetPlayer(p);
-            player.GetComponent<RobotScript>().LoadRobot(chosenRobot);
+            NetworkServer.Spawn(p);
+            player.GetComponent<RobotScript>().LoadRobot(Controller.playerRobot);
 
             StartCoroutine(SpawnEnemies());
         }
@@ -50,6 +55,7 @@ public class GameController : MonoBehaviour
         // 15.0f * new Vector2(Mathf.Cos(angle), Mathf.Sin(angle))
 
         GameObject enemyObj = Instantiate(enemyPrefab, enemySpawn, Quaternion.identity);
+        NetworkServer.Spawn(enemyObj);
         enemyObj.GetComponent<RobotScript>().LoadRobot(r);
 
         return enemyObj;
@@ -76,6 +82,8 @@ public class GameController : MonoBehaviour
 
         while (true)
         {
+            yield return new WaitForSeconds(2.0f);
+
             Robot r = null;
             //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
             //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
@@ -108,6 +116,8 @@ public class GameController : MonoBehaviour
         }
         else
         {
+            NetworkServer.DisconnectAll();
+            NetworkClient.Disconnect();
             MakerScript.LoadUnsavedRobot(MakerScript.RobotName, Controller.playerRobot);
             SceneManager.LoadScene("BuildScene");
         }

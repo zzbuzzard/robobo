@@ -12,6 +12,8 @@ public abstract class Block : NetworkBehaviour
 {
     // Things that are set at runtime:
     private bool dead = false;
+
+    // Online stuff...................................
     [SyncVar]
     public int x, y;
 
@@ -20,6 +22,20 @@ public abstract class Block : NetworkBehaviour
 
     [SyncVar, SerializeField]
     private float hp;
+
+    [Server]
+    private void ServerDie()
+    {
+        Die();
+
+        ClientDie();
+    }
+
+    [ClientRpc]
+    private void ClientDie()
+    {
+        Die();
+    }
 
     //private bool initialisedByServer = false;
 
@@ -35,35 +51,13 @@ public abstract class Block : NetworkBehaviour
 
     private float maxHP;
 
-    //[Server]
-    //public void ServerInit(GameObject parentObj, int x, int y)
-    //{
-    //    parent = parentObj;
-    //    transform.SetParent(parentObj.transform);
-    //    this.x = x;
-    //    this.y = y;
-    //    initialisedByServer = true;
-
-    //    UpdateClients(parentObj, x, y);
-    //}
-
-    //[ClientRpc]
-    //void UpdateClients(GameObject parentObj, int x, int y)
-    //{
-    //    parent = parentObj;
-    //    transform.SetParent(parentObj.transform);
-    //    this.x = x;
-    //    this.y = y;
-    //    initialisedByServer = true;
-    //}
-
     public void SetParent(GameObject oldVar, GameObject newVar)
     {
-        Debug.Log("Setting parent!");
-
         parent = newVar;
         transform.SetParent(newVar.transform);
-        GetComponent<Collider2D>().density = density;
+
+        foreach (Collider2D c in GetComponentsInChildren<Collider2D>())
+            c.density = density;
     }
 
     public bool IsInitialisedByServer()
@@ -88,7 +82,11 @@ public abstract class Block : NetworkBehaviour
     // Damage should be done generally through Damageable.
     public virtual void TakeDamage(float damage)
     {
-        if (isServer)
+        // if server or local game
+#if UNITY_SERVER
+#else
+        if (Controller.isLocalGame)
+#endif
         {
             hp -= damage;
             if (hp <= 0)
@@ -119,20 +117,6 @@ public abstract class Block : NetworkBehaviour
         // detach, but don't tell parent as we came from the parent
         HandleDeath();
         Destroy(this); // destroy this component
-    }
-
-    [Server]
-    private void ServerDie()
-    {
-        Die();
-
-        ClientDie();
-    }
-
-    [ClientRpc]
-    private void ClientDie()
-    {
-        Die();
     }
 
     // TODO: Some kinda particle effect?

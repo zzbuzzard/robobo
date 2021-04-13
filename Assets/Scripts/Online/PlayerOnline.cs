@@ -19,6 +19,8 @@ public class PlayerOnline : NetworkBehaviour
     // Purpose: send our robot to the server
     public override void OnStartLocalPlayer()
     {
+        if (Controller.isLocalGame) return;
+
         base.OnStartLocalPlayer();
         Debug.Log("OnStartLocalPlayer running");
 

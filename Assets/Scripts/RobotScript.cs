@@ -70,8 +70,12 @@ public class RobotScript : NetworkBehaviour
             Quaternion angle = Quaternion.Euler(0, 0, zrot);
 
             GameObject obj = Instantiate(prefab, new Vector2(pos.x * 1.5f, pos.y * 1.5f) + (Vector2)transform.position, angle);
-            NetworkServer.Spawn(obj, connectionToClient);
 
+#if UNITY_SERVER
+            NetworkServer.Spawn(obj, connectionToClient);
+#else
+            NetworkServer.Spawn(obj);
+#endif
             Block block = obj.GetComponent<Block>();
             block.x = pos.x;
             block.y = pos.y;
@@ -188,7 +192,7 @@ public class RobotScript : NetworkBehaviour
         Use();
     }
 
-    private void Use()
+    public void Use()
     {
         foreach (GameObject g in children)
         {
