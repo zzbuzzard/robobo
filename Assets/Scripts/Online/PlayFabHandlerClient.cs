@@ -1,4 +1,5 @@
-#define LOCAL_TEST
+//#define LOCAL_TEST
+// Dont forget the LOCAL_TEST in NetMan!
 
 using System.Collections;
 using UnityEngine;

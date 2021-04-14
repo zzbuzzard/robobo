@@ -233,12 +233,20 @@ public class OnlineGameControl : NetworkBehaviour
             gameRunning = false;
             Debug.Log("PLAYER " + winID + " HAS WON");
 
-            // Broadcast to all clients that the game is over, won by winID
-            ClientEndGame(winID);
+            ServerEndGame(winID);
         }
     }
 
-    // TODO: Call this somewhere better [plan]
+    [Server]
+    private void ServerEndGame(int winID)
+    {
+        // Broadcast to all clients that the game is over, won by winID
+        ClientEndGame(winID);
+
+        // Close the server -> Application.Quit() called
+        NetworkServer.Shutdown();
+    }
+
     // Server starts game
     [Server]
     public void ServerStartGame()

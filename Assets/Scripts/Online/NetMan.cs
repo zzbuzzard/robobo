@@ -1,4 +1,5 @@
-#define LOCAL_TEST
+//#define LOCAL_TEST
+// Dont forget the LOCAL_TEST in PlayFabHandlerClient!
 
 // TODO: Try to move all PlayFab stuff out of here
 //  We don't really want to mix Mirror and PlayFab too much...
@@ -93,12 +94,26 @@ public class NetMan : NetworkManager
 
     private IEnumerator ShutdownCheck()
     {
-        yield return new WaitForSeconds(300.0f);
-        if (onlinegameControl.NumberOfPlayers() == 0)
+        while (true)
         {
-            Debug.Log("Shutting Down");
-            Application.Quit();
+            yield return new WaitForSeconds(180.0f);
+            if (onlinegameControl.NumberOfPlayers() == 0)
+            {
+                Terminate();
+            }
         }
+    }
+
+    private void Terminate()
+    {
+        Debug.Log("Shutting Down");
+        Application.Quit();
+    }
+
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+        Terminate();
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn)
@@ -138,9 +153,6 @@ public class NetMan : NetworkManager
 
             connectionToID.Remove(conn);
         }
-
-        if (onlinegameControl.NumberOfPlayers() == 0)
-            StartCoroutine(ShutdownCheck());
     }
 #endif // end playfab stuff
 #endif // end server stuff
