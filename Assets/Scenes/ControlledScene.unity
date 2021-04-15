@@ -573,7 +573,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b0fecffa3f624585964b0d0eb21b18e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Port: 7777
+  Port: 0
   NoDelay: 1
   Interval: 10
   FastResend: 2
@@ -597,10 +597,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dontDestroyOnLoad: 0
   PersistNetworkManagerToOfflineScene: 0
-  runInBackground: 1
-  autoStartServerBuild: 1
+  runInBackground: 0
+  autoStartServerBuild: 0
   serverTickRate: 1
-  serverBatching: 1
+  serverBatching: 0
   serverBatchInterval: 0
   offlineScene: 
   onlineScene: 
@@ -611,7 +611,7 @@ MonoBehaviour:
   disconnectInactiveTimeout: 60
   authenticator: {fileID: 0}
   playerPrefab: {fileID: 226611041753659987, guid: 6453c03d0ee130943923f247d2d668ae, type: 3}
-  autoCreatePlayer: 1
+  autoCreatePlayer: 0
   playerSpawnMethod: 0
   spawnPrefabs: []
 --- !u!4 &98111839

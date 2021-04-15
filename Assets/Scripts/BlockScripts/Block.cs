@@ -76,6 +76,7 @@ public abstract class Block : NetworkBehaviour
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public RobotScript GetParent()
     {
+        if (parent == null) return null;
         return parent.GetComponent<RobotScript>();
     }
 

@@ -15,6 +15,9 @@ public class PlayerOnline : NetworkBehaviour
 
     public Robot myRobot { get; private set; }
 
+    // Until isReady, we loop and wait for our blocks to spawn.
+    public bool isReady { get; private set; } = false;
+
     // Called when the player is spawned in, on the client
     // Purpose: send our robot to the server
     public override void OnStartLocalPlayer()
@@ -59,8 +62,6 @@ public class PlayerOnline : NetworkBehaviour
         myRobot = Robot.DeserializeRobot(sr);
     }
 
-    // Until isReady, we loop and wait for our blocks to spawn.
-    private bool isReady = false;
     private void Update()
     {
         if (isReady) return;
@@ -83,6 +84,8 @@ public class PlayerOnline : NetworkBehaviour
         {
             GetComponent<RobotScript>().LoadRobotClient(myRobot);
             GetComponent<RobotScript>().enabled = true;
+            GetComponent<InterpolateController>().Initialise();
+
             if (isLocalPlayer)
                 GetComponent<PlayerScript>().enabled = true;
 

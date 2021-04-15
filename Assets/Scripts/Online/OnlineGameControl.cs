@@ -806,6 +806,9 @@ public class OnlineGameControl : NetworkBehaviour
         // Client: send input to server
         else
         {
+            if (mPlayer == null || !mPlayer.GetComponent<PlayerOnline>().isReady)
+                return;
+
             frameOn++;
 
             if (mPlayer != null)
