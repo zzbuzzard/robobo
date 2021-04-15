@@ -58,9 +58,13 @@ public abstract class WeaponBlock : Block, IDamageDealer
     public static void SpeedDamage(Collision2D collision, Damageable d, float damage, IDamageDealer dealer)
     {
         Vector2 avgPos = AveragePos(collision);
-
         float increased_damage = damage * collision.relativeVelocity.magnitude;
+
+#if UNITY_SERVER
+#else
         SparkScript.CreateSparks(avgPos, increased_damage);
+#endif
+
         dealer.DealDamage(d, increased_damage);
     }
 
@@ -70,7 +74,12 @@ public abstract class WeaponBlock : Block, IDamageDealer
         Vector2 avgPos = AveragePos(collision);
 
         float increased_damage = damage * collision.relativeVelocity.magnitude;
+
+#if UNITY_SERVER
+#else
         SparkScript.CreateSparks(avgPos, increased_damage);
+#endif
+
         dealer.DealDamage(d, increased_damage);
     }
 }

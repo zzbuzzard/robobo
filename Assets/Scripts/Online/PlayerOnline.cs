@@ -18,24 +18,6 @@ public class PlayerOnline : NetworkBehaviour
     // Until isReady, we loop and wait for our blocks to spawn.
     public bool isReady { get; private set; } = false;
 
-    // Called when the player is spawned in, on the client
-    // Purpose: send our robot to the server
-    public override void OnStartLocalPlayer()
-    {
-        if (Controller.isLocalGame) return;
-
-        base.OnStartLocalPlayer();
-        Debug.Log("OnStartLocalPlayer running");
-
-        GameObject.Find("GameController").GetComponent<GameController>().SetPlayer(gameObject);
-        GameObject.Find("OnlineController").GetComponent<OnlineGameControl>().SetPlayer(gameObject);
-
-        // Ask server to please spawn our robot
-        CmdSpawnPlayerRobot(Robot.SerializeRobot(Controller.playerRobot));
-
-        //StartCoroutine(RefreshLatency());
-    }
-
     // Runs on server
     [Command]
     private void CmdSpawnPlayerRobot(Robot.SerializedRobot sr)
@@ -61,6 +43,24 @@ public class PlayerOnline : NetworkBehaviour
     {
         myRobot = Robot.DeserializeRobot(sr);
     }
+
+#if UNITY_SERVER
+#else
+    // Called when the player is spawned in, on the client
+    // Purpose: send our robot to the server
+    public override void OnStartLocalPlayer()
+    {
+        if (Controller.isLocalGame) return;
+
+        base.OnStartLocalPlayer();
+
+        GameObject.Find("GameController").GetComponent<GameController>().SetPlayer(gameObject);
+        GameObject.Find("OnlineController").GetComponent<OnlineGameControl>().SetPlayer(gameObject);
+
+        // Ask server to please spawn our robot
+        CmdSpawnPlayerRobot(Robot.SerializeRobot(Controller.playerRobot));
+    }
+
 
     private void Update()
     {
@@ -96,6 +96,7 @@ public class PlayerOnline : NetworkBehaviour
             isReady = true;
         }
     }
+#endif
 
 
     /*

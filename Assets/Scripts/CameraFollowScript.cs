@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CameraFollowScript : MonoBehaviour
 {
+#if UNITY_SERVER
+#else
     private static Vector3 offset = new Vector3(0, 0, -10.0f);
     private const float mul = 0.3f;
     private static float induced_mul;
@@ -27,4 +29,5 @@ public class CameraFollowScript : MonoBehaviour
         // dist(dt) = dist(0) * mul^dt
         transform.position = (Vector3)Vector2.Lerp(transform.position, goal, induced_mul) + offset;
     }
+#endif
 }

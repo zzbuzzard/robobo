@@ -108,12 +108,15 @@ public abstract class Block : NetworkBehaviour
 #endif
     }
 
+#if UNITY_SERVER
+#else
     // TODO: Show cracks etc
     [Client]
     private void ChangeHpDisplay()
     {
         flashScript.Flash();
     }
+#endif
 
     public bool IsDead() { return dead; }
 

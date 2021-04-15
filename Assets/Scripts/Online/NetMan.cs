@@ -27,7 +27,22 @@ public class NetMan : NetworkManager
         new Vector2(0.0f, 0.0f)
     };
 
-// NON-PLAYFAB STUFF:
+    // When the server stops, end the process
+    // NOTE: OnStopServer() is only called when StopServer() is run - 
+    //       Most of the time the process is ended by OnlineGameControl.ServerEndGame()
+    private void Terminate()
+    {
+        Debug.Log("Shutting Down");
+        Application.Quit();
+    }
+
+    public override void OnStopServer()
+    {
+        base.OnStopServer();
+        Terminate();
+    }
+
+    // NON-PLAYFAB STUFF:
 #if LOCAL_TEST
     public override void Start()
     {
@@ -102,18 +117,6 @@ public class NetMan : NetworkManager
                 Terminate();
             }
         }
-    }
-
-    private void Terminate()
-    {
-        Debug.Log("Shutting Down");
-        Application.Quit();
-    }
-
-    public override void OnStopServer()
-    {
-        base.OnStopServer();
-        Terminate();
     }
 
     public override void OnServerAddPlayer(NetworkConnection conn)

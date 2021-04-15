@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class Interpolater : MonoBehaviour
 {
+#if UNITY_SERVER
+    private void Awake()
+    {
+        Destroy(gameObject);
+    }
+#else
     public Transform parent;
     Block parentBlock;
     public bool isInterpolating;
@@ -70,4 +76,5 @@ public class Interpolater : MonoBehaviour
     //    transform.rotation = parent.rotation;
     //}
     //}
+#endif
 }

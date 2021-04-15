@@ -9,6 +9,8 @@ using UnityEngine;
 
 public class InterpolateController : MonoBehaviour
 {
+#if UNITY_SERVER
+#else
     private Vector2 robotPos;    // world position of the VISUAL robot
     private float robotRot;
 
@@ -159,4 +161,5 @@ public class InterpolateController : MonoBehaviour
             //}
         }
     }
+#endif
 }

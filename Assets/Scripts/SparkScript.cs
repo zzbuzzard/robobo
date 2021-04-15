@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class SparkScript : MonoBehaviour
 {
+#if UNITY_SERVER
+#else
     public static GameObject sparkPrefab;
     public static void CreateSparks(Vector2 position, float damage)
     {
@@ -32,4 +34,5 @@ public class SparkScript : MonoBehaviour
         burst.count = new ParticleSystem.MinMaxCurve(Mathf.Max(150 * multiplier, 15));
         particles.emission.SetBurst(0, burst);
     }
+#endif
 }

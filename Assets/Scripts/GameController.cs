@@ -18,9 +18,11 @@ public class GameController : MonoBehaviour
 
     private GameObject player;
 
+#if UNITY_SERVER
+#else
     public FixedJoystick left, right;
 
-    // Load the game
+    // Load the game - offline only
     private void Start()
     {
         if (!isOnline)
@@ -63,6 +65,7 @@ public class GameController : MonoBehaviour
 
         Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(player);
     }
+#endif
 
     private GameObject SpawnEnemy(Robot r)
     {

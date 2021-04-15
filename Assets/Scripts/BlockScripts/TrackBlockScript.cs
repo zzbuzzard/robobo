@@ -42,8 +42,11 @@ public class TrackBlockScript : MovementBlock, IBlockRequiresUpdate
         //Debug.Log(transform.forward);
         //Debug.Log(vel);
 
+#if UNITY_SERVER
+#else
         if (!OnlineGameControl.isResimulating)
             anim.SetFloat("Speed", speed * 0.25f);
+#endif
     }
 
     protected override void HandleDeath()
