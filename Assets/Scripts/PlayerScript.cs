@@ -52,6 +52,7 @@ public class PlayerScript : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Use if server or local game
 #if UNITY_SERVER
 #else
         if (Controller.isLocalGame)
@@ -64,8 +65,6 @@ public class PlayerScript : MonoBehaviour
             }
         }
 #endif
-
-        useNextFrame = false;
     }
 
     public Vector2 GetMove()

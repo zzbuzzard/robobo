@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class TrackBlockScript : MovementBlock
+public class TrackBlockScript : MovementBlock, IBlockRequiresUpdate
 {
     public override BlockType Type => BlockType.TRACK;
     public override WheelType Wheel => WheelType.TRACK;
@@ -27,7 +27,7 @@ public class TrackBlockScript : MovementBlock
         controller = transform.parent.GetComponent<RobotScript>();
     }
 
-    void FixedUpdate()
+    public void FixedUpdate()
     {
         if (parent == null || GetParent().currentWheelType != WheelType.TRACK) return;
 
@@ -41,7 +41,9 @@ public class TrackBlockScript : MovementBlock
         mrig.AddForceAtPosition(- transform.up * lateral_friction * mass * across/num_tracks, transform.position);
         //Debug.Log(transform.forward);
         //Debug.Log(vel);
-        anim.SetFloat("Speed", speed * 0.25f);
+
+        if (!OnlineGameControl.isResimulating)
+            anim.SetFloat("Speed", speed * 0.25f);
     }
 
     protected override void HandleDeath()

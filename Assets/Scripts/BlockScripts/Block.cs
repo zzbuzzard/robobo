@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
+// For blocks whose FixedUpdate() call must be done when Resimulating in OnlineGameControl
+public interface IBlockRequiresUpdate
+{
+    void FixedUpdate();
+}
+
 // A script class, but it's abstract so can never be used
 // Its purpose is to define base behaviour for all blocks
 

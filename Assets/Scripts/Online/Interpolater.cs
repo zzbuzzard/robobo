@@ -2,11 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// TODO: Interpolate stuff
 public class Interpolater : MonoBehaviour
 {
     public Transform parent;
-    private bool isInterpolating;
+    Block parentBlock;
+    public bool isInterpolating;
+
+    public bool initialised;
+
+    private void Awake()
+    {
+        parentBlock = GetComponentInParent<Block>();
+    }
 
     public void InterpolateOn()
     {
@@ -18,9 +25,21 @@ public class Interpolater : MonoBehaviour
         isInterpolating = false;
     }
 
-    // todo: probably actually faster to parent and unparent...
     private void Update()
     {
+        if (transform.parent != null && initialised)
+            transform.parent = null;
+
+        if (parentBlock == null)
+        {
+            transform.parent = parent;
+            transform.localPosition = Vector2.zero;
+            transform.localRotation = Quaternion.identity;
+
+            Destroy(this);
+            return;
+        }
+
         if (!isInterpolating)
         {
             transform.position = parent.position;

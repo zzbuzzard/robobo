@@ -87,7 +87,10 @@ public class PlayerOnline : NetworkBehaviour
             GetComponent<InterpolateController>().Initialise();
 
             if (isLocalPlayer)
+            {
+                GetComponent<InterpolateController>().isLocal = true;
                 GetComponent<PlayerScript>().enabled = true;
+            }
 
             Debug.Log("Spawned player " + myID + " is now ready");
             isReady = true;

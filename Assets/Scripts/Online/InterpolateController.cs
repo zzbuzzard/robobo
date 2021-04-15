@@ -12,13 +12,16 @@ public class InterpolateController : MonoBehaviour
     private Vector2 robotPos;    // world position of the VISUAL robot
     private float robotRot;
 
+    // Interpolation stuff: last frame
+    public bool isLocal = false;
+    public Vector2 pastPos;
+    public Vector2 pastVel;
+
     // (squared as distance measurement is squared - for speed)
     private float stopInterpolatingBoundary = 0.1f * 0.1f;
     private float rotationInterpolateBoundary = 3.0f;
-    //private const float interpolateConst = 0.25f; // 1.0f means instant teleportation
 
-    //private const int numFramesToReachTarget = 5;
-    private const float timeToReachTarget = 0.15f;
+    private const float timeToReachTarget = 0.1f;
     private const float velocityInterpolate = 0.6f;
     private Vector2 vel;
     private float angularVel;
@@ -36,7 +39,7 @@ public class InterpolateController : MonoBehaviour
         interpolaters = GetComponentsInChildren<Interpolater>();
         foreach (Interpolater i in interpolaters)
         {
-            i.transform.parent = null;
+            i.initialised = true;
         }
     }
 
@@ -47,7 +50,7 @@ public class InterpolateController : MonoBehaviour
     }
 
     // Start interpolating - auto turns off when close enough
-    public void Interpolate()
+    public void StartInterpolate()
     {
         if (interpolating) return;
 
@@ -66,56 +69,66 @@ public class InterpolateController : MonoBehaviour
             i.InterpolateOff();
     }
 
-    //TODO: Delete
-    private bool specialMode = true;
-
+    // Interpolates 1 frame
+    // Should be called BETWEEN FORCE APPLICATION and PHYSICS SIMULATION for perfect results.
     private void FixedUpdate()
     {
-        if (OnlineGameControl.isResimulating)
-        {
-            Debug.Log("Resimulating wtf");
-        }
         if (interpolating)
         {
-
+            
             //                 VELOCITY APPROACH
-            // Speed * number of frames
 
-            // Speed * frame * framesToReachTarget
-            // framesToReachTarget = timeWait / Time.fixedDeltaTime
+            Vector2 realVel;
 
-            Vector2 realVel = (mrig.worldCenterOfMass + timeToReachTarget * mrig.velocity - robotPos) / timeToReachTarget;
+            // To be honest, I don't really know what's going on here anymore
+            // The general idea though, is we move towards where the player will be in X seconds
+            //  and try to get there in X seconds.
+            if (Controller.isLocalGame)
+            {
+                realVel = (mrig.worldCenterOfMass
+                    + timeToReachTarget * mrig.velocity - robotPos)
+                    / timeToReachTarget;
+            }
+            else
+            {
+                if (isLocal)
+                {
+                    realVel = (pastPos
+                        + timeToReachTarget * pastVel - robotPos)
+                        / timeToReachTarget;
+                }
+                else
+                {
+                    realVel = (mrig.worldCenterOfMass
+                        + timeToReachTarget * mrig.velocity - robotPos)
+                        / timeToReachTarget;
+                }
+            }
+
+
             vel = Vector2.Lerp(vel, realVel, velocityInterpolate);
 
             float realAngularVel = (mrig.rotation + timeToReachTarget * mrig.angularVelocity - robotRot) / timeToReachTarget;
             angularVel = Mathf.Lerp(angularVel, realAngularVel, velocityInterpolate);
 
-            robotPos = robotPos + realVel * Time.fixedDeltaTime;
+            robotPos = robotPos + vel * Time.fixedDeltaTime;
             robotRot = robotRot + angularVel * Time.fixedDeltaTime;
-
+            
 
             /*
-                         DIRECT LERP - BUT PERFECTLY MOVES TO VELOCITY POS
+                         //DIRECT LERP - BUT PERFECTLY MOVES TO VELOCITY POS
 
             const float x = 0.3f;
-            const float mull = 1 / x; // (1 - x) / x;
+            const float localMul = 1 / x;
+            //const float onlineMul = (1 - x) / x;
 
-            if (Input.GetKeyDown(KeyCode.H))
-            {
-                specialMode = !specialMode;
-                Debug.Log("SPECIAL MODE: " + specialMode);
-            }
-
-            if (specialMode)
-            {
-                robotPos = Vector2.Lerp(robotPos, mrig.worldCenterOfMass + mrig.velocity * Time.fixedDeltaTime * mull, x); // interpolateConst);
-            }
+            if (Controller.isLocalGame)
+                robotPos = Vector2.Lerp(robotPos, mrig.worldCenterOfMass + mrig.velocity * Time.fixedDeltaTime * localMul, x); // interpolateConst);
             else
-            {
-                robotPos = Vector2.Lerp(robotPos, mrig.worldCenterOfMass, x); // interpolateConst);
-            }
+                robotPos = Vector2.Lerp(robotPos, pastPos + pastVel * Time.fixedDeltaTime * localMul, x); // interpolateConst);
+
             robotRot = Mathf.Lerp(robotRot, mrig.rotation, x); // rotationInterpolate); // todo: this will cause 360 degree rotations
-             */
+    */         
 
             // Un-rotate, then re-rotate
             Matrix4x4 rotate = Matrix4x4.Rotate(Quaternion.Euler(0, 0, robotRot - mrig.rotation));
@@ -138,11 +151,12 @@ public class InterpolateController : MonoBehaviour
                 }
             }
 
-            if (Util.AngleDifDegree(robotRot, mrig.rotation) < rotationInterpolateBoundary &&
-                Vector2.SqrMagnitude(robotPos - mrig.worldCenterOfMass) < stopInterpolatingBoundary)
-            {
-                //StopInterpolate();
-            }
+            // TODO: Should we ever stop interpolating?
+            //if (Util.AngleDifDegree(robotRot, mrig.rotation) < rotationInterpolateBoundary &&
+            //    Util.SqDist(robotPos, mrig.worldCenterOfMass) < stopInterpolatingBoundary)
+            //{
+            //    StopInterpolate();
+            //}
         }
     }
 }

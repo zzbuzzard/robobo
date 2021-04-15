@@ -14,6 +14,8 @@ class GameState
     public float[] rigAngVel;
     public float[] rotations;
 
+    public InputPkg[] pkgs;
+
     public static bool IsSignificantlyDifferent(GameState a, GameState b)
     {
         const float velDif = 1.0f,
@@ -447,7 +449,18 @@ public class OnlineGameControl : NetworkBehaviour
     private void EnableAllPlayerInterpolation()
     {
         foreach (GameObject player in players.Values)
-            player.GetComponent<InterpolateController>().Interpolate();
+            player.GetComponent<InterpolateController>().StartInterpolate();
+    }
+
+    // THIS IS USED FOR INTERPOLATION DATA ONLY
+    [Client]
+    private void AboutToSimulate()
+    {
+        mPlayer.GetComponent<InterpolateController>().pastPos
+            = mPlayer.GetComponent<Rigidbody2D>().worldCenterOfMass;
+
+        mPlayer.GetComponent<InterpolateController>().pastVel
+            = mPlayer.GetComponent<Rigidbody2D>().velocity;
     }
 
     [TargetRpc]
@@ -527,8 +540,16 @@ public class OnlineGameControl : NetworkBehaviour
     {
         clientStats.totalFramesResimulated++;
 
-        // TODO: Track fixed update... and other fixed update...
         frameOn++;
+
+        // TODO: Should probably 1) Do this to all players
+        //                       2) Cache the results because GetComponentsInChildren is super slow
+        //                          Maybe have a system where any script can register/unregister to be updated? Global list
+        foreach (IBlockRequiresUpdate t in mPlayer.GetComponentsInChildren<IBlockRequiresUpdate>())
+        {
+            t.FixedUpdate();
+        }
+
         if (pastInputs.ContainsKey(frameOn))
         {
             ApplyInputPackage(mPlayer, pastInputs[frameOn]);
@@ -538,17 +559,14 @@ public class OnlineGameControl : NetworkBehaviour
             Debug.Log("No input package for frame " + frameOn);
         }
 
-        // Apply past inputs to all other players!
-        //int mid = mPlayer.GetComponent<PlayerOnline>().myID;
-        //foreach (int id in lastPlayerInputDict.Keys)
-        //{
-        //    if (id != mid)
-        //    {
-        //        //Debug.Log("Past input: " + lastPlayerInputDict[id].ToString());
-        //        //ApplyInputPackage(players[id], lastPlayerInputDict[id]);
-        //    }
-        //}
+        // Apply past inputs to all other players
+        foreach (var pair in players)
+        {
+            if (lastPlayerInput.ContainsKey(pair.Key))
+                ApplyInputPackage(pair.Value, lastPlayerInput[pair.Key]);
+        }
 
+        AboutToSimulate();
         Physics2D.Simulate(Time.fixedDeltaTime);
         pastGameStates.Enqueue(GetCurrentState());
     }
@@ -635,6 +653,11 @@ public class OnlineGameControl : NetworkBehaviour
     {
         if (waitingState != null) clientStats.overwrittenServerFrames++;
         clientStats.totalReceivedFrames++;
+
+        for (int i=0; i<state.ids.Length; i++)
+        {
+            lastPlayerInput[state.ids[i]] = state.pkgs[i];
+        }
 
         waitingState = state;
         lastServerFrame = state.frameID;
@@ -799,6 +822,10 @@ public class OnlineGameControl : NetworkBehaviour
             Physics2D.Simulate(Time.fixedDeltaTime);
 
             GameState s = GetCurrentState();
+            int N = s.ids.Length;
+            s.pkgs = new InputPkg[N];
+            for (int i = 0; i < N; i++)
+                s.pkgs[i] = lastPlayerInput[s.ids[i]];
 
             // TODO: Do we need to send every frame? Probably...
             ClientReceiveState(s);
@@ -821,7 +848,10 @@ public class OnlineGameControl : NetworkBehaviour
                 pkg.inputFrame = frameOn;
 
                 if (ps.useNextFrame)
+                {
                     mPlayer.GetComponent<RobotScript>().LocalUse();
+                    ps.useNextFrame = false;
+                }
 
                 pastInputs[frameOn] = pkg;
 
@@ -839,6 +869,8 @@ public class OnlineGameControl : NetworkBehaviour
                 }
             }
 
+            //AllPlayerInterpolate();
+            AboutToSimulate();
             Physics2D.Simulate(Time.fixedDeltaTime);
 
             GameState s = GetCurrentState();

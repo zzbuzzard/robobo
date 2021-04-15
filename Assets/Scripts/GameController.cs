@@ -31,12 +31,27 @@ public class GameController : MonoBehaviour
             p.GetComponent<RobotScript>().enabled = true;
             p.GetComponent<PlayerScript>().enabled = true;
             Destroy(p.GetComponent<PlayerOnline>());
+
+            // TODO: Remove offline interpolation test
+            Invoke("TestInterpolateMode", 0.5f);
+
             SetPlayer(p);
             NetworkServer.Spawn(p);
             player.GetComponent<RobotScript>().LoadRobot(Controller.playerRobot);
 
             StartCoroutine(SpawnEnemies());
         }
+    }
+
+    private void TestInterpolateMode()
+    {
+        player.GetComponent<InterpolateController>().Initialise();
+        player.GetComponent<InterpolateController>().StartInterpolate();
+
+        //Invincibility mode lol
+        //foreach (Block b in player.GetComponentsInChildren<Block>()) {
+        //    b.TakeDamage(-100000.0f);
+        //}
     }
 
     public void SetPlayer(GameObject p)
