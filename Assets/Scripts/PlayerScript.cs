@@ -13,7 +13,7 @@ public class PlayerScript : MonoBehaviour
     private float front = 0.75f;
     public RobotScript mover;
     public Rigidbody2D mrig;
-    
+
     private bool normalMovementMode = true;
 
     public FixedJoystick moveJoystick, turnJoystick;
@@ -45,8 +45,10 @@ public class PlayerScript : MonoBehaviour
             if (Input.GetKey(KeyCode.S))
                 movement.y -= 1;
 
-            if (Input.GetKeyDown(KeyCode.E))
+            if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
+            {
                 useNextFrame = true;
+            }
         }
     }
 
@@ -105,7 +107,7 @@ public class PlayerScript : MonoBehaviour
 
 
 /*
- * 
+ *
         float ang = Vector2.SignedAngle(new Vector2(1, 0), worldGoal - comWorld) / 360.0f;
         if (ang < 0) ang += 1;
         float curAng = transform.rotation.eulerAngles.z / 360.0f - front;
