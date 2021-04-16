@@ -84,7 +84,7 @@ public class PlayFabHandlerClient : MonoBehaviour
             },
 
             // Cancel matchmaking if a match is not found after 120 seconds.
-            GiveUpAfterSeconds = 1200,
+            GiveUpAfterSeconds = 120,
 
             // The name of the queue to submit the ticket into.
             QueueName = QueueName,
