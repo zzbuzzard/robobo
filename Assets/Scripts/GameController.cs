@@ -18,9 +18,11 @@ public class GameController : MonoBehaviour
 
     private GameObject player;
 
+#if UNITY_SERVER
+#else
     public FixedJoystick left, right;
 
-    // Load the game
+    // Load the game - offline only
     private void Start()
     {
         if (!isOnline)
@@ -31,12 +33,27 @@ public class GameController : MonoBehaviour
             p.GetComponent<RobotScript>().enabled = true;
             p.GetComponent<PlayerScript>().enabled = true;
             Destroy(p.GetComponent<PlayerOnline>());
+
+            // TODO: Remove offline interpolation test
+            Invoke("TestInterpolateMode", 0.5f);
+
             SetPlayer(p);
             NetworkServer.Spawn(p);
             player.GetComponent<RobotScript>().LoadRobot(Controller.playerRobot);
 
             StartCoroutine(SpawnEnemies());
         }
+    }
+
+    private void TestInterpolateMode()
+    {
+        player.GetComponent<InterpolateController>().Initialise();
+        player.GetComponent<InterpolateController>().StartInterpolate();
+
+        //Invincibility mode lol
+        //foreach (Block b in player.GetComponentsInChildren<Block>()) {
+        //    b.TakeDamage(-100000.0f);
+        //}
     }
 
     public void SetPlayer(GameObject p)
@@ -48,6 +65,7 @@ public class GameController : MonoBehaviour
 
         Camera.main.GetComponent<CameraFollowScript>().SetPlayerFollow(player);
     }
+#endif
 
     private GameObject SpawnEnemy(Robot r)
     {
@@ -88,8 +106,10 @@ public class GameController : MonoBehaviour
             //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
             //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
 
-            r = parity ? Controller.playerRobot : Robot.RandomFileRobot();
-            parity = !parity;
+            r = Robot.RandomFileRobot();
+
+            //r = parity ? Controller.playerRobot : Robot.RandomFileRobot();
+            //parity = !parity;
 
             //r = Robot.RandomFileRobot();
 
@@ -100,8 +120,9 @@ public class GameController : MonoBehaviour
 
             while (obj != null && obj.transform.childCount > 0)
             {
-                yield return new WaitForSeconds(10.0f);
+                yield return new WaitForSeconds(1.0f);
             }
+            yield return new WaitForSeconds(1.0f);
         }
     }
 

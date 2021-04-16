@@ -56,4 +56,9 @@ public static class Util
     {
         return (a * 100).ToString("n" + decimal_places) + "%";
     }
+
+    public static float SqDist(Vector2 a, Vector2 b)
+    {
+        return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+    }
 }

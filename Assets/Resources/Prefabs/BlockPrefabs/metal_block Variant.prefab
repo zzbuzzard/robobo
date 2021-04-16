@@ -42,7 +42,7 @@ MonoBehaviour:
   syncInterval: 0.1
   x: 0
   y: 0
-  hp: 20
+  hp: 40
   density: 1
 --- !u!1 &6060140726385638218
 GameObject:
@@ -90,6 +90,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parent: {fileID: 911386332700964107}
   isInterpolating: 0
+  initialised: 0
 --- !u!212 &8524775499497535518
 SpriteRenderer:
   m_ObjectHideFlags: 0

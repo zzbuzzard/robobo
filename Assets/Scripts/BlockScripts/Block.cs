@@ -3,6 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using Mirror;
 
+// For blocks whose FixedUpdate() call must be done when Resimulating in OnlineGameControl
+public interface IBlockRequiresUpdate
+{
+    void FixedUpdate();
+}
+
 // A script class, but it's abstract so can never be used
 // Its purpose is to define base behaviour for all blocks
 
@@ -76,6 +82,7 @@ public abstract class Block : NetworkBehaviour
     // If you are a SpikeScript, and you have a Block b, then you can't access b.parent even though it's protected...
     public RobotScript GetParent()
     {
+        if (parent == null) return null;
         return parent.GetComponent<RobotScript>();
     }
 
@@ -101,12 +108,15 @@ public abstract class Block : NetworkBehaviour
 #endif
     }
 
+#if UNITY_SERVER
+#else
     // TODO: Show cracks etc
     [Client]
     private void ChangeHpDisplay()
     {
         flashScript.Flash();
     }
+#endif
 
     public bool IsDead() { return dead; }
 
@@ -151,6 +161,9 @@ public abstract class Block : NetworkBehaviour
         rig.angularDrag = 1;
         rig.mass = density * 1.5f * 1.5f; // should be collider area, but that doesn't seem to be gettable
         rig.velocity = GetParent().mrig.GetPointVelocity(transform.position);
+
+        rig.velocity += new Vector2(Random.Range(-3.0f, 3.0f), Random.Range(-3.0f, 3.0f));
+        rig.angularVelocity += Random.Range(-90.0f, 90.0f);
 
         transform.SetParent(null);
     }

@@ -15,23 +15,8 @@ public class PlayerOnline : NetworkBehaviour
 
     public Robot myRobot { get; private set; }
 
-    // Called when the player is spawned in, on the client
-    // Purpose: send our robot to the server
-    public override void OnStartLocalPlayer()
-    {
-        if (Controller.isLocalGame) return;
-
-        base.OnStartLocalPlayer();
-        Debug.Log("OnStartLocalPlayer running");
-
-        GameObject.Find("GameController").GetComponent<GameController>().SetPlayer(gameObject);
-        GameObject.Find("OnlineController").GetComponent<OnlineGameControl>().SetPlayer(gameObject);
-
-        // Ask server to please spawn our robot
-        CmdSpawnPlayerRobot(Robot.SerializeRobot(Controller.playerRobot));
-
-        //StartCoroutine(RefreshLatency());
-    }
+    // Until isReady, we loop and wait for our blocks to spawn.
+    public bool isReady { get; private set; } = false;
 
     // Runs on server
     [Command]
@@ -59,8 +44,24 @@ public class PlayerOnline : NetworkBehaviour
         myRobot = Robot.DeserializeRobot(sr);
     }
 
-    // Until isReady, we loop and wait for our blocks to spawn.
-    private bool isReady = false;
+#if UNITY_SERVER
+#else
+    // Called when the player is spawned in, on the client
+    // Purpose: send our robot to the server
+    public override void OnStartLocalPlayer()
+    {
+        if (Controller.isLocalGame) return;
+
+        base.OnStartLocalPlayer();
+
+        GameObject.Find("GameController").GetComponent<GameController>().SetPlayer(gameObject);
+        GameObject.Find("OnlineController").GetComponent<OnlineGameControl>().SetPlayer(gameObject);
+
+        // Ask server to please spawn our robot
+        CmdSpawnPlayerRobot(Robot.SerializeRobot(Controller.playerRobot));
+    }
+
+
     private void Update()
     {
         if (isReady) return;
@@ -83,13 +84,19 @@ public class PlayerOnline : NetworkBehaviour
         {
             GetComponent<RobotScript>().LoadRobotClient(myRobot);
             GetComponent<RobotScript>().enabled = true;
+            GetComponent<InterpolateController>().Initialise();
+
             if (isLocalPlayer)
+            {
+                GetComponent<InterpolateController>().isLocal = true;
                 GetComponent<PlayerScript>().enabled = true;
+            }
 
             Debug.Log("Spawned player " + myID + " is now ready");
             isReady = true;
         }
     }
+#endif
 
 
     /*

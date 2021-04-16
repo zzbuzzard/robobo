@@ -14,6 +14,8 @@ class GameState
     public float[] rigAngVel;
     public float[] rotations;
 
+    public InputPkg[] pkgs;
+
     public static bool IsSignificantlyDifferent(GameState a, GameState b)
     {
         const float velDif = 1.0f,
@@ -124,38 +126,191 @@ public class OnlineGameControl : NetworkBehaviour
 {
     ////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////                      /////////////////////////////////
+    /////////////////////////////////         RPC          /////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////
+    [TargetRpc]
+    private void SetSpeedMul(NetworkConnection conn, float m)
+    {
+#if UNITY_SERVER
+#else
+        clientStats.countSpeedMultipliers++;
+
+        if (Mathf.Abs(m) > 0.01f)
+        {
+            Debug.Log("Speed multiplier: " + m);
+
+            // How many frames to skip 
+            int count = 1;
+
+            // Boost for when we're super behind
+            if (m > 0.5f)
+                count = 1 + Mathf.Max(lastServerFrame - frameOn, 0);
+
+            // Boost for when we're super ahead
+            if (m < -0.5f)
+                count = Mathf.Max(frameOn - lastServerFrame, 2) - 1;
+
+            clientStats.countBadSpeedMultipliers++;
+            clientStats.sumBadSpeedMultipliers += m;
+
+            EnableAllPlayerInterpolation();
+
+            // Speed up
+            if (m > 0)
+            {
+                Debug.Log("Skipping " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
+                for (int i = 0; i < count; i++)
+                    SimulateFrame();
+            }
+            // Slow down
+            else
+            {
+                Debug.Log("Rewinding " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
+                for (int i = 0; i < count; i++)
+                    ReverseTime();
+            }
+        }
+#endif
+    }
+
+    [ClientRpc]
+    private void ClientAddPlayer(int playerID, GameObject player)
+    {
+#if UNITY_SERVER
+#else
+        players[playerID] = player;
+#endif
+    }
+
+    [ClientRpc]
+    private void ClientRemovePlayer(int playerID)
+    {
+#if UNITY_SERVER
+#else
+        Debug.Log("Client removing player " + playerID);
+        players.Remove(playerID);
+#endif
+    }
+
+    // Adding players who joined before me
+    [TargetRpc]
+    private void LateClientAddPlayer(NetworkConnection conn, int playerID, GameObject player)
+    {
+#if UNITY_SERVER
+#else
+        players[playerID] = player;
+#endif
+    }
+
+    [ClientRpc]
+    public void ClientStartGame()
+    {
+#if UNITY_SERVER
+#else
+        Debug.Log("Client: Starting game");
+
+        frameOn = 0;
+        gameRunning = true;
+#endif
+    }
+
+    [ClientRpc]
+    public void ClientEndGame(int winner)
+    {
+#if UNITY_SERVER
+#else
+        Debug.Log("Game ends: Winner was ID " + winner);
+
+        winText.gameObject.SetActive(true);
+
+        if (mPlayer == null || mPlayer.GetComponent<PlayerOnline>().myID != winner)
+        {
+            winText.color = Color.red;
+            winText.SetText("YOU LOSE");
+        }
+        else
+        {
+            winText.color = Color.green;
+            winText.SetText("YOU WINNNN");
+        }
+        gameRunning = false;
+#endif
+    }
+
+    [ClientRpc]
+    private void ClientReceiveState(GameState state)
+    {
+#if UNITY_SERVER
+#else
+        if (waitingState != null) clientStats.overwrittenServerFrames++;
+        clientStats.totalReceivedFrames++;
+
+        for (int i = 0; i < state.ids.Length; i++)
+        {
+            lastPlayerInput[state.ids[i]] = state.pkgs[i];
+        }
+
+        waitingState = state;
+        lastServerFrame = state.frameID;
+
+        // May not be in there, but that's fine (it just returns false)
+        pastInputs.Remove(lastServerFrame - 1);
+#endif
+    }
+
+    // Client -> Server sends input
+    [Command(requiresAuthority = false)]
+    private void ServerReceiveInput(int myID, InputPkg clientInput)
+    {
+#if UNITY_SERVER
+        if (!gameRunning) return;
+        if (!players.ContainsKey(myID)) return;
+
+        // First, we tell the client if they're too ahead or too behind or just right
+        // Too ahead if we *receive* it significantly after frameOn
+        if (clientInput.inputFrame > frameOn + slowDownThreshold)
+        {
+            playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f - 1.0f;
+        }
+        else
+        {
+            // Too behind if we *receive* it before frameOn
+            if (clientInput.inputFrame < frameOn)
+            {
+                playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f + 1.0f;
+            }
+            // Otherwise, it's perfecto
+            else
+            {
+                playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f;
+            }
+        }
+
+        // TODO: Ensure they actually arrive in order!
+        //  (Note: They seem to)
+        // TODO: Ensure the frame ID hasn't been fucked with
+        //   -> This won't play to their advantage really, just should move the frame check from ProcessInputs to here
+        //      This will prevent a queue building up of frames which we're just gonna discard anyway
+        queuedPlayerInputs[myID].Enqueue(clientInput);
+#endif
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////                      /////////////////////////////////
     /////////////////////////////////      Server only     /////////////////////////////////
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
-
-    //SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
-        
+#if UNITY_SERVER
     // TODO: Swap this queue for a buffer of fixed size for speed. Profile it.
     IDictionary<int, float> playerSpeedUpValues;
     IDictionary<int, Queue<InputPkg>> queuedPlayerInputs;
-    IDictionary<int, InputPkg> lastPlayerInput;
+    const int slowDownThreshold = 10;
+
+    //SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
+
     const int queueSizeThreshold = 5; // Beyond this size, we do two at once
     private int nextID = 0;
-
-    private void Awake()
-    {
-        Physics2D.simulationMode = SimulationMode2D.Script;
-
-        // TODO: Split into server/client
-        // NOTE: Can't use isServer at this point, as it doesn't know yet. Need a public bool or something.
-
-        players = new Dictionary<int, GameObject>();
-        queuedPlayerInputs = new Dictionary<int, Queue<InputPkg>>();
-        playerSpeedUpValues = new Dictionary<int, float>();
-        pastGameStates = new Queue<GameState>();
-        pastInputs = new Dictionary<int, InputPkg>();
-        lastPlayerInput = new Dictionary<int, InputPkg>();
-    }
-
-    private void Start()
-    {
-        StartCoroutine(ShowStats());
-    }
 
     [Server]
     public int AddPlayer(GameObject player, NetworkConnection conn)
@@ -233,12 +388,27 @@ public class OnlineGameControl : NetworkBehaviour
             gameRunning = false;
             Debug.Log("PLAYER " + winID + " HAS WON");
 
-            // Broadcast to all clients that the game is over, won by winID
-            ClientEndGame(winID);
+            ServerEndGame(winID);
         }
     }
 
-    // TODO: Call this somewhere better [plan]
+    [Server]
+    private void ServerEndGame(int winID)
+    {
+        // Broadcast to all clients that the game is over, won by winID
+        ClientEndGame(winID);
+
+        // Necessary so that the final "player x wins" message reaches the clients.
+        Invoke("ShutdownServer", 1.0f);
+    }
+
+    private void ShutdownServer()
+    {
+        Debug.Log("OnlineGameControl shutting down server");
+        NetworkServer.Shutdown();
+        Application.Quit();
+    }
+
     // Server starts game
     [Server]
     public void ServerStartGame()
@@ -252,8 +422,6 @@ public class OnlineGameControl : NetworkBehaviour
 
         ClientStartGame();
     }
-
-    const int slowDownThreshold = 10;
 
     // Apply inputs on server
     [Server]
@@ -346,41 +514,6 @@ public class OnlineGameControl : NetworkBehaviour
         }
     }
 
-    // Client -> Server sends input
-    [Command(requiresAuthority = false)]
-    private void ServerReceiveInput(int myID, InputPkg clientInput)
-    {
-        if (!gameRunning) return;
-        if (!players.ContainsKey(myID)) return;
-
-        // First, we tell the client if they're too ahead or too behind or just right
-        // Too ahead if we *receive* it significantly after frameOn
-        if (clientInput.inputFrame > frameOn + slowDownThreshold)
-        {
-            playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f - 1.0f;
-        }
-        else
-        {
-            // Too behind if we *receive* it before frameOn
-            if (clientInput.inputFrame < frameOn)
-            {
-                playerSpeedUpValues[myID] = playerSpeedUpValues[myID]/2.0f + 1.0f;
-            }
-            // Otherwise, it's perfecto
-            else
-            {
-                playerSpeedUpValues[myID] = playerSpeedUpValues[myID] / 2.0f;
-            }
-        }
-
-        // TODO: Ensure they actually arrive in order!
-        //  (Note: They seem to)
-        // TODO: Ensure the frame ID hasn't been fucked with
-        //   -> This won't play to their advantage really, just should move the frame check from ProcessInputs to here
-        //      This will prevent a queue building up of frames which we're just gonna discard anyway
-        queuedPlayerInputs[myID].Enqueue(clientInput);
-    }
-
     [Server]
     private void SpeedUpSlowDown()
     {
@@ -418,6 +551,7 @@ public class OnlineGameControl : NetworkBehaviour
     }
 
 
+#else
     ////////////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////                      /////////////////////////////////
     /////////////////////////////////      Client only     /////////////////////////////////
@@ -439,49 +573,18 @@ public class OnlineGameControl : NetworkBehaviour
     private void EnableAllPlayerInterpolation()
     {
         foreach (GameObject player in players.Values)
-            player.GetComponent<InterpolateController>().Interpolate();
+            player.GetComponent<InterpolateController>().StartInterpolate();
     }
 
-    [TargetRpc]
-    private void SetSpeedMul(NetworkConnection conn, float m)
+    // THIS IS USED FOR INTERPOLATION DATA ONLY
+    [Client]
+    private void AboutToSimulate()
     {
-        clientStats.countSpeedMultipliers++;
+        mPlayer.GetComponent<InterpolateController>().pastPos
+            = mPlayer.GetComponent<Rigidbody2D>().worldCenterOfMass;
 
-        if (Mathf.Abs(m) > 0.01f)
-        {
-            Debug.Log("Speed multiplier: " + m);
-
-            // How many frames to skip 
-            int count = 1;
-
-            // Boost for when we're super behind
-            if (m > 0.5f)
-                count = 1 + Mathf.Max(lastServerFrame - frameOn, 0);
-
-            // Boost for when we're super ahead
-            if (m < -0.5f)
-                count = Mathf.Max(frameOn - lastServerFrame, 2) - 1;
-
-            clientStats.countBadSpeedMultipliers++;
-            clientStats.sumBadSpeedMultipliers += m;
-
-            EnableAllPlayerInterpolation();
-
-            // Speed up
-            if (m > 0)
-            {
-                Debug.Log("Skipping " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
-                for (int i=0; i<count; i++)
-                    SimulateFrame();
-            }
-            // Slow down
-            else
-            {
-                Debug.Log("Rewinding " + count + " frames.\nFrameon = " + frameOn + ", last server frame = " + lastServerFrame);
-                for (int i=0; i<count; i++)
-                    ReverseTime();
-            }
-        }
+        mPlayer.GetComponent<InterpolateController>().pastVel
+            = mPlayer.GetComponent<Rigidbody2D>().velocity;
     }
 
     [Client]
@@ -519,8 +622,16 @@ public class OnlineGameControl : NetworkBehaviour
     {
         clientStats.totalFramesResimulated++;
 
-        // TODO: Track fixed update... and other fixed update...
         frameOn++;
+
+        // TODO: Should probably 1) Do this to all players
+        //                       2) Cache the results because GetComponentsInChildren is super slow
+        //                          Maybe have a system where any script can register/unregister to be updated? Global list
+        foreach (IBlockRequiresUpdate t in mPlayer.GetComponentsInChildren<IBlockRequiresUpdate>())
+        {
+            t.FixedUpdate();
+        }
+
         if (pastInputs.ContainsKey(frameOn))
         {
             ApplyInputPackage(mPlayer, pastInputs[frameOn]);
@@ -530,17 +641,14 @@ public class OnlineGameControl : NetworkBehaviour
             Debug.Log("No input package for frame " + frameOn);
         }
 
-        // Apply past inputs to all other players!
-        //int mid = mPlayer.GetComponent<PlayerOnline>().myID;
-        //foreach (int id in lastPlayerInputDict.Keys)
-        //{
-        //    if (id != mid)
-        //    {
-        //        //Debug.Log("Past input: " + lastPlayerInputDict[id].ToString());
-        //        //ApplyInputPackage(players[id], lastPlayerInputDict[id]);
-        //    }
-        //}
+        // Apply past inputs to all other players
+        foreach (var pair in players)
+        {
+            if (lastPlayerInput.ContainsKey(pair.Key))
+                ApplyInputPackage(pair.Value, lastPlayerInput[pair.Key]);
+        }
 
+        AboutToSimulate();
         Physics2D.Simulate(Time.fixedDeltaTime);
         pastGameStates.Enqueue(GetCurrentState());
     }
@@ -567,72 +675,10 @@ public class OnlineGameControl : NetworkBehaviour
             pastGameStates.Enqueue(arr[i]);
     }
 
-    [ClientRpc]
-    private void ClientAddPlayer(int playerID, GameObject player)
-    {
-        players[playerID] = player;
-    }
-
-    [ClientRpc]
-    private void ClientRemovePlayer(int playerID)
-    {
-        Debug.Log("Client removing player " + playerID);
-        players.Remove(playerID);
-    }
-
-    // Adding players who joined before me
-    [TargetRpc]
-    private void LateClientAddPlayer(NetworkConnection conn, int playerID, GameObject player)
-    {
-        players[playerID] = player;
-    }
-
     [Client]
     public void SetPlayer(GameObject obj)
     {
         mPlayer = obj;
-    }
-
-    [ClientRpc]
-    public void ClientStartGame()
-    {
-        Debug.Log("Client: Starting game");
-
-        frameOn = 0;
-        gameRunning = true;
-    }
-
-    [ClientRpc]
-    public void ClientEndGame(int winner)
-    {
-        Debug.Log("Game ends: Winner was ID " + winner);
-
-        winText.gameObject.SetActive(true);
-
-        if (mPlayer == null || mPlayer.GetComponent<PlayerOnline>().myID != winner)
-        {
-            winText.color = Color.red;
-            winText.SetText("YOU LOSE");
-        }
-        else
-        {
-            winText.color = Color.green;
-            winText.SetText("YOU WINNNN");
-        }
-        gameRunning = false;
-    }
-
-    [ClientRpc]
-    private void ClientReceiveState(GameState state)
-    {
-        if (waitingState != null) clientStats.overwrittenServerFrames++;
-        clientStats.totalReceivedFrames++;
-
-        waitingState = state;
-        lastServerFrame = state.frameID;
-
-        // May not be in there, but that's fine (it just returns false)
-        pastInputs.Remove(lastServerFrame - 1);
     }
     
     //[Client]
@@ -713,6 +759,7 @@ public class OnlineGameControl : NetworkBehaviour
         }
     }
 
+#endif
 
 
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -721,9 +768,31 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
     IDictionary<int, GameObject> players;
+    IDictionary<int, InputPkg> lastPlayerInput;
 
     private bool gameRunning = false;
     private int frameOn = 0;
+
+    // TODO: Split into server/client/shared initialisation functions?
+    private void Awake()
+    {
+        Physics2D.simulationMode = SimulationMode2D.Script;
+        players = new Dictionary<int, GameObject>();
+        lastPlayerInput = new Dictionary<int, InputPkg>();
+
+#if UNITY_SERVER
+        queuedPlayerInputs = new Dictionary<int, Queue<InputPkg>>();
+        playerSpeedUpValues = new Dictionary<int, float>();
+#else
+        pastGameStates = new Queue<GameState>();
+        pastInputs = new Dictionary<int, InputPkg>();
+#endif
+    }
+
+    private void Start()
+    {
+        StartCoroutine(ShowStats());
+    }
 
     public int NumberOfPlayers()
     {
@@ -779,71 +848,82 @@ public class OnlineGameControl : NetworkBehaviour
         if (!gameRunning)
             return;
 
+
+#if UNITY_SERVER
         // Server: send state to everyone
-        if (isServer)
-        {
-            frameOn++;
+        frameOn++;
 
-            RemoveDead();
+        RemoveDead();
 
-            ProcessInputs();
+        ProcessInputs();
 
-            Physics2D.Simulate(Time.fixedDeltaTime);
+        Physics2D.Simulate(Time.fixedDeltaTime);
 
-            GameState s = GetCurrentState();
+        GameState s = GetCurrentState();
+        int N = s.ids.Length;
+        s.pkgs = new InputPkg[N];
+        for (int i = 0; i < N; i++)
+            s.pkgs[i] = lastPlayerInput[s.ids[i]];
 
-            // TODO: Do we need to send every frame? Probably...
-            ClientReceiveState(s);
-        }
+        // TODO: Do we need to send every frame? Probably...
+        ClientReceiveState(s);
+
+#else
         // Client: send input to server
-        else
+        if (mPlayer == null || !mPlayer.GetComponent<PlayerOnline>().isReady)
+            return;
+
+        frameOn++;
+
+        if (mPlayer != null)
         {
-            frameOn++;
+            PlayerScript ps = mPlayer.GetComponent<PlayerScript>();
+            InputPkg pkg;
+            pkg.move = ps.GetMove();
+            pkg.turn = ps.GetTurn();
+            //pkg.useWeapon = ps.useNextFrame;
+            pkg.inputFrame = frameOn;
 
-            if (mPlayer != null)
+            if (ps.useNextFrame)
             {
-                PlayerScript ps = mPlayer.GetComponent<PlayerScript>();
-                InputPkg pkg;
-                pkg.move = ps.GetMove();
-                pkg.turn = ps.GetTurn();
-                //pkg.useWeapon = ps.useNextFrame;
-                pkg.inputFrame = frameOn;
-
-                if (ps.useNextFrame)
-                    mPlayer.GetComponent<RobotScript>().LocalUse();
-
-                pastInputs[frameOn] = pkg;
-
-                int id = mPlayer.GetComponent<PlayerOnline>().myID;
-
-                // TODO: Delete check
-                if (id == -1)
-                {
-                    Debug.LogWarning("Game is running but I don't have my ID yet :(");
-                }
-                else
-                {
-                    ServerReceiveInput(id, pkg);
-                    ApplyInputPackage(mPlayer, pkg);
-                }
+                mPlayer.GetComponent<RobotScript>().LocalUse();
+                ps.useNextFrame = false;
             }
 
-            Physics2D.Simulate(Time.fixedDeltaTime);
+            pastInputs[frameOn] = pkg;
 
-            GameState s = GetCurrentState();
-            pastGameStates.Enqueue(s);
+            int id = mPlayer.GetComponent<PlayerOnline>().myID;
 
-            CheckPastState();
-            waitingState = null;
-
-            // Stats
-            clientStats.sumFPS += 1.0f / Time.deltaTime;
-            clientStats.countFPS++;
-
-            clientStats.sumHistoryGamestates += pastGameStates.Count;
-            clientStats.sumHistoryInputs += pastInputs.Count;
-            clientStats.countHistoryMeasure++;
+            // TODO: Delete check
+            if (id == -1)
+            {
+                Debug.LogWarning("Game is running but I don't have my ID yet :(");
+            }
+            else
+            {
+                ServerReceiveInput(id, pkg);
+                ApplyInputPackage(mPlayer, pkg);
+            }
         }
+
+        //AllPlayerInterpolate();
+        AboutToSimulate();
+        Physics2D.Simulate(Time.fixedDeltaTime);
+
+        GameState s = GetCurrentState();
+        pastGameStates.Enqueue(s);
+
+        CheckPastState();
+        waitingState = null;
+
+        // Stats
+        clientStats.sumFPS += 1.0f / Time.deltaTime;
+        clientStats.countFPS++;
+
+        clientStats.sumHistoryGamestates += pastGameStates.Count;
+        clientStats.sumHistoryInputs += pastInputs.Count;
+        clientStats.countHistoryMeasure++;
+#endif
     }
 
     IEnumerator ShowStats()

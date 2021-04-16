@@ -13,7 +13,7 @@ public class HoverMovementController : MovementController
     private float SMOA;
 
     public override float WheelPower { get; set; }
-    private const float baseWheelPower = 500.0f;
+    private const float baseWheelPower = 350.0f;
 
     public float dampConst = 0.5f; // 2 is perfect critical damping, lower is a faster but wobblier turn
 
@@ -100,7 +100,7 @@ public class HoverMovementController : MovementController
         movePowerMultiplier *= baseWheelPower;
         turnPowerMultiplier *= baseWheelPower;
 
-        turnPowerMultiplier *= 1.25f;
+        turnPowerMultiplier *= 1.5f;
     }
 }
 

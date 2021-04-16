@@ -41,6 +41,14 @@ public abstract class WeaponBlock : Block, IDamageDealer
         collision.rigidbody.AddForceAtPosition(-avgNormal.normalized * force, avgPos);
     }
 
+    // Applies in direction direction
+    public static void DirectedForce(Collision2D collision, float force, Vector2 direction)
+    {
+        Vector2 avgPos = AveragePos(collision);
+
+        collision.rigidbody.AddForceAtPosition(direction.normalized * force, avgPos);
+    }
+
     public static void ChainsawForce(Collision2D collision, float force, Transform caller)
     {
         Vector2 avgPos = AveragePos(collision);
@@ -58,9 +66,13 @@ public abstract class WeaponBlock : Block, IDamageDealer
     public static void SpeedDamage(Collision2D collision, Damageable d, float damage, IDamageDealer dealer)
     {
         Vector2 avgPos = AveragePos(collision);
-
         float increased_damage = damage * collision.relativeVelocity.magnitude;
+
+#if UNITY_SERVER
+#else
         SparkScript.CreateSparks(avgPos, increased_damage);
+#endif
+
         dealer.DealDamage(d, increased_damage);
     }
 
@@ -70,7 +82,12 @@ public abstract class WeaponBlock : Block, IDamageDealer
         Vector2 avgPos = AveragePos(collision);
 
         float increased_damage = damage * collision.relativeVelocity.magnitude;
+
+#if UNITY_SERVER
+#else
         SparkScript.CreateSparks(avgPos, increased_damage);
+#endif
+
         dealer.DealDamage(d, increased_damage);
     }
 }

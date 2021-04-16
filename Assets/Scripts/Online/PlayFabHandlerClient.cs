@@ -41,7 +41,7 @@ public class PlayFabHandlerClient : MonoBehaviour
     {
         Debug.Log("Attempting PlayFab login");
 
-        //We need to login a user to get at PlayFab API's. 
+        //We need to login a user to get at PlayFab API's.
         LoginWithCustomIDRequest request = new LoginWithCustomIDRequest()
         {
             TitleId = PlayFabSettings.TitleId,

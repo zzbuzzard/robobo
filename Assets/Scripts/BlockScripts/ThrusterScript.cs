@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ThrusterScript : StaticBlock, IUsableBlock
+public class ThrusterScript : StaticBlock, IUsableBlock, IBlockRequiresUpdate
 {
     [SerializeField]
     private float force;
@@ -37,7 +37,7 @@ public class ThrusterScript : StaticBlock, IUsableBlock
         anim.SetBool("isThrusting", isThrusting);
     }
 
-    private void FixedUpdate()
+    public void FixedUpdate()
     {
         if (isThrusting)
         {
