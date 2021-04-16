@@ -18,6 +18,8 @@ public class NetMan : NetworkManager
     public OnlineGameControl onlinegameControl;
 
 #if UNITY_SERVER
+    private int connNum = 0;
+
     // Spawn points and counter for next spawnpoint
     private readonly static Vector2[] starts = new Vector2[]{
         new Vector2(-10.0f, 10.0f),
@@ -51,8 +53,8 @@ public class NetMan : NetworkManager
     }
     public override void OnServerAddPlayer(NetworkConnection conn)
     {
+        connNum++;
         Debug.Log("Server adding a new player");
-        int connNum = onlinegameControl.NumberOfPlayers();
         GameObject obj = Instantiate(playerPrefab, starts[connNum % starts.Length], Quaternion.identity);
         NetworkServer.AddPlayerForConnection(conn, obj);
         onlinegameControl.AddPlayer(obj, conn);
@@ -112,7 +114,7 @@ public class NetMan : NetworkManager
         while (true)
         {
             yield return new WaitForSeconds(180.0f);
-            if (onlinegameControl.NumberOfPlayers() == 0)
+            if (connNum == 0 || connectionToID.Count == 0)
             {
                 Terminate();
             }
@@ -123,7 +125,6 @@ public class NetMan : NetworkManager
     {
         // TODO: Prevent excess players joining a match
         //       Or mid-game joins
-
         Debug.Log("Server adding a new player");
 
         if (onlinegameControl.gameRunning)
@@ -132,8 +133,7 @@ public class NetMan : NetworkManager
             conn.Disconnect();
             return;
         }
-
-        int connNum = onlinegameControl.NumberOfPlayers();
+        connNum++;
 
         GameObject obj = Instantiate(playerPrefab, starts[connNum % starts.Length], Quaternion.identity);
         NetworkServer.AddPlayerForConnection(conn, obj);
@@ -149,6 +149,8 @@ public class NetMan : NetworkManager
     {
         base.OnServerDisconnect(conn);
         int id = 0;
+
+        connNum--;
 
         if (connectionToID.TryGetValue(conn, out id))
         {

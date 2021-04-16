@@ -795,11 +795,6 @@ public class OnlineGameControl : NetworkBehaviour
     {
         StartCoroutine(ShowStats());
     }
-
-    public int NumberOfPlayers()
-    {
-        return players.Count;
-    }
         
     private GameState GetCurrentState()
     {
