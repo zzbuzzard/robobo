@@ -70,13 +70,17 @@ class GameState
 // TODO:
 // Consider removing inputFrame from here,
 //  and storing it instead in a dictionary on the server
-//  (slower than a buffer, surely? could use buffer as a dict?)
 struct InputPkg
 {
     // turn is Vector2.zero if no turn
     public Vector2 move, turn;
     //public bool useWeapon;
     public int inputFrame;
+
+    public void Lessen()
+    {
+        move *= 0.8f;
+    }
 
     public static InputPkg AveragePkg(InputPkg a, InputPkg b)
     {
@@ -100,7 +104,7 @@ struct InputPkg
 
     public static bool IsInputPkgDifferent(InputPkg a, InputPkg b)
     {
-        const float threshold = 0.01f;
+        const float threshold = 0.05f;
 
         //if (a.useWeapon != b.useWeapon) return true;
         if (Mathf.Abs(a.move.x - b.move.x) > threshold) return true;
@@ -122,6 +126,9 @@ struct InputPkg
 // One instance on each client, and on the server
 // Client: Sends state, checks server's and sometimes reverts physics
 // Server: Receives inputs, moves rigidbodies
+
+// TODO:
+//  InputPkg: Reuse frameOn var for ID
 public class OnlineGameControl : NetworkBehaviour
 {
     ////////////////////////////////////////////////////////////////////////////////////////
@@ -246,9 +253,11 @@ public class OnlineGameControl : NetworkBehaviour
         if (waitingState != null) clientStats.overwrittenServerFrames++;
         clientStats.totalReceivedFrames++;
 
-        for (int i = 0; i < state.ids.Length; i++)
+        // Load states
+        for (int i = 0; i < state.pkgs.Length; i++)
         {
-            lastPlayerInput[state.ids[i]] = state.pkgs[i];
+            int id = state.pkgs[i].inputFrame;
+            lastPlayerInput[id] = state.pkgs[i];
         }
 
         waitingState = state;
@@ -302,10 +311,14 @@ public class OnlineGameControl : NetworkBehaviour
     /////////////////////////////////                      /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////
 #if UNITY_SERVER
+    ServerStats serverStats;
+
     // TODO: Swap this queue for a buffer of fixed size for speed. Profile it.
     IDictionary<int, float> playerSpeedUpValues;
     IDictionary<int, Queue<InputPkg>> queuedPlayerInputs;
+    IDictionary<int, InputPkg> lastPlayerInputSent;
     const int slowDownThreshold = 10;
+    const int pastFrameDiscardBoundary = 5;
 
     //SyncDictionary<int, InputPkg> lastPlayerInputDict = new SyncDictionary<int, InputPkg>();
 
@@ -327,6 +340,7 @@ public class OnlineGameControl : NetworkBehaviour
         players[nextID] = player;
         queuedPlayerInputs[nextID] = new Queue<InputPkg>();
         lastPlayerInput[nextID] = default;
+        lastPlayerInputSent[nextID] = default;
         //lastPlayerInputDict.Add(nextID, default);
         playerSpeedUpValues[nextID] = 0.0f;
 
@@ -356,6 +370,7 @@ public class OnlineGameControl : NetworkBehaviour
                 Destroy(player);
             }
 
+            lastPlayerInputSent.Remove(id);
             lastPlayerInput.Remove(id);
             queuedPlayerInputs.Remove(id);
             playerSpeedUpValues.Remove(id);
@@ -438,35 +453,13 @@ public class OnlineGameControl : NetworkBehaviour
 
             int id = pair.Key;
 
-            //// Handle speedup / slowdown
-            //int lastInput = lastPlayerInput[id].inputFrame;
-
-            //// Slow down if too many frames ahead
-            //if (lastInput > frameOn + slowDownThreshold)
-            //    playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f - 1.0f;
-
-            //else
-            //{
-            //    // Speed up if we're not receiving them in time
-            //    if (lastInput < frameOn)
-            //        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f + 1.0f;
-
-            //    // Otherwise, the speed is just right - reduce the value
-            //    else
-            //        playerSpeedUpValues[id] = playerSpeedUpValues[id] / 2.0f;
-            //}
-
-            //if (Mathf.Abs(playerSpeedUpValues[id]) > 0.5f)
-            //{
-            //    Debug.Log("Player " + id + " last input was at " + lastInput + ", queue size = " + queuedPlayerInputs[id].Count);
-            //}
-
             // TODO: Prevent queue becoming very large.
 
             // No queued moves ... they should speed up so we have a backlog
             if (pair.Value.Count == 0)
             {
                 use = lastPlayerInput[id];
+                use.Lessen();
             }
             else
             {
@@ -477,6 +470,7 @@ public class OnlineGameControl : NetworkBehaviour
                 if (nextInputTime > frameOn)
                 {
                     use = lastPlayerInput[id];
+                    use.Lessen();
                 }
 
                 else
@@ -485,9 +479,19 @@ public class OnlineGameControl : NetworkBehaviour
                     if (nextInputTime < frameOn)
                     {
                         use = pair.Value.Dequeue();
+                        int useLastFrame = use.inputFrame;
+
                         while (pair.Value.Count > 0 && pair.Value.Peek().inputFrame <= frameOn)
                         {
+                            useLastFrame = Mathf.Max(pair.Value.Peek().inputFrame, useLastFrame);
                             use = InputPkg.AveragePkg(use, pair.Value.Dequeue());
+                        }
+
+                        // If its too old, dont do it
+                        if (useLastFrame < frameOn - pastFrameDiscardBoundary)
+                        {
+                            use = lastPlayerInput[id];
+                            use.Lessen();
                         }
                     }
 
@@ -505,9 +509,6 @@ public class OnlineGameControl : NetworkBehaviour
             //    );
             
             lastPlayerInput[id] = use;
-            // This reduces the number of calls
-            //if (InputPkg.IsInputPkgDifferent(use, lastPlayerInputDict[id]))
-            //    lastPlayerInputDict[id] = use;
 
             // Apply this package
             ApplyInputPackage(players[id], use);
@@ -781,6 +782,7 @@ public class OnlineGameControl : NetworkBehaviour
         lastPlayerInput = new Dictionary<int, InputPkg>();
 
 #if UNITY_SERVER
+        lastPlayerInputSent = new Dictionary<int, InputPkg>();
         queuedPlayerInputs = new Dictionary<int, Queue<InputPkg>>();
         playerSpeedUpValues = new Dictionary<int, float>();
 #else
@@ -843,6 +845,10 @@ public class OnlineGameControl : NetworkBehaviour
         //    robot.Use();
     }
 
+#if UNITY_SERVER
+    private List<InputPkg> temp_pkgs = new List<InputPkg>();
+#endif
+
     private void FixedUpdate()
     {
         if (!gameRunning)
@@ -860,10 +866,23 @@ public class OnlineGameControl : NetworkBehaviour
         Physics2D.Simulate(Time.fixedDeltaTime);
 
         GameState s = GetCurrentState();
-        int N = s.ids.Length;
-        s.pkgs = new InputPkg[N];
-        for (int i = 0; i < N; i++)
-            s.pkgs[i] = lastPlayerInput[s.ids[i]];
+
+        temp_pkgs.Clear();
+        for (int i=0; i<s.ids.Length; i++)
+        {
+            int id = s.ids[i];
+            if (InputPkg.IsInputPkgDifferent(lastPlayerInput[id], lastPlayerInputSent[id]))
+            {
+                InputPkg send = lastPlayerInput[id];
+                lastPlayerInputSent[id] = send;
+                send.inputFrame = id;
+                temp_pkgs.Add(send);
+            }
+        }
+        s.pkgs = temp_pkgs.ToArray();
+
+        serverStats.totalInputSent += s.pkgs.Length;
+        serverStats.countInputSent++;
 
         // TODO: Do we need to send every frame? Probably...
         ClientReceiveState(s);
@@ -932,6 +951,7 @@ public class OnlineGameControl : NetworkBehaviour
         {
             yield return new WaitForSeconds(10.0f);
 #if UNITY_SERVER
+            Debug.Log(serverStats.ToString());
 #else
             Debug.Log(clientStats.ToString());
 #endif

@@ -63,6 +63,28 @@ public struct ClientStats
 
 public struct ServerStats
 {
+    // Sending InputPkg
+    public int totalInputSent;
+    public int countInputSent;
+
+    // Player queued inputs
+    public int sumPlayerQueueSizes;
+    public int countPlayerQueueSizes;
+
+    // FPS
     public float sumFPS;
     public int countFPS;
+
+    public override string ToString()
+    {
+        return
+            "**Sent input packages**" +
+            "\nTotal inputs sent: " + totalInputSent +
+            "\nAverage length: " + (totalInputSent / (float)countInputSent).ToString("0.00") +
+
+            "\n\n**FPS**" +
+            "\nAverage FPS: " + (sumFPS / countFPS).ToString("0.000")
+
+            + "\n";
+    }
 }
