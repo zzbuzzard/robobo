@@ -1,5 +1,3 @@
-//#define LOCAL_TEST
-// Dont forget the LOCAL_TEST in NetMan!
 
 using System.Collections;
 using UnityEngine;
@@ -8,6 +6,8 @@ using UnityEngine;
 using PlayFab.ClientModels;
 using PlayFab.MultiplayerModels;
 using PlayFab;
+using System;
+using System.Collections.Generic;
 
 // Client-only class that attempts to find a match via PlayFab
 public class PlayFabHandlerClient : MonoBehaviour
@@ -41,7 +41,7 @@ public class PlayFabHandlerClient : MonoBehaviour
     {
         Debug.Log("Attempting PlayFab login");
 
-        //We need to login a user to get at PlayFab API's. 
+        //We need to login a user to get at PlayFab API's.
         LoginWithCustomIDRequest request = new LoginWithCustomIDRequest()
         {
             TitleId = PlayFabSettings.TitleId,
@@ -83,7 +83,7 @@ public class PlayFabHandlerClient : MonoBehaviour
             },
 
             // Cancel matchmaking if a match is not found after 120 seconds.
-            GiveUpAfterSeconds = 120,
+            GiveUpAfterSeconds = 1200,
 
             // The name of the queue to submit the ticket into.
             QueueName = QueueName,
@@ -130,6 +130,28 @@ public class PlayFabHandlerClient : MonoBehaviour
 
     private void OnGetMatch(GetMatchResult obj)
     {
+        if(obj.ServerDetails == null)
+        {
+            Debug.Log("No Server Details");
+            RequestMultiplayerServerRequest requestData = new RequestMultiplayerServerRequest
+            {
+                BuildId = "76a0c551-50ba-4605-8545-8639cc32e44e",
+                SessionId = "9738d59a-176b-4381-8bae-0e7a38f8f6e1",
+                PreferredRegions = new List<string>() { "NorthEurope" }
+            };
+            PlayFabMultiplayerAPI.RequestMultiplayerServer(requestData, this.OnServerSuccess, this.OnServerError);
+            /***PlayFabMultiplayerAPI.RequestMultiplayerServer(
+                new RequestMultiplayerServerRequest
+                {
+                    PreferredRegions = {"NorthEurope" },
+                    BuildId = "76a0c551-50ba-4605-8545-8639cc32e44e",
+                    SessionId = "yaBoi"
+
+                },
+                this.OnServerSuccess,
+                this.OnServerError);***/
+            return;
+        }
         Debug.Log("Server details: " + obj.ServerDetails.ToString());
         foreach (MatchmakingPlayerWithTeamAssignment a in obj.Members)
         {
@@ -143,6 +165,29 @@ public class PlayFabHandlerClient : MonoBehaviour
             if (obj.ServerDetails.Ports.Count > 0)
             {
                 foreach (Port a in obj.ServerDetails.Ports)
+                {
+                    GetComponent<kcp2k.KcpTransport>().Port = (ushort)a.Num;
+                }
+            }
+        }
+
+        //telepathyTransport.port = (ushort)obj.ServerDetails.Ports[0].Num;
+
+        netMan.StartClient();
+    }
+
+
+    private void OnServerSuccess(RequestMultiplayerServerResponse response)
+    {
+        Debug.Log("Found Server");
+        Debug.Log(response.State);
+        netMan.networkAddress = response.IPV4Address;
+
+        if (response.Ports != null)
+        {
+            if (response.Ports.Count > 0)
+            {
+                foreach (Port a in response.Ports)
                 {
                     GetComponent<kcp2k.KcpTransport>().Port = (ushort)a.Num;
                 }
@@ -195,6 +240,12 @@ public class PlayFabHandlerClient : MonoBehaviour
     {
         Debug.Log("Get match error: " + response.ToString());
     }
+
+    private void OnServerError(PlayFabError response)
+    {
+        Debug.Log("Get Server error: " + response.ToString());
+    }
+
 #endif
 #endif
 }
