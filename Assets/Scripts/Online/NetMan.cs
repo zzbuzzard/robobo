@@ -126,6 +126,13 @@ public class NetMan : NetworkManager
 
         Debug.Log("Server adding a new player");
 
+        if (onlinegameControl.gameRunning)
+        {
+            Debug.Log("Rip, they missed the start");
+            conn.Disconnect();
+            return;
+        }
+
         int connNum = onlinegameControl.NumberOfPlayers();
 
         GameObject obj = Instantiate(playerPrefab, starts[connNum % starts.Length], Quaternion.identity);

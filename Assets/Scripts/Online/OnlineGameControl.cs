@@ -350,7 +350,7 @@ public class OnlineGameControl : NetworkBehaviour
         // TODO: Allow for non 1v1s
         if (players.Count == 2)
         {
-            ServerStartGame();
+            Invoke("ServerStartGame", 10.0f);
         }
 
         return nextID++;
@@ -771,7 +771,7 @@ public class OnlineGameControl : NetworkBehaviour
     IDictionary<int, GameObject> players;
     IDictionary<int, InputPkg> lastPlayerInput;
 
-    private bool gameRunning = false;
+    public bool gameRunning { get; private set; } = false;
     private int frameOn = 0;
 
     // TODO: Split into server/client/shared initialisation functions?

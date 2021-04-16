@@ -1,7 +1,8 @@
+//#define LOCAL_TEST
+// Dont forget the LOCAL_TEST in PlayFabHandlerClient!
 
 using System.Collections;
 using UnityEngine;
-
 //using PlayFab.MultiplayerAgent.Model;
 using PlayFab.ClientModels;
 using PlayFab.MultiplayerModels;
