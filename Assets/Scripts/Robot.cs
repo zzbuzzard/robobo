@@ -154,7 +154,7 @@ public class Robot
 
     public static Robot RandomFileRobot()
     {
-        const int maxnum = 16;
+        const int maxnum = 18;
 
         int pick = Random.Range(0, maxnum + 1);
         string path = Path.Combine("Robots", "robot" + pick);

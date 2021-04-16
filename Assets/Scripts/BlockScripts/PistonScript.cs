@@ -42,6 +42,10 @@ public class PistonScript : WeaponBlock, IUsableBlock, ICollisionForwardParent
         // If it's not a physics object, return
         if (collision.rigidbody == null) return;
 
-        WeaponBlock.StandardForce(collision, force);
+        float mAng = (transform.rotation.eulerAngles.z + 90.0f) * Mathf.Deg2Rad;
+        Vector2 mDir = new Vector2(Mathf.Cos(mAng), Mathf.Sin(mAng));
+
+        WeaponBlock.DirectedForce(collision, force, mDir);
+        //WeaponBlock.StandardForce(collision, force);
     }
 }

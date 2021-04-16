@@ -45,6 +45,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parent: {fileID: 3880045214022308578}
+  isInterpolating: 0
+  initialised: 0
 --- !u!212 &5548741350845259883
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -139,9 +141,9 @@ MonoBehaviour:
   x: 0
   y: 0
   hp: 50
-  density: 3
+  density: 2
   damage: 0
-  force: 80000
+  force: 85000
 --- !u!1 &6595578926469156696
 GameObject:
   m_ObjectHideFlags: 0
@@ -187,6 +189,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parent: {fileID: 7087687473842422173}
+  isInterpolating: 0
+  initialised: 0
 --- !u!212 &9122256452050972183
 SpriteRenderer:
   m_ObjectHideFlags: 0

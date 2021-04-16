@@ -46,6 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parent: {fileID: 675246400406279018}
   isInterpolating: 0
+  initialised: 0
 --- !u!212 &3071015075745146716
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -158,10 +159,10 @@ MonoBehaviour:
   syncInterval: 0.1
   x: 0
   y: 0
-  hp: 40
-  density: 1.5
+  hp: 50
+  density: 0.8
   forward_friction: 0.3
-  lateral_friction: 2
+  lateral_friction: 6
 --- !u!1001 &2839447232186056340
 PrefabInstance:
   m_ObjectHideFlags: 0

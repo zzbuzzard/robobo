@@ -41,6 +41,14 @@ public abstract class WeaponBlock : Block, IDamageDealer
         collision.rigidbody.AddForceAtPosition(-avgNormal.normalized * force, avgPos);
     }
 
+    // Applies in direction direction
+    public static void DirectedForce(Collision2D collision, float force, Vector2 direction)
+    {
+        Vector2 avgPos = AveragePos(collision);
+
+        collision.rigidbody.AddForceAtPosition(direction.normalized * force, avgPos);
+    }
+
     public static void ChainsawForce(Collision2D collision, float force, Transform caller)
     {
         Vector2 avgPos = AveragePos(collision);

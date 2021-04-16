@@ -15,7 +15,7 @@ public class TrackMovementController : MovementController
     private float SMOA;
 
     public override float WheelPower { get; set; }
-    private const float baseWheelPower = 500.0f;
+    private const float baseWheelPower = 400.0f;
 
     private float movePowerMultiplier = 0.0f, turnPowerMultiplier = 0.0f;
 
@@ -140,6 +140,6 @@ public class TrackMovementController : MovementController
         movePowerMultiplier *= baseWheelPower;
         turnPowerMultiplier *= baseWheelPower;
 
-        turnPowerMultiplier *= 1.5f;
+        turnPowerMultiplier *= 2.5f;
     }
 }

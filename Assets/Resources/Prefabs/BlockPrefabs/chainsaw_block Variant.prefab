@@ -46,6 +46,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parent: {fileID: 8421856335448374592}
   isInterpolating: 0
+  initialised: 0
 --- !u!212 &5913954650589949259
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -175,7 +176,7 @@ MonoBehaviour:
   x: 0
   y: 0
   hp: 40
-  density: 5
+  density: 2
   force: -10000
   damage: 30
 --- !u!1 &7888619561677819374

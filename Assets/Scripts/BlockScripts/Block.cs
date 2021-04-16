@@ -162,6 +162,9 @@ public abstract class Block : NetworkBehaviour
         rig.mass = density * 1.5f * 1.5f; // should be collider area, but that doesn't seem to be gettable
         rig.velocity = GetParent().mrig.GetPointVelocity(transform.position);
 
+        rig.velocity += new Vector2(Random.Range(-3.0f, 3.0f), Random.Range(-3.0f, 3.0f));
+        rig.angularVelocity += Random.Range(-90.0f, 90.0f);
+
         transform.SetParent(null);
     }
 }

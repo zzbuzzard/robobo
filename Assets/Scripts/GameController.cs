@@ -106,8 +106,10 @@ public class GameController : MonoBehaviour
             //if (Random.Range(0, 1.0f) < 0.1f) r = Controller.playerRobot;
             //else r = Robot.GenerateRandomRobot((int)blockz, (int)weaponz, 0.15f);
 
-            r = parity ? Controller.playerRobot : Robot.RandomFileRobot();
-            parity = !parity;
+            r = Robot.RandomFileRobot();
+
+            //r = parity ? Controller.playerRobot : Robot.RandomFileRobot();
+            //parity = !parity;
 
             //r = Robot.RandomFileRobot();
 
@@ -118,8 +120,9 @@ public class GameController : MonoBehaviour
 
             while (obj != null && obj.transform.childCount > 0)
             {
-                yield return new WaitForSeconds(10.0f);
+                yield return new WaitForSeconds(1.0f);
             }
+            yield return new WaitForSeconds(1.0f);
         }
     }
 
